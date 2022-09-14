@@ -4146,7 +4146,7 @@
 <li><p>对于包含子View的视图组（ViewGroup），<strong>结构是树形结构</strong></p>
 </li>
 <li><p>ViewGroup下可能有多个ViewGroup或View，如下图：</p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/a0fed9306691fdfd64333c1e66350d10.png" alt="img"></p>
+<p><img src="C:/Users/xkadpz/AppData/Roaming/Typora/typora-user-images/image-20220914224106649.png" alt="image-20220914224106649"></p>
 <blockquote>
 <p>在View的绘制过程中，<strong>永远都是从View树结构的根节点开始(即从树的顶端开始)，一层一层、一个个分支地自上而下遍历进行（即树形递归）</strong>，最终计算整个View树中各个View，从而最终确定整个View树的相关属性。</p>
 </blockquote>
@@ -4158,10 +4158,10 @@
 <li>向右为x轴增大方向</li>
 <li>向下为y轴增大方向</li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/f2b54d093c9cce2235daa05dbf656a06.png" alt="img"></p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/1b18ace8b8c561d170695085e7561477.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224144848.png" alt="image-20220914224144848"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224201409.png" alt="image-20220914224201409"></p>
 <h3 id="6、View位置（坐标）描述"><a href="#6、View位置（坐标）描述" class="headerlink" title="6、View位置（坐标）描述"></a>6、View位置（坐标）描述</h3><p>视图的位置由四个顶点决定，ABCD</p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/11e2f4559b67903b0b98c0d2e5883a19.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224217782.png" alt="image-20220914224217782"></p>
 <p>视图的位置是相对于父控件而言的，四个顶点的位置描述分别由四个与父控件相关的值决定：</p>
 <ul>
 <li>顶部(Top)：视图上边界到父控件上边界的距离；</li>
@@ -4169,15 +4169,14 @@
 <li>右边(Right)：视图右边界到父控件左边界的距离；</li>
 <li>底部(Bottom)：视图下边界到父控件上边界的距离。</li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/19c38fb06a36868ce9a8d640cafbe4e4.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224237638.png" alt="image-20220914224237638"></p>
 <h3 id="7-位置获取方式"><a href="#7-位置获取方式" class="headerlink" title="7. 位置获取方式"></a>7. 位置获取方式</h3><p>视图的位置获取是通过<code>View.getXXX()</code>方法进行获取。</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">获取顶部距离(Top)：getTop()</span><br><span class="line">获取左边距离(Left)：getLeft()</span><br><span class="line">获取右边距离(Right)：getRight()</span><br><span class="line">获取底部距离(Bottom)：getBottom()</span><br></pre></td></tr></table></figure>
 
 <p>MotionEvent中 <code>get()</code>和<code>getRaw()</code>的区别</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//get() ：触摸点相对于其所在组件坐标系的坐标</span></span><br><span class="line"> event.getX();       </span><br><span class="line"> event.getY();</span><br><span class="line"></span><br><span class="line"><span class="comment">//getRaw() ：触摸点相对于屏幕默认坐标系的坐标</span></span><br><span class="line"> event.getRawX();    </span><br><span class="line"> event.getRawY();</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/41c69d800d8145d59ae167b97426d516.png" alt="img"></p>
-<h3 id="8-角度（angle）-amp-弧度（radian）"><a href="#8-角度（angle）-amp-弧度（radian）" class="headerlink" title="8. 角度（angle）&amp; 弧度（radian）"></a>8. 角度（angle）&amp; 弧度（radian）</h3><p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/0f9ea49aa3c1d8fbff428aa39eec89a9.png" alt="img"></p>
+<h3 id="度（radian"><a href="#度（radian" class="headerlink" title="度（radian)"></a><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224303841.png" alt="image-20220914224303841">度（radian)</h3><h3 id="8、-角度（angle）-amp-弧度（radian）"><a href="#8、-角度（angle）-amp-弧度（radian）" class="headerlink" title="8、 角度（angle）&amp; 弧度（radian）"></a>8、 角度（angle）&amp; 弧度（radian）</h3><p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224616501.png" alt="image-20220914224616501"></p>
 <h3 id="9、-颜色相关"><a href="#9、-颜色相关" class="headerlink" title="9、 颜色相关"></a>9、 颜色相关</h3><p><strong>颜色模式</strong></p>
 <ul>
 <li>ARGB8888：四通道高精度(32位)</li>
@@ -4209,7 +4208,7 @@
 <blockquote>
 <p>View<code>层的事件都先经过</code>DecorView<code>，再传递到</code>View；</p>
 <p>内含1个竖直方向的<code>LinearLayout</code>，分为2部分：上 = 标题栏<code>（titlebar）</code>、下 = 内容栏<code>（content）</code></p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/3adc208b5c311a870bf5059faed230a8.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224757857.png" alt="image-20220914224757857"></p>
 <p>在<code>Activity</code>中通过 <code>setContentView（）</code>所设置的布局文件其实是被加到内容栏之中的，成为其唯一子View = id为content的<code>FrameLayout</code>中。</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在代码中可通过content得到对应加载的布局</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 得到content</span></span><br><span class="line">ViewGroup content = (ViewGroup)findViewById(android.R.id.content);</span><br><span class="line"><span class="comment">// 2. 得到设置的View</span></span><br><span class="line">ViewGroup rootView = (ViewGroup) content.getChildAt(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
 
@@ -4249,14 +4248,14 @@
 <td></td>
 </tr>
 </tbody></table>
-<h3 id="2、绘制步骤："><a href="#2、绘制步骤：" class="headerlink" title="2、绘制步骤："></a>2、绘制步骤：</h3><p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/08eccbd4be86faf28c2d0d82a02f8426.png" alt="img"></p>
+<h3 id="2、绘制步骤："><a href="#2、绘制步骤：" class="headerlink" title="2、绘制步骤："></a>2、绘制步骤：</h3><p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224919441.png" alt="image-20220914224919441"></p>
 <h4 id="1、概述"><a href="#1、概述" class="headerlink" title="1、概述"></a>1、概述</h4><p>View 的绘制流程开始于：ViewRootImpl对象的performTraversals()</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 源码分析：ViewRootImpl.performTraversals()</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">performTraversals</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  		<span class="comment">// 1. 执行measure流程</span></span><br><span class="line">        <span class="comment">// 内部会调用performMeasure()</span></span><br><span class="line">        measureHierarchy(host, lp, res,desiredWindowWidth, desiredWindowHeight);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 执行layout流程</span></span><br><span class="line">        performLayout(lp, mWidth, mHeight);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 执行draw流程</span></span><br><span class="line">        performDraw();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong><code>View</code>的绘制流程从顶级<code>View（DecorView）</code>的<code>ViewGroup</code>开始，一层一层从<code>ViewGroup</code>至子<code>View</code>遍历测绘</strong>。即：自上而下遍历、由父视图到子视图、每一个 <code>ViewGroup</code> 负责测绘它所有的子视图，而最底层的 View 会负责测绘自身</p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/9944fa871f479ce72db89ec85c52992c.png" alt="img"></p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/cf48f9488d9f0e471782d03b82599f45.png" alt="img"></p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/a614e22232d8afdc7e268123e7113e98.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914224951127.png" alt="image-20220914224951127"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225015532.png" alt="image-20220914225015532"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225037452.png" alt="image-20220914225037452"></p>
 <h3 id="3、详细介绍"><a href="#3、详细介绍" class="headerlink" title="3、详细介绍"></a>3、详细介绍</h3><ul>
 <li><p>Measure过程</p>
 <p>作用：测量<code>View</code>的宽 / 高</p>
@@ -4283,11 +4282,10 @@
 <td>1.遍历测量所有子View的尺寸<br/>2.合并将所有子View的尺寸进行，最终得到ViewGroup父视图的测量值<br>（<code>即遍历调用所有子元素的measure（）&amp;各子元素再递归去执行该流程</code>）</td>
 </tr>
 </tbody></table>
-</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/d132e9cbf39de3aac4a03f32fe477cef.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225313347.png" alt="image-20220914225313347"></p>
+<p><img src="C:/Users/xkadpz/AppData/Roaming/Typora/typora-user-images/image-20220914225240518.png" alt="image-20220914225240518"></p>
 <p><a href="https://blog.csdn.net/carson_ho/article/details/56011064">自定义View Measure过程</a></p>
-<ul>
+</li>
 <li><p>Layout过程</p>
 <p>作用：计算视图<code>（View）</code>的位置</p>
 <table>
@@ -4306,11 +4304,9 @@
 <td>1.计算自身的位置：layout（）<br>2.遍历子View、计算子View的位置&amp;设置<br>（<code>（复写）ViewGroup.onLayout（）、子View.layout（）、子View.onLayout（）</code>）<br>3.如此不断循环，最终确定所有子View在父容器的位置，即layout过程完毕</td>
 </tr>
 </tbody></table>
-</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/af56deb0a1d5db485e87e7203ef4abd9.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225344433.png" alt="image-20220914225344433"></p>
 <p><a href="https://blog.csdn.net/carson_ho/article/details/56011112">自定义View Layout过程</a></p>
-<ul>
+</li>
 <li><p>Draw过程</p>
 <p>作用：绘制<code>View</code>视图</p>
 <table>
@@ -4331,7 +4327,7 @@
 </tbody></table>
 </li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/4895cc1dd0e7c833d5bbdb8b57e589cf.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225444742.png" alt="image-20220914225444742"></p>
 <p><a href="https://blog.csdn.net/carson_ho/article/details/56011153">自定义View Draw过程</a></p>
 <h3 id="4、实例"><a href="#4、实例" class="headerlink" title="4、实例"></a>4、实例</h3><p><strong>使用场景</strong></p>
 <table>
@@ -4371,7 +4367,7 @@
 <p><strong>注意事项</strong></p>
 <ol>
 <li><p>支持特殊属性：wrap_content、padding、margin</p>
-<ol>
+</li>
 <li><p>支持wrap_content<br>如果不在<code>onMeasure（）</code>中对<code>wrap_content</code>作特殊处理，那么<code>wrap_content</code>属性将失效</p>
 <p><a href="https://www.jianshu.com/p/ca118d704b5e">为什么你设置的wrap_content不起作用？</a></p>
 </li>
@@ -4384,7 +4380,7 @@
 <li>对于继承ViewGroup的控件，padding和margin会直接影响measure和layout过程</li>
 </ol>
 </blockquote>
-</li>
+<ol start="2">
 <li><p>多线程直接使用post方式：避免使用Handler等其他方式</p>
 <p>View的内部本身提供了post系列的方法，完全可以替代Handler的作用，使用起来更加方便、直接。</p>
 </li>
@@ -4433,8 +4429,8 @@
 <p>案例：先画一个矩形（蓝色）；然后移动画布；再画一个矩形（红色）</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"> <span class="comment">// 画一个矩形(蓝色)</span></span><br><span class="line">canvas.drawRect(<span class="number">100</span>, <span class="number">100</span>, <span class="number">150</span>, <span class="number">150</span>, mPaint1);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将画布的原点移动到(400,500)</span></span><br><span class="line">canvas.translate(<span class="number">400</span>,<span class="number">500</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 再画一个矩形(红色)</span></span><br><span class="line">canvas.drawRect(<span class="number">100</span>, <span class="number">100</span>, <span class="number">150</span>, <span class="number">150</span>, mPaint2);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/97325ee603687be2495160aa916b39ee.png" alt="img"></p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/98de95c85db9aa88f8c14af1b9aacaa2.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225549360.png" alt="image-20220914225549360"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225642316.png" alt="image-20220914225642316"></p>
 <h4 id="1、基础-1"><a href="#1、基础-1" class="headerlink" title="1、基础"></a>1、基础</h4><h5 id="Paint类"><a href="#Paint类" class="headerlink" title="Paint类"></a>Paint类</h5><p>定义：画笔</p>
 <p>作用：确定绘制内容的具体效果(颜色、大小)</p>
 <blockquote>
@@ -4449,7 +4445,7 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 步骤1：创建一个画笔</span></span><br><span class="line"><span class="keyword">private</span> Paint mPaint = <span class="keyword">new</span> Paint();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 步骤2：初始化画笔</span></span><br><span class="line"><span class="comment">// 根据需求设置画笔的各种属性，具体如下：</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPaint</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置最基本的属性</span></span><br><span class="line">        <span class="comment">// 设置画笔颜色</span></span><br><span class="line">        <span class="comment">// 可直接引入Color类，如Color.red等</span></span><br><span class="line">        mPaint.setColor(<span class="keyword">int</span> color); </span><br><span class="line">        <span class="comment">// 设置画笔模式</span></span><br><span class="line">         mPaint.setStyle(Style style); </span><br><span class="line">        <span class="comment">// Style有3种类型：</span></span><br><span class="line">        <span class="comment">// 类型1：Paint.Style.FILLANDSTROKE（描边+填充）</span></span><br><span class="line">        <span class="comment">// 类型2：Paint.Style.FILL（只填充不描边）</span></span><br><span class="line">        <span class="comment">// 类型3：Paint.Style.STROKE（只描边不填充）</span></span><br><span class="line">        <span class="comment">// 具体差别请看下图：</span></span><br><span class="line">        <span class="comment">// 特别注意：前两种就相差一条边</span></span><br><span class="line">        <span class="comment">// 若边细是看不出分别的；边粗就相当于加粗       </span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">//设置画笔的粗细</span></span><br><span class="line">        mPaint.setStrokeWidth(<span class="keyword">float</span> width)       </span><br><span class="line">        <span class="comment">// 如设置画笔宽度为10px</span></span><br><span class="line">        mPaint.setStrokeWidth(<span class="number">10f</span>);    </span><br><span class="line"></span><br><span class="line">        <span class="comment">// 不常设置的属性</span></span><br><span class="line">        <span class="comment">// 得到画笔的颜色     </span></span><br><span class="line">        mPaint.getColor()      </span><br><span class="line">        <span class="comment">// 设置Shader</span></span><br><span class="line">        <span class="comment">// 即着色器，定义了图形的着色、外观</span></span><br><span class="line">        <span class="comment">// 可以绘制出多彩的图形</span></span><br><span class="line">        <span class="comment">// 具体请参考文章：http://blog.csdn.net/iispring/article/details/50500106</span></span><br><span class="line">        Paint.setShader(Shader shader)  </span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置画笔的a,r,p,g值</span></span><br><span class="line">       mPaint.setARGB(<span class="keyword">int</span> a, <span class="keyword">int</span> r, <span class="keyword">int</span> g, <span class="keyword">int</span> b)      </span><br><span class="line">         <span class="comment">//设置透明度</span></span><br><span class="line">        mPaint.setAlpha(<span class="keyword">int</span> a)   </span><br><span class="line">       <span class="comment">//得到画笔的Alpha值</span></span><br><span class="line">        mPaint.getAlpha()        </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 对字体进行设置（大小、颜色）</span></span><br><span class="line">        <span class="comment">//设置字体大小</span></span><br><span class="line">          mPaint.setTextSize(<span class="keyword">float</span> textSize)       </span><br><span class="line"></span><br><span class="line">        <span class="comment">// 文字Style三种模式：</span></span><br><span class="line">          mPaint.setStyle(Style style); </span><br><span class="line">        <span class="comment">// 类型1：Paint.Style.FILLANDSTROKE（描边+填充）</span></span><br><span class="line">        <span class="comment">// 类型2：Paint.Style.FILL（只填充不描边）</span></span><br><span class="line">        <span class="comment">// 类型3：Paint.Style.STROKE（只描边不填充） </span></span><br><span class="line">        </span><br><span class="line">      <span class="comment">// 设置对齐方式   </span></span><br><span class="line">      setTextAlign（）</span><br><span class="line">      <span class="comment">// LEFT：左对齐</span></span><br><span class="line">      <span class="comment">// CENTER：居中对齐</span></span><br><span class="line">      <span class="comment">// RIGHT：右对齐</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置文本的下划线</span></span><br><span class="line">          setUnderlineText(<span class="keyword">boolean</span> underlineText)      </span><br><span class="line">        </span><br><span class="line">        <span class="comment">//设置文本的删除线</span></span><br><span class="line">        setStrikeThruText(<span class="keyword">boolean</span> strikeThruText)    </span><br><span class="line"></span><br><span class="line">         <span class="comment">//设置文本粗体</span></span><br><span class="line">        setFakeBoldText(<span class="keyword">boolean</span> fakeBoldText)  </span><br><span class="line">        </span><br><span class="line">           <span class="comment">// 设置斜体</span></span><br><span class="line">        Paint.setTextSkewX(-<span class="number">0.5f</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 设置文字阴影</span></span><br><span class="line">        Paint.setShadowLayer(<span class="number">5</span>,<span class="number">5</span>,<span class="number">5</span>,Color.YELLOW);</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 步骤3：在构造函数中初始化</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CarsonView</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs);</span><br><span class="line">        initPaint();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>Style模式效果</strong>如下：</p>
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/a3961e45e3cbebb2fbddbcd53b102c30.png" alt="img"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/image-20220914225703874.png" alt="image-20220914225703874"></p>
 <h5 id="2、Path类"><a href="#2、Path类" class="headerlink" title="2、Path类"></a>2、Path类</h5><p>定义：路径，即无数个点连起来的线</p>
 <p>作用：设置绘制的顺序 &amp; 区域</p>
 <blockquote>
