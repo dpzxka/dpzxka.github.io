@@ -4501,7 +4501,7 @@
 <p>原理：两点（初始点 &amp; 结束点）确定一条直线</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 画一条直线</span></span><br><span class="line"><span class="comment">// 在坐标(100,200)，(700,200)之间绘制一条直线</span></span><br><span class="line">   canvas.drawLine(<span class="number">100</span>,<span class="number">200</span>,<span class="number">700</span>,<span class="number">200</span>,mPaint1);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 绘制一组线</span></span><br><span class="line"><span class="comment">// 在坐标(400,500)，(500,500)之间绘制直线1</span></span><br><span class="line"><span class="comment">// 在坐标(400,600)，(500,600)之间绘制直线2</span></span><br><span class="line">        canvas.drawLines(<span class="keyword">new</span> <span class="keyword">float</span>[]&#123;</span><br><span class="line">                <span class="number">400</span>,<span class="number">500</span>,<span class="number">500</span>,<span class="number">500</span>,</span><br><span class="line">                <span class="number">400</span>,<span class="number">600</span>,<span class="number">500</span>,<span class="number">600</span></span><br><span class="line">        &#125;,mPaint2);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/506dbc83a1709ca22107650c422f73a7.png" alt="效果图"></p>
+<p><img src="https://raw.githubusercontent.com/dpzxka/typora_pictures/master/506dbc83a1709ca22107650c422f73a7.png" alt="效果图"><br>hexo </p>
 </li>
 <li><p>矩形</p>
 <p>原理：矩形的对角线顶点确定一个矩形(一般是采用左上角和右下角的两个点的坐标。)</p>
