@@ -754,12 +754,9 @@
   <entry>
     <title>Android 知识点</title>
     <url>/2022/04/22/Android/Android%E7%9F%A5%E8%AF%86%E7%82%B9/</url>
-    <content><![CDATA[<h2 id="Android-知识点"><a href="#Android-知识点" class="headerlink" title="Android 知识点"></a>Android 知识点</h2><p><strong>算法部分</strong></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Algorithm/%E6%89%93%E9%81%8D%E5%A4%A9%E4%B8%8B%E4%BA%8C%E5%8F%89%E6%A0%91.md">打遍天下二叉树</a></p>
+    <content><![CDATA[<h2 id="Android-知识点"><a href="#Android-知识点" class="headerlink" title="Android 知识点"></a>Android 知识点</h2><h3 id="算法部分"><a href="#算法部分" class="headerlink" title="算法部分"></a>算法部分</h3><p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Algorithm/%E6%89%93%E9%81%8D%E5%A4%A9%E4%B8%8B%E4%BA%8C%E5%8F%89%E6%A0%91.md">打遍天下二叉树</a></p>
 <p><a href="https://github.com/labuladong/fucking-algorithm">labuladong的fucking-algorithm</a></p>
-<p><strong>Java基础</strong></p>
-<p>Java集合源码复习一遍</p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E9%9B%86%E5%90%88/ArrayList%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">ArrayList源码解析</a></p>
+<h3 id="Java基础"><a href="#Java基础" class="headerlink" title="Java基础"></a>Java基础</h3><p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E9%9B%86%E5%90%88/ArrayList%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">ArrayList源码解析</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E9%9B%86%E5%90%88/LinkedList%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">LinkedList源码解析</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E9%9B%86%E5%90%88/CopyOnWriteArrayList%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">CopyOnWriteArrayList源码解析</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E9%9B%86%E5%90%88/HashMap%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">HashMap源码解析</a></p>
@@ -774,7 +771,9 @@
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E5%9F%BA%E7%A1%80/%E5%8F%8D%E5%B0%84.md">反射</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E5%9F%BA%E7%A1%80/%E6%B3%A8%E8%A7%A3.md">注解</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/%E5%9F%BA%E7%A1%80/%E5%8F%8D%E5%B0%84%E6%80%A7%E8%83%BD%E5%BC%80%E9%94%80%E5%8E%9F%E7%90%86%E5%8F%8A%E4%BC%98%E5%8C%96.md">反射性能开销原理及优化</a></p>
+<blockquote>
 <p>《深入理解Java虚拟机》</p>
+</blockquote>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/JVM/1.JVM%E5%86%85%E5%AD%98%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F.md">JVM内存数据区域</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/JVM/2.HotSpot%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E8%B1%A1.md">HotSpot虚拟机对象</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/JVM/3.%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5.md">垃圾收集器与内存分配策略</a></p>
@@ -786,73 +785,73 @@
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/JVM/9.%E5%90%8E%E7%AB%AF%E7%BC%96%E8%AF%91%E4%B8%8E%E4%BC%98%E5%8C%96.md">后端编译与优化</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/JVM/10.Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B.md">Java内存模型与线程</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Java/JVM/11.%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E4%B8%8E%E9%94%81%E4%BC%98%E5%8C%96.md">线程安全与锁优化</a></p>
-<p>拉钩教育-《Android 工程师进阶34讲》</p>
+<blockquote>
 <p>拉钩教育-《Java 并发编程 78 讲》</p>
-<ol>
-<li></li>
-</ol>
-<p><strong>Android</strong></p>
+</blockquote>
+<h3 id="Android"><a href="#Android" class="headerlink" title="Android"></a>Android</h3><blockquote>
 <p>《安卓开发艺术探索》</p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_View%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BD%A0%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E7%9A%84%E4%B8%80%E5%88%87.md">死磕Android_View工作原理你需要知道的一切</a></p>
+</blockquote>
+<blockquote>
+<p>拉钩教育-《Android 工程师进阶34讲》</p>
+</blockquote>
+<h4 id="系统源码解析"><a href="#系统源码解析" class="headerlink" title="系统源码解析"></a>系统源码解析</h4><p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_View%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BD%A0%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E7%9A%84%E4%B8%80%E5%88%87.md">死磕Android_View工作原理你需要知道的一切</a></p>
+<p><a href="https://juejin.cn/post/6854573212374663182">View工作原理</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_App_%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%EF%BC%88%E5%90%AB_Activity_%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%EF%BC%89.md">死磕Android_App_启动过程（含_Activity_启动过程）</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_Service%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90(%E4%B8%80).md">死磕Android_Service启动流程分析(一)</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_Service%E7%BB%91%E5%AE%9A%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90(%E4%BA%8C).md">死磕Android_Service绑定流程分析(二)</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_BroadcastReceiver_%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B.md">死磕Android_BroadcastReceiver_工作过程</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_ContentProvider_%E5%90%AF%E5%8A%A8.md">死磕Android_ContentProvider_启动 </a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Window,Activity,View%E4%B8%89%E8%80%85%E5%85%B3%E7%B3%BB.md">Window,Activity,View三者关系</a></p>
+<p><a href="https://blog.csdn.net/hzwailll/article/details/85339714">ActivityThread的理解</a></p>
+<p><a href="http://liuwangshu.cn/tags/ActivityManagerService/">了解AMS</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%A4%9A%E8%BF%9B%E7%A8%8B/AIDL%E8%AF%A6%E8%A7%A3.md">Android进程间通信: 深入浅出AIDL</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%A4%9A%E8%BF%9B%E7%A8%8B/Messenger%E8%AF%A6%E8%A7%A3.md">Android进程间通信: Messenger详解</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%A4%9A%E8%BF%9B%E7%A8%8B/Binder%E8%AF%A6%E8%A7%A3.md">Android进程间通信: Binder详解</a></p>
+<hr>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E7%82%B9%E5%A4%A7%E5%85%A8.md">Handler相关知识点大全</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E6%9C%BA%E5%88%B6%E4%BD%A0%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E7%9A%84%E4%B8%80%E5%88%87.md">Handler机制你需要知道的一切</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E5%90%8C%E6%AD%A5%E5%B1%8F%E9%9A%9C.md">Handler同步屏障</a></p>
+<p><a href="https://mp.weixin.qq.com/s/b6-leHKQZkuxkjll-1109A">硬核！Android 应用启动全流程深度剖析！（进程创建+消息机制+Activity组件管理+Application和Activity初始化+UI布局与绘制+RenderThread渲染+SurfaceFlinger合成）</a></p>
+<p><a href="https://blog.csdn.net/xfhy_/article/details/115436765?spm=1001.2014.3001.5502">Choreographer原理及应用</a></p>
+<p><a href="https://juejin.cn/post/6863756420380196877">终于懂了，屏幕刷新</a></p>
+<p><a href="https://juejin.cn/post/6844903613865672718">Android插件化原理（一）Activity插件化</a></p>
+<p><a href="http://liuwangshu.cn/tags/ClassLoader/">ClassLoader</a></p>
+<p><a href="https://juejin.cn/post/6893870636733890574">Lifecycle</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Lifecycle_%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">Lifecycle_原理解析</a></p>
+<p><a href="https://juejin.cn/post/6903143273737814029">LiveData</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LiveData_%E4%BD%BF%E7%94%A8%E5%8F%8A%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">LiveData_使用及原理解析</a></p>
+<p><a href="https://juejin.cn/post/6915012483421831175">ViewModel</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/ViewModel_%E4%BD%BF%E7%94%A8%E5%8F%8A%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">ViewModel_使用及原理解析</a></p>
+<p><a href="https://juejin.cn/post/6923859213403979789">DataBinding</a></p>
 <p><a href="https://juejin.cn/post/7013640663824597005">Jetpack全家桶</a></p>
 <p><a href="https://juejin.cn/post/6844903889574051848">学习Android Jetpack? 实战和教程这里全都有！</a></p>
-<p><a href="https://juejin.cn/post/6893870636733890574">Lifecycle</a></p>
-<p><a href="https://juejin.cn/post/6903143273737814029">LiveData</a></p>
-<p><a href="https://juejin.cn/post/6915012483421831175">ViewModel</a></p>
 <p><a href="https://juejin.cn/post/6921321173661777933">MVVM</a></p>
-<p><a href="https://juejin.cn/post/6923859213403979789">DataBinding</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E6%9C%BA%E5%88%B6%E4%BD%A0%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E7%9A%84%E4%B8%80%E5%88%87.md">Handler机制你需要知道的一切</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/%E6%AD%BB%E7%A3%95Android_ContentProvider_%E5%90%AF%E5%8A%A8.md">死磕Android_ContentProvider_启动 </a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/LiveData_%E4%BD%BF%E7%94%A8%E5%8F%8A%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">LiveData_使用及原理解析</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Window,Activity,View%E4%B8%89%E8%80%85%E5%85%B3%E7%B3%BB.md">Window,Activity,View三者关系</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E5%90%8C%E6%AD%A5%E5%B1%8F%E9%9A%9C.md">Handler同步屏障</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Choreographer%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8.md">Choreographer原理及应用</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E7%82%B9%E5%A4%A7%E5%85%A8.md">Handler相关知识点大全</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/LeakCanary_%E5%8E%9F%E7%90%86%E6%8E%A2%E7%A9%B6.md">LeakCanary 原理探究</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/OkHttp3_%E5%8E%9F%E7%90%86%E6%8E%A2%E7%A9%B6.md">OkHttp3 原理探究</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/Retrofit_%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">Retrofit 原理解析</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/Glide%E4%B8%BB%E6%B5%81%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">Glide主流程源码解析</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/RxJava3%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">RxJava3原理解析</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/Android-skin-support%E6%8D%A2%E8%82%A4%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3.md">Android-skin-support 换肤原理详解</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%AE%9E%E6%88%98%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D.md">屏幕适配</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%AE%9E%E6%88%98%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E6%8F%92%E4%BB%B6%E5%8C%96.md">插件化</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%AE%9E%E6%88%98%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/%E7%83%AD%E6%9B%B4%E6%96%B0.md">热更新</a></p>
+<p><a href="https://juejin.cn/post/6844904106545414157">编译基础</a></p>
+<p><a href="https://juejin.cn/post/6844904106545414157">编译打包流程</a></p>
+<h3 id="开源框架"><a href="#开源框架" class="headerlink" title="开源框架"></a>开源框架</h3><p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/OkHttp3_%E5%8E%9F%E7%90%86%E6%8E%A2%E7%A9%B6.md">OkHttp3 原理探究</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/Retrofit_%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">Retrofit 原理解析</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/Glide%E4%B8%BB%E6%B5%81%E7%A8%8B%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md">Glide主流程源码解析</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Choreographer%E5%8E%9F%E7%90%86%E5%8F%8A%E5%BA%94%E7%94%A8.md">Choreographer原理及应用</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/LeakCanary_%E5%8E%9F%E7%90%86%E6%8E%A2%E7%A9%B6.md">LeakCanary 原理探究</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/RxJava3%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90.md">RxJava3原理解析</a></p>
+<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E4%B8%89%E6%96%B9%E5%BA%93%E5%8E%9F%E7%90%86/Android-skin-support%E6%8D%A2%E8%82%A4%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3.md">Android-skin-support 换肤原理详解</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/Gradle/Gradle%E7%B3%BB%E5%88%97(%E4%B8%80)_Groovy_%E5%9F%BA%E7%A1%80.md">Gradle系列(一) Groovy 基础</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/Gradle/Gradle%E7%B3%BB%E5%88%97(%E4%BA%8C)_Gradle%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F%E5%92%8Ctask.md">Gradle系列(二) Gradle执行顺序和task</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/Gradle/Gradle%E7%B3%BB%E5%88%97(%E4%B8%89)_Gradle%E9%85%8D%E7%BD%AE%E6%9E%84%E5%BB%BA%E5%92%8C%E6%B8%A0%E9%81%93%E5%8C%85.md">Gradle系列(三) Gradle配置构建和渠道包</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/Gradle/Gradle%E7%B3%BB%E5%88%97(%E5%9B%9B)_Gradle%E6%8F%92%E4%BB%B6.md">Gradle系列(四) Gradle插件</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/Gradle/Gradle%E7%B3%BB%E5%88%97_%E6%8F%92%E4%BB%B6%E7%BB%83%E4%B9%A0-%E5%8A%A8%E6%80%81%E7%A7%BB%E9%99%A4%E6%9D%83%E9%99%90.md">Gradle系列 插件练习-动态移除权限</a></p>
+<p><a href="https://juejin.cn/post/6844903446814916621#comment">Android Gradle 看这一篇就够了</a></p>
+<p><a href="https://blog.csdn.net/zhaoyanjun6/article/details/76408024">Android Gradle 自定义Task 详解</a></p>
 <p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/Gradle/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E5%A4%A7%E5%AE%B6%E7%94%A8Transform_API%E5%92%8CASM%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%98%B2%E5%BF%AB%E9%80%9F%E7%82%B9%E5%87%BB%E6%A1%88%E4%BE%8B.md">手把手教大家用Transform API和ASM实现一个防快速点击案例</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%A4%9A%E8%BF%9B%E7%A8%8B/AIDL%E8%AF%A6%E8%A7%A3.md">Android进程间通信: 深入浅出AIDL</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%A4%9A%E8%BF%9B%E7%A8%8B/Messenger%E8%AF%A6%E8%A7%A3.md">Android进程间通信: Messenger详解</a></p>
-<p><a href="https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E5%A4%9A%E8%BF%9B%E7%A8%8B/Binder%E8%AF%A6%E8%A7%A3.md">Android进程间通信: Binder详解</a></p>
-<p><a href="https://mp.weixin.qq.com/s/b6-leHKQZkuxkjll-1109A">硬核！Android 应用启动全流程深度剖析！（进程创建+消息机制+Activity组件管理+Application和Activity初始化+UI布局与绘制+RenderThread渲染+SurfaceFlinger合成）</a></p>
-<p><a href="https://blog.csdn.net/xfhy_/article/details/115436765?spm=1001.2014.3001.5502">Choreographer原理及应用</a></p>
-<p><a href="https://juejin.cn/post/6863756420380196877">终于懂了，屏幕刷新</a></p>
-<p><a href="https://juejin.cn/post/6854573212374663182">View工作原理</a></p>
-<p><a href="https://juejin.cn/post/6844904106545414157">编译基础</a></p>
-<p><a href="https://juejin.cn/post/6844903613865672718">Android插件化原理（一）Activity插件化</a></p>
-<p><a href="http://liuwangshu.cn/tags/ClassLoader/">ClassLoader</a></p>
 <p><a href="https://rengwuxian.com/tag/kotlin/">hencoder全部Kotlin部分</a></p>
 <p><a href="https://rengwuxian.com/tag/custom-view/">hencoder全部自定义View部分</a></p>
 <p><a href="https://juejin.cn/post/6862548590092140558">协程原理</a></p>
 <p><a href="https://juejin.cn/post/6914802148614242312">flow</a></p>
 <p><a href="https://juejin.cn/post/6884505736836022280">反思｜官方也无力回天？Android SharedPreferences的设计与实现</a></p>
-<p><a href="https://blog.csdn.net/hzwailll/article/details/85339714">ActivityThread的理解</a></p>
-<p><a href="http://liuwangshu.cn/tags/ActivityManagerService/">了解AMS</a></p>
-<p><a href="https://blog.csdn.net/zhaoyanjun6/article/details/76408024">Android Gradle 自定义Task 详解</a></p>
-<p><a href="https://juejin.cn/post/6844904106545414157">编译打包流程</a></p>
-<p><a href="https://juejin.cn/post/6844903446814916621#comment">Android Gradle 看这一篇就够了</a></p>
-<p>真题：</p>
-<p>/  面试真题  /</p>
-<p>只记录了部分公司和部分题目，有时候面试完忘记记录了，后面就想不起来了。</p>
-<p><strong>公司1：</strong></p>
+<h3 id="真题："><a href="#真题：" class="headerlink" title="真题："></a>真题：</h3><p><strong>公司1：</strong></p>
 <ul>
 <li>包体积优化</li>
 <li>handler原理</li>
