@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <defs>
+    <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E65100"/><stop offset="100%" stop-color="#FF9800"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="200" fill="url(#g4)"/>
+  <rect x="30" y="30" width="80" height="80" rx="16" fill="rgba(255,255,255,0.15)"/>
+  <text x="70" y="68" text-anchor="middle" font-size="26" fill="#FFE0B2" font-family="monospace">[ ]</text>
+  <text x="70" y="95" text-anchor="middle" font-size="16" fill="#FFE0B2" font-family="monospace">arr[]</text>
+  <text x="140" y="78" font-size="30" fill="#fff" font-weight="bold">Java 数组</text>
+  <text x="140" y="108" font-size="15" fill="#FFE0B2">一维数组 · 二维数组 · 内存分析 · 排序 · 查找 · 工具类</text>
+  <rect x="30" y="152" width="60" height="22" rx="4" fill="rgba(255,255,255,0.2)"/><text x="60" y="167" text-anchor="middle" font-size="11" fill="#FFE0B2">JAVA</text>
+</svg>

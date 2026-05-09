@@ -1,0 +1,390 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航 | 小白兔与小猪猪</title><meta name="keywords" content="harmonyos,navigation,鸿蒙"><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从基础用法到源码分析，一篇文章彻底搞懂鸿蒙 Navigation 路由导航组件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航">
+<meta property="og:url" content="https://dpzxka.github.io/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="从基础用法到源码分析，一篇文章彻底搞懂鸿蒙 Navigation 路由导航组件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-navigation.svg">
+<meta property="article:published_time" content="2026-05-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-09T01:02:45.891Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="harmonyos">
+<meta property="article:tag" content="navigation">
+<meta property="article:tag" content="鸿蒙">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-navigation.svg"><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":false,"highlightHeightLimit":250},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: XKADPZ","link":"链接: ","source":"来源: 小白兔与小猪猪","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-05-09 09:02:45'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/./img/avatar.jpeg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 目录</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fa-duotone fa-blanket"></i><span> algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fa-brands fa-cloudversify"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/harmonyos-navigation.svg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">小白兔与小猪猪</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 目录</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fa-duotone fa-blanket"></i><span> algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fa-brands fa-cloudversify"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-08T16:00:00.000Z" title="发表于 2026-05-09 00:00:00">2026-05-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-09T01:02:45.891Z" title="更新于 2026-05-09 09:02:45">2026-05-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/harmonyos/">harmonyos</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">4.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>其实我一直准备写一篇关于鸿蒙 Navigation 的文章。在我经过较长时间的筹备之后，终于决定开始动手了。</p>
+<p>目前虽然网上相关的文章也不少，但我觉得没有哪篇写得特别详细的。大多数文章要么只讲了基础用法，要么笼统地过了一遍 API，很少有人把 Navigation 从入门到原理完整串起来的。所以我决定自己写一篇，希望能帮到正在学习鸿蒙开发的读者。</p>
+<p>Navigation 是鸿蒙应用开发中最重要的导航组件之一。如果你是从 Page 跳转的 <code>router.pushUrl</code> 时代过来的，你会发现 Navigation + NavPathStack 这套体系无论是页面管理能力、生命周期控制还是多端适配支持，都远远强于传统的 router 方案。</p>
+<p>阅读本文讲究由浅入深，循序渐进。我们先从简单的开始，逐步深入到源码层面。</p>
+<h2 id="一、Navigation-是什么？先看整体架构"><a href="#一、Navigation-是什么？先看整体架构" class="headerlink" title="一、Navigation 是什么？先看整体架构"></a>一、Navigation 是什么？先看整体架构</h2><p>Navigation 是鸿蒙提供的路由导航根视图容器。一般作为 Page 页面的根容器使用，内部默认包含了标题栏（Title Bar）、内容区（Content Area）和工具栏（Toolbar）三个区域。</p>
+<p>下图展示了 Navigation 的整体架构：</p>
+<img src="/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/nav-structure.svg" class="" title="Navigation 组件三层架构">
+
+<p>从图中可以看到，Navigation 内部由三大区域组成：</p>
+<ul>
+<li><strong>标题层</strong>：支持主标题/副标题配置，提供 Mini、Free、Full 三种显示模式</li>
+<li><strong>内容层</strong>：动态路由区，通过 NavDestination 承载页面内容。首页可以放 Navigation 的子组件，非首页放 NavDestination 的子组件</li>
+<li><strong>交互层</strong>：集成工具栏，提供搜索、收藏、分享等标准化操作入口</li>
+</ul>
+<p>Navigation 的路由推荐基于 <strong>NavPathStack</strong> 来实现。从 API Version 10 开始，官方推荐使用 NavPathStack 配合 <code>navDestination</code> 属性来进行页面路由管理。</p>
+<h2 id="二、基础入门：三分钟搭建第一个-Navigation-应用"><a href="#二、基础入门：三分钟搭建第一个-Navigation-应用" class="headerlink" title="二、基础入门：三分钟搭建第一个 Navigation 应用"></a>二、基础入门：三分钟搭建第一个 Navigation 应用</h2><p>我们先从一个最简单的例子入手，手把手搭建一个带有首页和详情页的 Navigation 应用。</p>
+<h3 id="2-1-创建-NavPathStack-并绑定到-Navigation"><a href="#2-1-创建-NavPathStack-并绑定到-Navigation" class="headerlink" title="2.1 创建 NavPathStack 并绑定到 Navigation"></a>2.1 创建 NavPathStack 并绑定到 Navigation</h3><p>首先，在页面中创建一个 NavPathStack 对象并绑定到 Navigation：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct Index &#123;</span><br><span class="line">  <span class="comment">// 1. 创建路由栈</span></span><br><span class="line">  <span class="keyword">private</span> stack: NavPathStack = <span class="keyword">new</span> NavPathStack();</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">build</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="comment">// 2. 绑定到 Navigation</span></span><br><span class="line">    <span class="function"><span class="title">Navigation</span>(<span class="params"><span class="built_in">this</span>.stack</span>)</span> &#123;</span><br><span class="line">      <span class="comment">// 首页内容</span></span><br><span class="line">      <span class="function"><span class="title">Column</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        Button(<span class="string">&#x27;进入详情页&#x27;</span>)</span><br><span class="line">          .onClick(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="comment">// 3. 跳转页面</span></span><br><span class="line">            <span class="built_in">this</span>.stack.pushPathByName(<span class="string">&#x27;DetailPage&#x27;</span>, &#123; <span class="attr">id</span>: <span class="number">123</span> &#125;);</span><br><span class="line">          &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .width(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .height(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .justifyContent(FlexAlign.Center)</span><br><span class="line">    &#125;</span><br><span class="line">    .title(<span class="string">&#x27;首页&#x27;</span>)</span><br><span class="line">    .navDestination(<span class="built_in">this</span>.pageMap)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 4. 配置 NavDestination 映射</span></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="function"><span class="title">pageMap</span>(<span class="params">name: <span class="built_in">string</span>, param: <span class="built_in">Object</span></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;DetailPage&#x27;</span>) &#123;</span><br><span class="line">      DetailPage(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> Record&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码虽然只有几十行，但已经涵盖了一个完整的 Navigation 应用所需的核心要素：</p>
+<ol>
+<li>创建 <code>NavPathStack</code> 路由栈实例</li>
+<li>将路由栈传入 <code>Navigation</code> 组件</li>
+<li>通过 <code>pushPathByName</code> 方法进行页面跳转</li>
+<li>通过 <code>@Builder</code> 函数 <code>pageMap</code> 配置页面路由映射</li>
+</ol>
+<h3 id="2-2-编写目标页面"><a href="#2-2-编写目标页面" class="headerlink" title="2.2 编写目标页面"></a>2.2 编写目标页面</h3><p>我们再来看一下 <code>DetailPage</code> 的写法：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct DetailPage &#123;</span><br><span class="line">  <span class="keyword">private</span> param: Record&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">build</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="function"><span class="title">NavDestination</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">      <span class="function"><span class="title">Column</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        Text(<span class="string">`详情页，参数 ID: <span class="subst">$&#123;<span class="built_in">this</span>.param[<span class="string">&#x27;id&#x27;</span>]&#125;</span>`</span>)</span><br><span class="line">          .fontSize(<span class="number">20</span>)</span><br><span class="line">        Button(<span class="string">&#x27;返回&#x27;</span>)</span><br><span class="line">          .onClick(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.stack.pop();</span><br><span class="line">          &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .width(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .height(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .justifyContent(FlexAlign.Center)</span><br><span class="line">    &#125;</span><br><span class="line">    .title(<span class="string">&#x27;详情页&#x27;</span>)</span><br><span class="line">    .onReady(<span class="function">(<span class="params">ctx: NavPathInfo</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 在 onReady 中安全地读取参数</span></span><br><span class="line">      <span class="built_in">this</span>.param = ctx.param <span class="keyword">as</span> Record&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt;;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关键点分析：</p>
+<ul>
+<li>目标页面使用 <code>NavDestination()</code> 作为根容器，而不是 <code>Column</code> 或 <code>Row</code></li>
+<li>参数读取放在 <code>onReady</code> 回调中，这能保证 NavDestination 的上下文已经准备完毕</li>
+<li>返回使用 <code>pop()</code> 方法，它会自动将当前页面弹出路由栈</li>
+</ul>
+<h3 id="2-3-路由映射表（推荐方式）"><a href="#2-3-路由映射表（推荐方式）" class="headerlink" title="2.3 路由映射表（推荐方式）"></a>2.3 路由映射表（推荐方式）</h3><p>如果项目中有多个页面，每次都写 <code>@Builder</code> 判断未免太麻烦。官方推荐使用 <strong>路由映射表</strong>（route_map.json）来统一管理：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;pages&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;HomePage&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;pageSourceFile&quot;</span>: <span class="string">&quot;pages/HomePage.ets&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;buildFunction&quot;</span>: <span class="string">&quot;homeBuilder&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;DetailPage&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;pageSourceFile&quot;</span>: <span class="string">&quot;pages/DetailPage.ets&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;buildFunction&quot;</span>: <span class="string">&quot;detailBuilder&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;ProfilePage&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;pageSourceFile&quot;</span>: <span class="string">&quot;pages/ProfilePage.ets&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;buildFunction&quot;</span>: <span class="string">&quot;profileBuilder&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>module.json5</code> 中注册路由表：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;module&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;routerMap&quot;</span>: <span class="string">&quot;$profile:route_map&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在页面中声明入口函数：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// DetailPage.ets</span></span><br><span class="line"><span class="meta">@Builder</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">detailBuilder</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  DetailPage();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样做的好处是，页面路由的定义和实现完全解耦了。后续要做跨模块加载、动态路由分发，都会更加方便。</p>
+<h2 id="三、路由操作核心-API-详解"><a href="#三、路由操作核心-API-详解" class="headerlink" title="三、路由操作核心 API 详解"></a>三、路由操作核心 API 详解</h2><p>Navigation 的路由操作基于 <code>NavPathStack</code> 提供的方法实现。这一章我们来完整过一遍所有核心 API。</p>
+<h3 id="3-1-页面跳转"><a href="#3-1-页面跳转" class="headerlink" title="3.1 页面跳转"></a>3.1 页面跳转</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 基本跳转（不传参数）</span></span><br><span class="line">stack.pushPathByName(<span class="string">&#x27;DetailPage&#x27;</span>, <span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 带参数跳转</span></span><br><span class="line">stack.pushPathByName(<span class="string">&#x27;DetailPage&#x27;</span>, &#123; <span class="attr">id</span>: <span class="number">1001</span>, <span class="attr">type</span>: <span class="string">&#x27;article&#x27;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用对象风格的 pushPath（API 11+）</span></span><br><span class="line">stack.pushPath(&#123; <span class="attr">name</span>: <span class="string">&#x27;DetailPage&#x27;</span>, <span class="attr">param</span>: &#123; <span class="attr">id</span>: <span class="number">1001</span> &#125; &#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-带回调的跳转"><a href="#3-2-带回调的跳转" class="headerlink" title="3.2 带回调的跳转"></a>3.2 带回调的跳转</h3><p>如果你需要在跳转后拿到目标页返回的数据，可以使用 <code>pushDestinationByName</code>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">stack.pushDestinationByName(<span class="string">&#x27;EditorPage&#x27;</span>, &#123; <span class="attr">docId</span>: <span class="number">1</span> &#125;, <span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 这里拿到 EditorPage 返回的数据</span></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&#x27;返回数据：&#x27;</span>, result);</span><br><span class="line">  <span class="keyword">if</span> (result &amp;&amp; result.saved) &#123;</span><br><span class="line">    <span class="built_in">this</span>.refreshList();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>返回时只需要调用：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在 EditorPage 中</span></span><br><span class="line">stack.pop(resultData);</span><br></pre></td></tr></table></figure>
+
+<p>这个回调机制非常适合”编辑页面返回后刷新列表”这一类场景。</p>
+<h3 id="3-3-返回操作"><a href="#3-3-返回操作" class="headerlink" title="3.3 返回操作"></a>3.3 返回操作</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 返回上一页（弹出栈顶）</span></span><br><span class="line">stack.pop();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回到指定页面</span></span><br><span class="line">stack.popToName(<span class="string">&#x27;HomePage&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回到指定索引位置</span></span><br><span class="line">stack.popToIndex(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回到根页面</span></span><br><span class="line">stack.popToIndex(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<img src="/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/nav-stack-ops.svg" class="" title="路由栈操作示意">
+
+<p>上图展示了路由栈的基本操作流程。<code>pushPath</code> 将新页面压入栈顶，<code>pop</code> 弹出栈顶页面，配合 <code>popToName</code>、<code>popToIndex</code> 可以实现更灵活的回退策略。</p>
+<h3 id="3-4-替换与栈调整"><a href="#3-4-替换与栈调整" class="headerlink" title="3.4 替换与栈调整"></a>3.4 替换与栈调整</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 替换栈顶页面（当前页面被替换为新的页面）</span></span><br><span class="line">stack.replacePathByName(<span class="string">&#x27;NewPage&#x27;</span>, &#123; <span class="attr">data</span>: <span class="string">&#x27;...&#x27;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将栈中指定页面移到栈顶</span></span><br><span class="line">stack.moveToTop(<span class="string">&#x27;HomePage&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 按索引移除页面</span></span><br><span class="line">stack.removeByIndexes([<span class="number">2</span>, <span class="number">3</span>]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 清空路由栈</span></span><br><span class="line">stack.clear();</span><br></pre></td></tr></table></figure>
+
+<p><code>replacePathByName</code> 在使用场景上很有价值。比如在登录流程中，登录成功后用 <code>replacePathByName</code> 替换掉登录页，用户按返回就不会回到登录页了。</p>
+<h3 id="3-5-获取路由栈信息"><a href="#3-5-获取路由栈信息" class="headerlink" title="3.5 获取路由栈信息"></a>3.5 获取路由栈信息</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取当前栈大小</span></span><br><span class="line"><span class="keyword">const</span> size: <span class="built_in">number</span> = stack.size();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取栈中所有页面名称</span></span><br><span class="line"><span class="keyword">const</span> names: <span class="built_in">string</span>[] = stack.getAllPathName();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 根据索引获取页面名称</span></span><br><span class="line"><span class="keyword">const</span> name: <span class="built_in">string</span> = stack.getIndexName(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 根据名称获取页面参数</span></span><br><span class="line"><span class="keyword">const</span> param = stack.getParamByName(<span class="string">&#x27;DetailPage&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、NavDestination-生命周期深入分析"><a href="#四、NavDestination-生命周期深入分析" class="headerlink" title="四、NavDestination 生命周期深入分析"></a>四、NavDestination 生命周期深入分析</h2><p>Navigation 相比传统 router 方案，一个很大的优势在于生命周期管理的精细度。NavDestination 拥有一套完整的生命周期回调，让你可以精确控制页面在不同阶段的行为。</p>
+<img src="/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/nav-lifecycle.svg" class="" title="NavDestination 生命周期状态流转">
+
+<h3 id="4-1-生命周期全览"><a href="#4-1-生命周期全览" class="headerlink" title="4.1 生命周期全览"></a>4.1 生命周期全览</h3><p>NavDestination 提供了以下几个生命周期回调：</p>
+<table>
+<thead>
+<tr>
+<th>回调</th>
+<th>触发时机</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>aboutToAppear</code></td>
+<td>组件构建前执行</td>
+<td>初始化数据、修改状态变量</td>
+</tr>
+<tr>
+<td><code>onWillAppear</code> （API 11+）</td>
+<td>组件挂载前执行</td>
+<td>状态变更立即生效，可用于最终确认</td>
+</tr>
+<tr>
+<td><code>onShown</code></td>
+<td>布局完成后触发</td>
+<td>启动动画、数据加载完成后的渲染</td>
+</tr>
+<tr>
+<td><code>onHidden</code></td>
+<td>页面被覆盖或进入后台</td>
+<td>暂停视频、停止定时器</td>
+</tr>
+<tr>
+<td><code>onWillDisappear</code></td>
+<td>销毁前执行</td>
+<td>资源释放、取消订阅</td>
+</tr>
+<tr>
+<td><code>onNewParam</code> （API 19+）</td>
+<td>Single 模式收到新参数</td>
+<td>刷新页面数据</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-页面栈切换时的生命周期流转"><a href="#4-2-页面栈切换时的生命周期流转" class="headerlink" title="4.2 页面栈切换时的生命周期流转"></a>4.2 页面栈切换时的生命周期流转</h3><p>为了更好地理解，我们来看一个实际的页面切换场景。</p>
+<p><strong>场景：首页（Home）→ 详情页（Detail）→ 返回首页</strong></p>
+<p>步骤一：从首页 pushPath 到详情页</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">首页生命周期：</span><br><span class="line">  Home.onWillDisappear → Home.onHidden</span><br><span class="line"></span><br><span class="line">详情页生命周期：</span><br><span class="line">  Detail.aboutToAppear → Detail.onWillAppear → Detail.onShown</span><br></pre></td></tr></table></figure>
+
+<p>步骤二：从详情页 pop 返回首页</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">详情页生命周期：</span><br><span class="line">  Detail.onWillDisappear → 页面销毁</span><br><span class="line"></span><br><span class="line">首页生命周期：</span><br><span class="line">  Home.onShown（页面恢复显示）</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个很重要的细节：<strong>首页并不会被销毁</strong>，它只是进入 <code>onHidden</code> 状态。这和其他移动平台的 Fragment/Activity 生命周期设计思路是一致的。当页面被覆盖时，系统保留其状态，返回时直接恢复，避免重建带来的性能开销。</p>
+<h3 id="4-3-onReady-回调的重要性"><a href="#4-3-onReady-回调的重要性" class="headerlink" title="4.3 onReady 回调的重要性"></a>4.3 onReady 回调的重要性</h3><p>在之前的示例中，我们使用了 <code>onReady</code> 来读取参数：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">NavDestination()</span><br><span class="line">  .onReady(<span class="function">(<span class="params">ctx: NavPathInfo</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.param = ctx.param;</span><br><span class="line">    <span class="built_in">this</span>.pathStack = ctx.pathStack;</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>onReady</code> 会在 NavDestination 即将构建子组件前触发。从时序上来说：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">aboutToAppear（组件构建前）</span><br><span class="line">  ↓</span><br><span class="line">onWillAppear（组件挂载前）</span><br><span class="line">  ↓</span><br><span class="line">onReady（NavDestination 上下文准备完毕，可安全读取 pathInfo 和 pathStack）</span><br><span class="line">  ↓</span><br><span class="line">build() 执行</span><br><span class="line">  ↓</span><br><span class="line">onShown（布局完成，页面显示）</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么不在 aboutToAppear 里读参数？</strong> 因为在 <code>aboutToAppear</code> 阶段，NavDestination 的上下文可能还没有完全初始化，此时 <code>ctx.pathInfo</code> 和 <code>ctx.pathStack</code> 不一定可用。虽然在某些版本中你确实读到了参数，但这属于”碰巧能跑”，并不保证在所有场景下都可靠。</p>
+<p><strong>正确的做法</strong>：参数读取一律放在 <code>onReady</code> 中，这是最安全的选择。</p>
+<h2 id="五、路由拦截与高级特性"><a href="#五、路由拦截与高级特性" class="headerlink" title="五、路由拦截与高级特性"></a>五、路由拦截与高级特性</h2><p>Navigation 还提供了一些高级功能，让你的路由控制更加灵活。</p>
+<h3 id="5-1-路由拦截（setInterception）"><a href="#5-1-路由拦截（setInterception）" class="headerlink" title="5.1 路由拦截（setInterception）"></a>5.1 路由拦截（setInterception）</h3><p>这部分是很多开发者容易忽略的，但其实特别实用。你可以通过 <code>setInterception</code> 拦截每一次路由操作，在跳转发生前进行权限校验、数据保护等操作。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">stack.setInterception(<span class="function">(<span class="params">routeInfo: RouteInfo</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 场景1：权限拦截 —— 未登录时跳转到登录页</span></span><br><span class="line">  <span class="keyword">if</span> (routeInfo.name === <span class="string">&#x27;PaymentPage&#x27;</span> &amp;&amp; !<span class="built_in">this</span>.isLoggedIn) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">redirect</span>: <span class="string">&#x27;LoginPage&#x27;</span>,</span><br><span class="line">      <span class="attr">params</span>: &#123; <span class="attr">redirectRoute</span>: routeInfo.name &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 场景2：数据保护 —— 编辑页未保存时提示</span></span><br><span class="line">  <span class="keyword">if</span> (routeInfo.name === <span class="string">&#x27;EditorPage&#x27;</span> &amp;&amp; <span class="built_in">this</span>.hasUnsavedData) &#123;</span><br><span class="line">      showSaveDialog();</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">proceed</span>: <span class="literal">false</span> &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123; <span class="attr">proceed</span>: <span class="literal">true</span> &#125;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这个方法返回一个拦截结果对象，支持以下字段：</p>
+<ul>
+<li><code>proceed: boolean</code> — 是否放行该路由操作</li>
+<li><code>redirect: string</code> — 重定向到其他页面</li>
+<li><code>params: object</code> — 重定向时携带的参数</li>
+</ul>
+<p>拦截机制的应用场景很多。比如用户没有登录时访问个人中心 → 自动重定向到登录页；比如编辑页面有未保存内容 → 弹窗提示是否保存后再离开。</p>
+<h3 id="5-2-DIALOG-模式"><a href="#5-2-DIALOG-模式" class="headerlink" title="5.2 DIALOG 模式"></a>5.2 DIALOG 模式</h3><p>有些页面不需要全屏展示，比如购物车弹窗、选择器、底部菜单等。NavDestination 提供了 DIALOG 模式：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">NavDestination()</span><br><span class="line">  .mode(NavDestinationMode.DIALOG)</span><br><span class="line">  .backgroundColor(<span class="string">&#x27;#66000000&#x27;</span>)</span><br><span class="line">  .customHeight(<span class="string">&#x27;70%&#x27;</span>)</span><br><span class="line">  .onBackClick(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.stack.pop();</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>DIALOG 模式下的页面会以弹窗形式展示在内容区上方，背景可以设置半透明遮罩。这种模式非常适合做底部弹出式菜单、属性选择器等轻量交互。</p>
+<h3 id="5-3-Shared-Element-转场"><a href="#5-3-Shared-Element-转场" class="headerlink" title="5.3 Shared Element 转场"></a>5.3 Shared Element 转场</h3><p>如果你希望从列表页的图片点击后，”飞入”详情页的对应位置，就需要用到 shared element 转场：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 列表页</span></span><br><span class="line">Image($r(<span class="string">&#x27;app.media.product&#x27;</span>))</span><br><span class="line">  .geometryTransition(<span class="string">&#x27;product_img&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 详情页</span></span><br><span class="line"><span class="function"><span class="title">NavDestination</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">  Image($r(<span class="string">&#x27;app.media.product&#x27;</span>))</span><br><span class="line">    .geometryTransition(<span class="string">&#x27;product_img&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line">.customTransition(&#123;</span><br><span class="line">  <span class="attr">shared</span>: &#123;</span><br><span class="line">    <span class="attr">id</span>: <span class="string">&#x27;product_img&#x27;</span>,</span><br><span class="line">    <span class="attr">options</span>: &#123; <span class="attr">duration</span>: <span class="number">300</span> &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这套机制和 Android 的 shared element transition 思路类似，通过 <code>geometryTransition</code> 将两个页面间的元素关联起来，实现连贯的视觉过渡。</p>
+<h3 id="5-4-跨模块路由"><a href="#5-4-跨模块路由" class="headerlink" title="5.4 跨模块路由"></a>5.4 跨模块路由</h3><p>在中大型项目中，代码通常会按功能拆分成多个模块（HSP/HAR）。跨模块路由是绕不开的话题。</p>
+<p>跨模块路由分为四步：</p>
+<p><strong>步骤1：在模块的 route_map.json 中配置路由</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;pages&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;PaymentPage&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;path&quot;</span>: <span class="string">&quot;features/payment/PaymentView&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;exportFunc&quot;</span>: <span class="string">&quot;paymentEntry&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤2：在 module.json5 中注册路由表</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;module&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;routerMap&quot;</span>: <span class="string">&quot;$profile:route_map&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤3：目标模块声明入口函数</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PaymentView.ets</span></span><br><span class="line"><span class="meta">@Builder</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">paymentEntry</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  PaymentPage();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤4：通过 pushPathByName 跨包跳转</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">stack.pushPathByName(<span class="string">&#x27;PaymentPage&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这样就完成了跨模块路由。每个模块各自维护自己的路由表，模块之间通过 name 来解耦引用。</p>
+<h2 id="六、三种导航模式与多端适配"><a href="#六、三种导航模式与多端适配" class="headerlink" title="六、三种导航模式与多端适配"></a>六、三种导航模式与多端适配</h2><p>鸿蒙系统的特色之一就是支持多种设备形态。Navigation 天然支持三种导航模式，让同一套代码可以无缝跑在手机、平板和折叠屏上。</p>
+<img src="/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/nav-modes.svg" class="" title="三种导航模式对比">
+
+<h3 id="6-1-Stack-模式（单栏）"><a href="#6-1-Stack-模式（单栏）" class="headerlink" title="6.1 Stack 模式（单栏）"></a>6.1 Stack 模式（单栏）</h3><p><strong>适用设备</strong>：手机、手表</p>
+<p>Stack 模式下，每次 pushPath 都会全屏显示新的页面，当前页面被覆盖到下层。用户按返回时，一层一层弹出。这也是手机上最熟悉的导航方式。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">Navigation(<span class="built_in">this</span>.stack)</span><br><span class="line">  .mode(NavigationMode.Stack)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-Split-模式（分栏）"><a href="#6-2-Split-模式（分栏）" class="headerlink" title="6.2 Split 模式（分栏）"></a>6.2 Split 模式（分栏）</h3><p><strong>适用设备</strong>：平板、折叠屏展开态</p>
+<p>Split 模式下，页面分为左右两栏，左侧是导航栏（通常用于列表），右侧是内容区。点击左侧列表项，右侧展示对应的详情内容。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">Navigation(<span class="built_in">this</span>.stack)</span><br><span class="line">  .mode(NavigationMode.Split)</span><br><span class="line">  .navBarWidth(<span class="number">320</span>)  <span class="comment">// 设置导航栏宽度</span></span><br></pre></td></tr></table></figure>
+
+<p>这种模式在邮件应用、设置页面、文档浏览器等场景中非常常见。</p>
+<h3 id="6-3-Auto-模式（自适应）"><a href="#6-3-Auto-模式（自适应）" class="headerlink" title="6.3 Auto 模式（自适应）"></a>6.3 Auto 模式（自适应）</h3><p><strong>适用设备</strong>：全设备</p>
+<p>Auto 模式是追求多端适配的首选方案。系统会根据屏幕宽度自动切换布局：</p>
+<ul>
+<li><strong>屏幕宽度 &lt; 600vp</strong> → 自动采用 Stack 模式</li>
+<li><strong>屏幕宽度 ≥ 600vp</strong> → 自动采用 Split 模式</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">Navigation(<span class="built_in">this</span>.stack)</span><br><span class="line">  .mode(NavigationMode.Auto)</span><br></pre></td></tr></table></figure>
+
+<p>这个阈值是鸿蒙系统自动判断的，你不需要写额外的适配代码。手机端打开时是 Stack，平板或折叠屏展开时自动变成 Split，页面组件完全复用。</p>
+<h3 id="6-4-多端适配的最佳实践"><a href="#6-4-多端适配的最佳实践" class="headerlink" title="6.4 多端适配的最佳实践"></a>6.4 多端适配的最佳实践</h3><p>对于追求多端体验的应用，建议的做法是：</p>
+<ol>
+<li>所有页面都写成 NavDestination 形式</li>
+<li>Navigation 的 mode 设置为 Auto</li>
+<li>借助 <code>NavigationMode</code> 的当前值，在页面内部做微调</li>
+</ol>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="title">Navigation</span>(<span class="params"><span class="built_in">this</span>.stack</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">this</span>.stack.getMode() === <span class="string">&#x27;split&#x27;</span>) &#123;</span><br><span class="line">    <span class="comment">// 分栏模式下，左侧显示列表</span></span><br><span class="line">    ListPage();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">.mode(NavigationMode.Auto)</span><br></pre></td></tr></table></figure>
+
+<p>这样做的好处是：同一套页面组件，手机端 Stack 全屏展示，平板端 Split 分栏展示，后续如果要适配折叠屏、PC 等新形态，也不需要大规模重写页面。</p>
+<h2 id="七、源码分析：Navigation-组件的工作原理"><a href="#七、源码分析：Navigation-组件的工作原理" class="headerlink" title="七、源码分析：Navigation 组件的工作原理"></a>七、源码分析：Navigation 组件的工作原理</h2><p>好了，基础用法和高级特性我们都讲完了。接下来我们深入到源码层面，看看 Navigation 内部的运作机制。这部分我会尽量用通俗的语言来解释。</p>
+<h3 id="7-1-Navigation-的渲染流程"><a href="#7-1-Navigation-的渲染流程" class="headerlink" title="7.1 Navigation 的渲染流程"></a>7.1 Navigation 的渲染流程</h3><p>Navigation 的本质是一个 <strong>容器组件</strong>，它内部维护了一个页面栈结构。当你调用 <code>pushPathByName</code> 时，整个流程是这样的：</p>
+<ol>
+<li><strong>查找路由映射</strong>：根据传入的 pageName，从 route_map.json 或 @Builder 映射表中查找对应的页面组件</li>
+<li><strong>入栈操作</strong>：将页面信息（name, param, 构建函数）封装为一个栈节点，push 到 NavPathStack 内部数组</li>
+<li><strong>刷新渲染</strong>：触发 Navigation 组件的重新渲染，新的 NavDestination 被构建出来</li>
+<li><strong>生命周期触发</strong>：新页面走 aboutToAppear → onWillAppear → onReady → 构建 → onShown</li>
+<li><strong>旧页面隐藏</strong>：如果栈中原有页面被覆盖，触发其 onHidden 回调</li>
+</ol>
+<h3 id="7-2-NavPathStack-的内部结构"><a href="#7-2-NavPathStack-的内部结构" class="headerlink" title="7.2 NavPathStack 的内部结构"></a>7.2 NavPathStack 的内部结构</h3><p>NavPathStack 内部实际上维护了一个 <code>Array&lt;NavPathInfo&gt;</code> 类型的数组。每个 <code>NavPathInfo</code> 包含了页面的名称、参数、构建函数等元信息。</p>
+<p>关键源码大致如下（简化版本）：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 概念性源码，非实际源码</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NavPathStack</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> paths: NavPathInfo[] = [];</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">pushPathByName</span>(<span class="params">name: <span class="built_in">string</span>, param: <span class="built_in">Object</span></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> info: NavPathInfo = &#123;</span><br><span class="line">      <span class="attr">name</span>: name,</span><br><span class="line">      <span class="attr">param</span>: param,</span><br><span class="line">      <span class="comment">// ... 其他路由元信息</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="built_in">this</span>.paths.push(info);</span><br><span class="line">    <span class="comment">// 通知 Navigation 组件重新渲染</span></span><br><span class="line">    <span class="built_in">this</span>.notifyChange();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">pop</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.paths.pop();</span><br><span class="line">    <span class="built_in">this</span>.notifyChange();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="title">popToName</span>(<span class="params">name: <span class="built_in">string</span></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> index = <span class="built_in">this</span>.paths.findLastIndex(<span class="function"><span class="params">p</span> =&gt;</span> p.name === name);</span><br><span class="line">    <span class="keyword">if</span> (index &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="built_in">this</span>.paths.splice(index + <span class="number">1</span>);</span><br><span class="line">      <span class="built_in">this</span>.notifyChange();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  size(): <span class="built_in">number</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.paths.length;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>理解了这个内部数组结构，其实很多操作的行为就很容易推理了：</p>
+<ul>
+<li><code>pushPath</code> 就是向数组尾部插入一个新元素</li>
+<li><code>pop</code> 就是移除数组尾部元素</li>
+<li><code>popToName(name)</code> 就是从尾部往前找，找到第一个匹配 name 的位置，把后面的全部移除</li>
+<li><code>clear</code> 就是清空整个数组</li>
+</ul>
+<h3 id="7-3-路由拦截的调用时机"><a href="#7-3-路由拦截的调用时机" class="headerlink" title="7.3 路由拦截的调用时机"></a>7.3 路由拦截的调用时机</h3><p><code>setInterception</code> 会在路由操作即将执行但尚未真正修改栈结构时触发。时序如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pushPathByName 被调用</span><br><span class="line">  ↓</span><br><span class="line">拦截回调触发（setInterception）</span><br><span class="line">  ↓</span><br><span class="line">检查返回结果：</span><br><span class="line">  ├─ proceed: true → 继续执行入栈操作</span><br><span class="line">  ├─ proceed: false → 中断操作，不做任何事</span><br><span class="line">  └─ redirect: &#x27;LoginPage&#x27; → 中断原操作，改为执行新的 pushPath</span><br><span class="line">  ↓</span><br><span class="line">真正修改 NavPathStack 内部数组</span><br><span class="line">  ↓</span><br><span class="line">通知 Navigation 重新渲染</span><br></pre></td></tr></table></figure>
+
+<p>所以拦截回调其实是在<strong>路由操作生效之前</strong>被调用的，它给了开发者一个”反悔”的机会。</p>
+<h3 id="7-4-Navigation-vs-Router-的选择"><a href="#7-4-Navigation-vs-Router-的选择" class="headerlink" title="7.4 Navigation vs Router 的选择"></a>7.4 Navigation vs Router 的选择</h3><p>听到这里，可能有人会问：既然 Navigation 这么强大，那老的 router 方案（<code>router.pushUrl</code>）是不是该彻底弃用了？</p>
+<p>我的看法是这样的：</p>
+<p><strong>推荐使用 Navigation 的场景：</strong></p>
+<ul>
+<li>应用有 3 个以上页面</li>
+<li>需要精细的生命周期管理</li>
+<li>未来可能要适配平板/折叠屏</li>
+<li>需要路由拦截、DIALOG 等高级功能</li>
+</ul>
+<p><strong>仍然可以使用 router 的场景：</strong></p>
+<ul>
+<li>非常简单的 1~2 个页面的工具类应用</li>
+<li>与已有旧代码保持一致</li>
+<li>页面之间没有复杂的参数传递和状态共享需求</li>
+</ul>
+<p>不过从鸿蒙的发展趋势来看，Navigation 已经是官方主推的路由方案了。新的 API（比如 API 20 新增的 <code>HomePathInfo</code>）还在不断强化 Navigation 的能力。建议新项目直接使用 Navigation。</p>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>至此，鸿蒙 Navigation 的主要内容已经全部讲解完了。我们来快速回顾一下本文的核心知识点：</p>
+<ol>
+<li><strong>Navigation 是鸿蒙的路由导航根容器</strong>，包含标题层、内容层、交互层三大区域</li>
+<li><strong>NavPathStack 是路由操作的核心类</strong>，统一管理 pushPath、pop、replacePath 等操作</li>
+<li><strong>NavDestination 有完整的生命周期</strong>，aboutToAppear → onWillAppear → onShown → onHidden → onWillDisappear</li>
+<li><strong>setInterception 可以实现路由拦截</strong>，用于权限校验、数据保护等场景</li>
+<li><strong>Three 三种导航模式</strong>（Stack/Split/Auto）让同一套代码适配多端</li>
+<li><strong>路由映射表和跨模块路由</strong>为中大型应用提供了架构基础</li>
+</ol>
+<p>Navigation 这套方案设计得相当成熟。如果你是从 Android 开发转过来的，你会发现它的 NavPathStack 设计思想和 FragmentManager 有些神似；如果你是从 iOS 过来的，它的 UINavigationController 的影子也能在这里找到。但在此基础上，鸿蒙加入了多端自适应、DIALOG 模式等特色能力，让路由导航这件事变得更灵活了。</p>
+<p>关于 Navigation 的介绍就到这里。如果你对文中提到的某些细节还有疑问，或者在实际开发中遇到了 Navigation 相关的问题，欢迎留言讨论。</p>
+<p>最后留一个下期预告：<strong>鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？它与传统写法有什么本质区别？</strong> 我们下篇文章再聊。</p>
+<hr>
+<p><em>本文为鸿蒙开发系列文章之一，更多内容请关注后续更新。</em><br><em>转载请注明出处。</em></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/">https://dpzxka.github.io/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/harmonyos/">harmonyos</a><a class="post-meta__tags" href="/tags/navigation/">navigation</a><a class="post-meta__tags" href="/tags/%E9%B8%BF%E8%92%99/">鸿蒙</a></div><div class="post_share"><div class="social-share" data-image="/img/harmonyos-navigation.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/2022/09/13/Android/5%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"><img class="prev-cover" src="/img/android-performance.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">5、性能优化</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Navigation-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E5%85%88%E7%9C%8B%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">一、Navigation 是什么？先看整体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%EF%BC%9A%E4%B8%89%E5%88%86%E9%92%9F%E6%90%AD%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AA-Navigation-%E5%BA%94%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">二、基础入门：三分钟搭建第一个 Navigation 应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%9B%E5%BB%BA-NavPathStack-%E5%B9%B6%E7%BB%91%E5%AE%9A%E5%88%B0-Navigation"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 创建 NavPathStack 并绑定到 Navigation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%BC%96%E5%86%99%E7%9B%AE%E6%A0%87%E9%A1%B5%E9%9D%A2"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 编写目标页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%B7%AF%E7%94%B1%E6%98%A0%E5%B0%84%E8%A1%A8%EF%BC%88%E6%8E%A8%E8%8D%90%E6%96%B9%E5%BC%8F%EF%BC%89"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 路由映射表（推荐方式）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%B7%AF%E7%94%B1%E6%93%8D%E4%BD%9C%E6%A0%B8%E5%BF%83-API-%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">三、路由操作核心 API 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%A1%B5%E9%9D%A2%E8%B7%B3%E8%BD%AC"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 页面跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%B8%A6%E5%9B%9E%E8%B0%83%E7%9A%84%E8%B7%B3%E8%BD%AC"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 带回调的跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BF%94%E5%9B%9E%E6%93%8D%E4%BD%9C"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 返回操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%9B%BF%E6%8D%A2%E4%B8%8E%E6%A0%88%E8%B0%83%E6%95%B4"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 替换与栈调整</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E8%8E%B7%E5%8F%96%E8%B7%AF%E7%94%B1%E6%A0%88%E4%BF%A1%E6%81%AF"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 获取路由栈信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81NavDestination-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">四、NavDestination 生命周期深入分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%85%A8%E8%A7%88"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 生命周期全览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%A1%B5%E9%9D%A2%E6%A0%88%E5%88%87%E6%8D%A2%E6%97%B6%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%B5%81%E8%BD%AC"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 页面栈切换时的生命周期流转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-onReady-%E5%9B%9E%E8%B0%83%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 onReady 回调的重要性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%B7%AF%E7%94%B1%E6%8B%A6%E6%88%AA%E4%B8%8E%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7"><span class="toc-number">5.</span> <span class="toc-text">五、路由拦截与高级特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%B7%AF%E7%94%B1%E6%8B%A6%E6%88%AA%EF%BC%88setInterception%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 路由拦截（setInterception）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-DIALOG-%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 DIALOG 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Shared-Element-%E8%BD%AC%E5%9C%BA"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 Shared Element 转场</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%B7%A8%E6%A8%A1%E5%9D%97%E8%B7%AF%E7%94%B1"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 跨模块路由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%B8%89%E7%A7%8D%E5%AF%BC%E8%88%AA%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D"><span class="toc-number">6.</span> <span class="toc-text">六、三种导航模式与多端适配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Stack-%E6%A8%A1%E5%BC%8F%EF%BC%88%E5%8D%95%E6%A0%8F%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 Stack 模式（单栏）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Split-%E6%A8%A1%E5%BC%8F%EF%BC%88%E5%88%86%E6%A0%8F%EF%BC%89"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 Split 模式（分栏）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Auto-%E6%A8%A1%E5%BC%8F%EF%BC%88%E8%87%AA%E9%80%82%E5%BA%94%EF%BC%89"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 Auto 模式（自适应）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.4.</span> <span class="toc-text">6.4 多端适配的最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%9ANavigation-%E7%BB%84%E4%BB%B6%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">七、源码分析：Navigation 组件的工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-Navigation-%E7%9A%84%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 Navigation 的渲染流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-NavPathStack-%E7%9A%84%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 NavPathStack 的内部结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E8%B7%AF%E7%94%B1%E6%8B%A6%E6%88%AA%E7%9A%84%E8%B0%83%E7%94%A8%E6%97%B6%E6%9C%BA"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 路由拦截的调用时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-Navigation-vs-Router-%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 Navigation vs Router 的选择</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">八、总结</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By XKADPZ</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">本地搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div></div></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
