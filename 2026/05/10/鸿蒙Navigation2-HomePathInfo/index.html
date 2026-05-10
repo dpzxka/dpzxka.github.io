@@ -1,0 +1,479 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？ | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从传统写法的痛点出发，深入分析 HomePathInfo 的设计意图与本质区别">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？">
+<meta property="og:url" content="https://dpzxka.github.io/2026/05/10/%E9%B8%BF%E8%92%99Navigation2-HomePathInfo/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="从传统写法的痛点出发，深入分析 HomePathInfo 的设计意图与本质区别">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-homepathinfo.svg">
+<meta property="article:published_time" content="2026-05-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-10T01:18:56.125Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="harmonyos">
+<meta property="article:tag" content="navigation">
+<meta property="article:tag" content="鸿蒙">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-homepathinfo.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？",
+  "url": "https://dpzxka.github.io/2026/05/10/%E9%B8%BF%E8%92%99Navigation2-HomePathInfo/",
+  "image": "https://dpzxka.github.io/img/harmonyos-homepathinfo.svg",
+  "datePublished": "2026-05-09T16:00:00.000Z",
+  "dateModified": "2026-05-10T01:18:56.125Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/05/10/%E9%B8%BF%E8%92%99Navigation2-HomePathInfo/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fa-duotone fa-blanket"></i><span> algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fa-brands fa-cloudversify"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-homepathinfo.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fa-duotone fa-blanket"></i><span> algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fa-brands fa-cloudversify"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙 Navigation 2.0 中新增的 HomePathInfo 到底解决了什么问题？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-09T16:00:00.000Z" title="发表于 2026-05-10 00:00:00">2026-05-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-10T01:18:56.125Z" title="更新于 2026-05-10 09:18:56">2026-05-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/harmonyos/">harmonyos</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>22分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-05-10 09:18:56&quot;}" hidden></div><p>其实在写完上一篇 Navigation 完全解析之后，我一直觉得还有一个很重要的话题没有聊透。</p>
+<p>上一篇我们详细介绍了 Navigation 的基础用法、NavPathStack 的路由操作、NavDestination 的生命周期管理，以及在单栏和多栏模式下的适配方案。但如果细心的读者去翻阅了最新的 API 文档，可能会发现一个在 API Version 20 中新增的接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Navigation(pathInfos: NavPathStack, homeDestination: HomePathInfo)</span><br></pre></td></tr></table></figure>
+
+<p>这个接口我在上一篇文章中只是提了一嘴，并没有深入展开。原因很简单——这个接口的引入，代表的不仅仅是一个新的重载形式，而是 Navigation 组件在架构思想上的一次重要演进。如果不把传统写法面临的问题先讲清楚，直接讲 HomePathInfo 就会显得很突兀。</p>
+<p>所以我决定单独写一篇，专门把这个问题掰开揉碎讲清楚。</p>
+<h2 id="一、我们先来看一个”看似没问题”的传统写法"><a href="#一、我们先来看一个”看似没问题”的传统写法" class="headerlink" title="一、我们先来看一个”看似没问题”的传统写法"></a>一、我们先来看一个”看似没问题”的传统写法</h2><p>为了讲清楚 HomePathInfo 到底解决了什么，我们必须先回顾一下传统的 Navigation 写法，以及它在实际项目中渐渐暴露出来的问题。</p>
+<p>在 API Version 20 之前，我们写 Navigation 首页的时候，最常见的做法是这样的：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>) &#123;</span><br><span class="line">      <span class="comment">// 首页内容直接写在 Navigation 的闭包里</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;欢迎来到首页&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">        <span class="title class_">Button</span>(<span class="string">&#x27;进入详情页&#x27;</span>)</span><br><span class="line">          .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pushPath</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;DetailPage&#x27;</span> &#125;);</span><br><span class="line">          &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;首页&#x27;</span>)</span><br><span class="line">    .<span class="title function_">navDestination</span>(<span class="variable language_">this</span>.<span class="property">pageBuilder</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">pageBuilder</span>(<span class="params"><span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;DetailPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">DetailPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码看起来非常直观对吧？Navigation 作为根容器，首页内容直接放在闭包里，子页面通过 <code>navDestination</code> 动态构建。在项目规模不大的时候，这种写法简洁明了，完全够用。</p>
+<p>但随着项目逐渐扩大，问题就开始浮现了。</p>
+<h2 id="二、传统写法藏着哪些问题？"><a href="#二、传统写法藏着哪些问题？" class="headerlink" title="二、传统写法藏着哪些问题？"></a>二、传统写法藏着哪些问题？</h2><h3 id="2-1-首页和子页面”地位不平等”"><a href="#2-1-首页和子页面”地位不平等”" class="headerlink" title="2.1 首页和子页面”地位不平等”"></a>2.1 首页和子页面”地位不平等”</h3><p>这是最核心的问题。在传统写法中：</p>
+<ul>
+<li><strong>首页</strong>：是 Navigation 闭包里的普通子组件（<code>Column</code>、<code>List</code>、<code>Grid</code> 等）</li>
+<li><strong>子页面</strong>：是 <code>NavDestination</code> 组件</li>
+</ul>
+<p>这两者在鸿蒙的组件体系中，根本就不是同一类东西。<code>NavDestination</code> 拥有完整的页面生命周期（<code>onWillShow</code>、<code>onShown</code>、<code>onWillHide</code>、<code>onHidden</code>、<code>onWillDisappear</code>、<code>onDisappear</code>），而普通的 Column 一个都没有。</p>
+<p>这意味着什么？我们来看一个很实际的场景。</p>
+<h3 id="场景：社交-Feed-流-App"><a href="#场景：社交-Feed-流-App" class="headerlink" title="场景：社交 Feed 流 App"></a>场景：社交 Feed 流 App</h3><p>假设你正在开发一个类似微博或知乎的社交 App。首页是一个 Feed 流，用户刷到感兴趣的内容点击进入详情页，看完后返回首页，首页需要自动刷新数据。这是移动开发中再普通不过的需求了。</p>
+<p>在传统 Navigation 写法下，你的首页大致长这样：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">feedList</span>: <span class="title class_">FeedItem</span>[] = [];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>) &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="comment">// 首页：Feed 流列表</span></span><br><span class="line">        <span class="title class_">List</span>() &#123;</span><br><span class="line">          <span class="title class_">ForEach</span>(<span class="variable language_">this</span>.<span class="property">feedList</span>, <span class="function">(<span class="params"><span class="attr">item</span>: <span class="title class_">FeedItem</span></span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="title class_">ListItem</span>() &#123;</span><br><span class="line">              <span class="title class_">FeedCard</span>(&#123; <span class="attr">item</span>: item &#125;)</span><br><span class="line">                .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">                  <span class="comment">// 跳转到详情页</span></span><br><span class="line">                  <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pushPath</span>(&#123;</span><br><span class="line">                    <span class="attr">name</span>: <span class="string">&#x27;DetailPage&#x27;</span>,</span><br><span class="line">                    <span class="attr">param</span>: &#123; <span class="attr">id</span>: item.<span class="property">id</span> &#125;</span><br><span class="line">                  &#125;);</span><br><span class="line">                &#125;)</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">        .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;首页&#x27;</span>)</span><br><span class="line">    .<span class="title function_">navDestination</span>(<span class="variable language_">this</span>.<span class="property">pageBuilder</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">pageBuilder</span>(<span class="params"><span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;DetailPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">DetailPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ❌ 问题：用户从详情页返回后，怎么刷新 Feed 流？</span></span><br><span class="line">  <span class="comment">// 试过这些方案，每个都有坑：</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// 方案 A：onPageShow()</span></span><br><span class="line">  <span class="comment">//   只在 @Entry 生效，Navigation 内部收不到</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// 方案 B：onNavBarStateChange()</span></span><br><span class="line">  <span class="comment">//   能判断导航栏的显示/隐藏，但 Feed 流首页并不一定有导航栏</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// 方案 C：EventBus 全局事件</span></span><br><span class="line">  <span class="comment">//   DetailPage 返回前发送 &#x27;feedRefresh&#x27; 事件，首页监听</span></span><br><span class="line">  <span class="comment">//   能work，但需要在全局范围内维护一套事件总线</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// 方案 D：observer.on(&#x27;navDestinationUpdate&#x27;)</span></span><br><span class="line">  <span class="comment">//   全局监听所有 NavDestination 的状态变化</span></span><br><span class="line">  <span class="comment">//   能判断到页面切换，但需要在回调中判断&quot;是不是回到首页&quot;</span></span><br><span class="line">  <span class="comment">//   而且 observer 的清理工作一旦遗漏就会造成内存泄漏</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// 最让人头疼的是：这一切的复杂度，仅仅是因为&quot;首页不是 NavDestination&quot;。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而子页面的生命周期管理就清晰得多：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">DetailPage</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="comment">// ...详情页内容</span></span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">onShown</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// ✅ NavDestination 天然支持 onShown</span></span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;DetailPage 显示&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">onHidden</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;DetailPage 隐藏&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首页和子页面在生命周期管理上使用了完全不同的机制——首页依赖 Navigation 的回调或全局 observer，子页面使用 NavDestination 的原生生命周期。这种不一致在项目初期不明显，但一旦涉及复杂的状态同步、数据刷新、埋点统计，维护成本就会成倍增加。</p>
+<h3 id="2-2-标题栏控制权不统一"><a href="#2-2-标题栏控制权不统一" class="headerlink" title="2.2 标题栏控制权不统一"></a>2.2 标题栏控制权不统一</h3><p>Navigation 组件自带标题栏，通过 <code>.title(&#39;首页&#39;)</code> 来设置。这在只有一个首页的时候没有问题，但当你需要在不同的页面状态下动态修改标题时，麻烦就来了。</p>
+<p>子页面是 NavDestination，可以通过自己的 <code>.title()</code> 覆盖 Navigation 的标题，这是 NavDestination 天然支持的。但首页的内容是 Navigation 闭包里的普通组件，它没有 <code>.title()</code> 方法。首页的标题只能通过 Navigation 的 <code>.title()</code> 来设置。</p>
+<p>这就导致了一个很尴尬的局面：</p>
+<ul>
+<li>首页标题：写在 Navigation 的 <code>.title(&#39;首页&#39;)</code> 上</li>
+<li>子页面标题：写在 NavDestination 的 <code>.title(&#39;详情页&#39;)</code> 上</li>
+</ul>
+<p>虽然最终效果看起来是一样的，但在代码组织和维护层面，首页和子页面使用了<strong>两种完全不同的设置方式</strong>。如果后续要做一个统一的标题管理工具，你得分别为这两种情况写两套逻辑。</p>
+<h3 id="2-3-参数接收方式不一致"><a href="#2-3-参数接收方式不一致" class="headerlink" title="2.3 参数接收方式不一致"></a>2.3 参数接收方式不一致</h3><p>子页面通过 NavDestination 的 <code>onReady</code> 回调来接收跳转参数，这是标准做法：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">NavDestination</span>()</span><br><span class="line">  .<span class="title function_">onReady</span>(<span class="function">(<span class="params"><span class="attr">ctx</span>: <span class="title class_">NavDestinationContext</span></span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> param = ctx.<span class="property">pathInfo</span>.<span class="property">param</span>;</span><br><span class="line">    <span class="comment">// 通过 ctx.pathStack 还可以继续跳转</span></span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>但首页呢？首页作为 Navigation 的子组件，它的”参数”其实就是页面入口时想要携带的初始化数据。在传统写法中，首页没有统一的参数接收入口。你只能在 <code>@Entry</code> 组件的 <code>aboutToAppear</code> 中处理，或者通过全局状态管理来传递。这和使用 NavDestination 接收参数的体验完全不同。</p>
+<h3 id="2-4-代码组织逐渐失焦"><a href="#2-4-代码组织逐渐失焦" class="headerlink" title="2.4 代码组织逐渐失焦"></a>2.4 代码组织逐渐失焦</h3><p>当项目规模进一步扩大，首页的内容越来越复杂，Navigation 闭包里的代码量会急剧膨胀：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>) &#123;</span><br><span class="line">  <span class="title class_">Column</span>() &#123;</span><br><span class="line">    <span class="comment">// 导航栏区域</span></span><br><span class="line">    <span class="title class_">MyCustomHeader</span>()</span><br><span class="line">    <span class="comment">// 搜索栏</span></span><br><span class="line">    <span class="title class_">SearchBar</span>()</span><br><span class="line">    <span class="comment">// 轮播图</span></span><br><span class="line">    <span class="title class_">BannerSwiper</span>()</span><br><span class="line">    <span class="comment">// 分类导航</span></span><br><span class="line">    <span class="title class_">CategoryGrid</span>()</span><br><span class="line">    <span class="comment">// 推荐列表</span></span><br><span class="line">    <span class="title class_">RecommendList</span>()</span><br><span class="line">    <span class="comment">// 底部工具栏</span></span><br><span class="line">    <span class="title class_">BottomToolbar</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而子页面的代码结构是：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// DetailPage.ets - 独立文件，独立的 @Component 结构</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">DetailPage</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="comment">// 页面内容...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你会发现，首页和子页面的代码组织方式也不一致。子页面是独立的 <code>@Component</code> 结构，有清晰的模块边界；而首页的内容被”困”在 Navigation 的闭包里，天然就不利于拆分和复用。</p>
+<h3 id="场景：电商-App-的首页膨胀"><a href="#场景：电商-App-的首页膨胀" class="headerlink" title="场景：电商 App 的首页膨胀"></a>场景：电商 App 的首页膨胀</h3><p>我们再来看一个更具体的真实例子——<strong>电商 App 首页</strong>。一个典型的电商首页通常包含：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Navigation(this.stack) &#123;</span><br><span class="line">  Column() &#123;</span><br><span class="line">    // 1. 顶部搜索栏（带扫码、消息入口）</span><br><span class="line">    SearchHeader()</span><br><span class="line">    // 2. 轮播 Banner（3-5 张图，自动滚动）</span><br><span class="line">    BannerSwiper()</span><br><span class="line">    // 3. 分类快捷入口（2×4 网格）</span><br><span class="line">    CategoryGrid()</span><br><span class="line">    // 4. 秒杀倒计时 + 商品列表</span><br><span class="line">    FlashSale()</span><br><span class="line">    // 5. 为你推荐（瀑布流）</span><br><span class="line">    RecommendList()</span><br><span class="line">    // 6. 底部 Tab 栏</span><br><span class="line">    BottomTabBar()</span><br><span class="line">  &#125;</span><br><span class="line">  .width(&#x27;100%&#x27;)</span><br><span class="line">  .height(&#x27;100%&#x27;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些还只是视觉上的模块。每个模块背后都牵扯着独立的<strong>数据请求、状态管理、用户交互</strong>：</p>
+<ul>
+<li><code>SearchHeader</code> 点击后要跳转到搜索页，搜索页是 NavDestination</li>
+<li><code>BannerSwiper</code> 点击某张 Banner 要跳转对应的活动页，活动页也是 NavDestination</li>
+<li><code>FlashSale</code> 的倒计时需要单独的定时器管理</li>
+<li><code>RecommendList</code> 有上拉加载更多的分页逻辑</li>
+</ul>
+<p>问题是——这些业务逻辑的”根”全都在 Navigation 的闭包里，而闭包外面的 <code>@Entry</code> 组件根本没有模块化的边界。久而久之，Index.ets 就会变成一个几千行的”大杂烩”文件。</p>
+<p>更麻烦的是，当产品经理说”在搜索页搜索结果后直接跳转到商品详情页，然后从详情页返回时要回到搜索结果页”——这种跨页面的导航流程在传统写法中，首页和子页面走的是两套不同的路由心智模型，调试起来极其痛苦。我在一个实际项目中就遇到过这种情况，搜索结果页与首页之间的”回退”逻辑纠缠不清，最后不得不引入一个全局的路由状态机来管理，复杂度反而增加了。</p>
+<h2 id="三、HomePathInfo-登场"><a href="#三、HomePathInfo-登场" class="headerlink" title="三、HomePathInfo 登场"></a>三、HomePathInfo 登场</h2><p>说了这么多问题，其实鸿蒙的官方团队也意识到了。在 HarmonyOS 6.0（对应 API Version 20）中，ArkUI 为 Navigation 组件引入了全新的双参数重载接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Navigation(pathInfos: NavPathStack, homeDestination: HomePathInfo)</span><br></pre></td></tr></table></figure>
+
+<p>这个接口做了两件核心的事：</p>
+<ol>
+<li><strong>路由栈强制绑定</strong>：Navigation 必须绑定一个 <code>NavPathStack</code>，不再支持无栈模式</li>
+<li><strong>主页 NavDestination 化</strong>：通过 <code>homeDestination</code> 参数，将主页也声明为一个标准的 <code>NavDestination</code></li>
+</ol>
+<p>我们先来看一下 <code>HomePathInfo</code> 的定义：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">HomePathInfo</span> &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="attr">param</span>?: <span class="title class_">Object</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你没看错，它的定义非常简单——就是一个 <code>name</code> 和一个可选的 <code>param</code>。这个 <code>name</code> 对应的是路由映射表（<code>route_map.json</code>）中的页面名称，<code>param</code> 是主页初始化时携带的参数。</p>
+<p>这背后的设计思想是：<strong>主页不再是一个”特殊存在”，它就是一个普通的 NavDestination，与其他页面地位完全平等。</strong></p>
+<h2 id="四、新写法与传统写法的本质区别"><a href="#四、新写法与传统写法的本质区别" class="headerlink" title="四、新写法与传统写法的本质区别"></a>四、新写法与传统写法的本质区别</h2><p>现在我们用新的接口来重写刚才的例子，你马上就能感受到不同：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 新接口：绑定路由栈 + 指定主页 NavDestination</span></span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>, &#123; <span class="attr">name</span>: <span class="string">&#x27;HomePage&#x27;</span> &#125;) &#123;</span><br><span class="line">      <span class="comment">// ⚠️ 注意：此处的子组件不会被渲染！</span></span><br><span class="line">      <span class="comment">// 所有 UI 均由 NavDestination 承载</span></span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">navDestination</span>(<span class="variable language_">this</span>.<span class="property">pageBuilder</span>)</span><br><span class="line">    .<span class="title function_">mode</span>(<span class="title class_">NavigationMode</span>.<span class="property">Stack</span>)</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">pageBuilder</span>(<span class="params"><span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;HomePage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">HomePage</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;DetailPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">DetailPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意到关键变化了吗？Navigation 的闭包现在是空的——注释已经写清楚了，此处的子组件不会被渲染。那首页去哪了？</p>
+<p>首页被写成和 DetailPage 一样的独立组件：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">HomePage</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>?: <span class="title class_">NavPathStack</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;欢迎来到首页&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">        <span class="title class_">Button</span>(<span class="string">&#x27;进入详情页&#x27;</span>)</span><br><span class="line">          .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>?.<span class="title function_">pushPath</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;DetailPage&#x27;</span> &#125;);</span><br><span class="line">          &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;首页&#x27;</span>)</span><br><span class="line">    .<span class="title function_">onReady</span>(<span class="function">(<span class="params"><span class="attr">ctx</span>: <span class="title class_">NavDestinationContext</span></span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 拿到路由栈，后续跳转用它</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">stack</span> = ctx.<span class="property">pathStack</span>;</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">onShown</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// ✅ 首页现在也有 onShown 回调了！</span></span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;首页显示&#x27;</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">refreshData</span>();</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">onHidden</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;首页隐藏&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">refreshData</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 刷新首页数据</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后需要在路由映射表中注册首页：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;routerMap&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;HomePage&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;pageSourceFile&quot;</span><span class="punctuation">:</span> <span class="string">&quot;src/main/ets/pages/HomePage.ets&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;buildFunction&quot;</span><span class="punctuation">:</span> <span class="string">&quot;HomePageBuilder&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;应用主页&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;DetailPage&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;pageSourceFile&quot;</span><span class="punctuation">:</span> <span class="string">&quot;src/main/ets/pages/DetailPage.ets&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;buildFunction&quot;</span><span class="punctuation">:</span> <span class="string">&quot;DetailPageBuilder&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>并在 HomePage.ets 中导出构建函数：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// HomePage.ets</span></span><br><span class="line"><span class="meta">@Builder</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">HomePageBuilder</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title class_">HomePage</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-1-本质区别一：路由栈成为唯一数据源"><a href="#4-1-本质区别一：路由栈成为唯一数据源" class="headerlink" title="4.1 本质区别一：路由栈成为唯一数据源"></a>4.1 本质区别一：路由栈成为唯一数据源</h3><p>在传统写法中，Navigation 内部维护了两套机制——一套是 NavBar（导航栏），负责首页内容的展示；另一套是 NavDestination 栈，负责子页面的管理。这两套机制并存，导致了首页和子页面的地位不一致。</p>
+<p>在新的接口中，<code>NavPathStack</code> 成为 Navigation 的<strong>唯一数据源</strong>。Navigation 不再有内部的 NavBar 机制，所有的页面显示（包括首页）都基于栈中的 <code>NavDestination</code> 来决定。当栈为空时，显示 <code>homeDestination</code> 指定的主页；当通过 <code>pushPath</code> 跳转到子页面后，子页面以栈顶的形式覆盖展示。</p>
+<p>这就从架构层面消除了”两套机制并存”的问题。</p>
+<h3 id="4-2-本质区别二：主页与子页地位完全平等"><a href="#4-2-本质区别二：主页与子页地位完全平等" class="headerlink" title="4.2 本质区别二：主页与子页地位完全平等"></a>4.2 本质区别二：主页与子页地位完全平等</h3><p>这是 HomePathInfo 带来的最核心变化。主页不再是一个”需要放在 Navigation 闭包里特殊处理”的组件，它变成了一个和 DetailPage、SettingPage 完全一样的标准 <code>NavDestination</code>。</p>
+<p>平等体现在以下几个方面：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统写法</th>
+<th>新写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>组件类型</td>
+<td>Navigation 子组件（Column 等）</td>
+<td>NavDestination</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>无原生生命周期，需借助 Navigation 回调或全局 observer</td>
+<td>完整 NavDestination 生命周期</td>
+</tr>
+<tr>
+<td>标题控制</td>
+<td>通过 Navigation.title() 设置</td>
+<td>通过 NavDestination.title() 设置</td>
+</tr>
+<tr>
+<td>参数接收</td>
+<td>无统一入口，需通过 aboutToAppear 或全局状态</td>
+<td>通过 onReady 统一接收</td>
+</tr>
+<tr>
+<td>代码复用</td>
+<td>内容耦合在 Navigation 闭包中，不易拆分</td>
+<td>独立 @Component，天然可复用</td>
+</tr>
+<tr>
+<td>路由跳转</td>
+<td>通过 this.stack（外部传入）</td>
+<td>通过 onReady 获取 ctx.pathStack</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-本质区别三：架构语义的转变"><a href="#4-3-本质区别三：架构语义的转变" class="headerlink" title="4.3 本质区别三：架构语义的转变"></a>4.3 本质区别三：架构语义的转变</h3><p>从更高的维度来看，这个变化代表的是 Navigation 组件<strong>架构语义的升级</strong>。</p>
+<p>在传统写法中，Navigation 是一个”包含默认首页的容器”——它自带一个 NavBar 区域来展示首页内容，NavDestination 只是一个”附加”的子页面管理机制。</p>
+<p>在新写法中，Navigation 变成了一个<strong>纯粹的路由容器</strong>——它的职责被简化为”管理路由栈和渲染当前栈顶页面”，不再关心页面具体是什么内容。首页和子页面的差异被彻底抹平，它们都是栈中的一个 <code>NavDestination</code> 页面。</p>
+<p>这个语义转变对于中大型应用的架构设计有深远影响：</p>
+<ul>
+<li><strong>路由拦截</strong>：因为所有页面（包括首页）都走 NavPathStack，你可以统一做权限校验、登录拦截</li>
+<li><strong>跨模块路由</strong>：首页和子页面使用同一套路由映射表，跨模块加载时不需要特殊处理首页</li>
+<li><strong>状态恢复</strong>：NavPathStack 的序列化和反序列化可以完整恢复所有页面状态，首页不再是个例外</li>
+<li><strong>多端适配</strong>：在折叠屏和平板上，多栏模式下首页和子页面的切换遵循同一套逻辑</li>
+</ul>
+<h3 id="4-4-实战对比：同一个电商首页，用两种写法实现"><a href="#4-4-实战对比：同一个电商首页，用两种写法实现" class="headerlink" title="4.4 实战对比：同一个电商首页，用两种写法实现"></a>4.4 实战对比：同一个电商首页，用两种写法实现</h3><p>理论说再多，不如直接看代码。我们来用同一个需求——<strong>电商 App 首页</strong>，分别用传统写法和 HomePathInfo 新写法实现一遍，直观感受差异。</p>
+<h4 id="传统写法"><a href="#传统写法" class="headerlink" title="传统写法"></a>传统写法</h4><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">bannerList</span>: <span class="title class_">BannerItem</span>[] = [];</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">recommendList</span>: <span class="title class_">GoodsItem</span>[] = [];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 只能在 @Entry 的 aboutToAppear 中初始化数据</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadBanners</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadRecommends</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>) &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="comment">// 搜索栏——点击跳转到 SearchPage（NavDestination）</span></span><br><span class="line">        <span class="title class_">SearchHeader</span>(&#123;</span><br><span class="line">          <span class="attr">onSearchClick</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pushPath</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;SearchPage&#x27;</span> &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Banner 轮播——点击跳转到活动页</span></span><br><span class="line">        <span class="title class_">BannerSwiper</span>(&#123;</span><br><span class="line">          <span class="attr">data</span>: <span class="variable language_">this</span>.<span class="property">bannerList</span>,</span><br><span class="line">          <span class="attr">onBannerClick</span>: <span class="function">(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pushPath</span>(&#123;</span><br><span class="line">              <span class="attr">name</span>: <span class="string">&#x27;ActivityPage&#x27;</span>,</span><br><span class="line">              <span class="attr">param</span>: &#123; <span class="attr">activityId</span>: id &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 商品推荐列表</span></span><br><span class="line">        <span class="title class_">RecommendList</span>(&#123;</span><br><span class="line">          <span class="attr">data</span>: <span class="variable language_">this</span>.<span class="property">recommendList</span>,</span><br><span class="line">          <span class="attr">onLoadMore</span>: <span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="title function_">loadMore</span>(); &#125;,</span><br><span class="line">          <span class="attr">onItemClick</span>: <span class="function">(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pushPath</span>(&#123;</span><br><span class="line">              <span class="attr">name</span>: <span class="string">&#x27;GoodsDetailPage&#x27;</span>,</span><br><span class="line">              <span class="attr">param</span>: &#123; <span class="attr">goodsId</span>: id &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;XX商城&#x27;</span>)</span><br><span class="line">    .<span class="title function_">navDestination</span>(<span class="variable language_">this</span>.<span class="property">pageBuilder</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">pageBuilder</span>(<span class="params"><span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;SearchPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">SearchPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;ActivityPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">ActivityPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;GoodsDetailPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">GoodsDetailPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;CartPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">CartPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">loadBanners</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">  <span class="title function_">loadRecommends</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">  <span class="title function_">loadMore</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码存在的问题：</p>
+<ol>
+<li><code>aboutToAppear</code> 是 Index 组件的生命周期，但它加载的是<strong>首页</strong>的数据——这属于隐式耦合</li>
+<li>所有页面跳转写在一个 <code>pageBuilder</code> 里，首页的搜索&#x2F;推荐&#x2F;活动的跳转逻辑全混在一起</li>
+<li>首页的子组件（SearchHeader、BannerSwiper）需要把 <code>stack</code> 一路往下传，代码侵入性强</li>
+<li>想给首页单独加一个 <code>onShown</code> 回调来刷新数据？做不到。只能退而求其次用全局 observer</li>
+</ol>
+<h4 id="HomePathInfo-新写法"><a href="#HomePathInfo-新写法" class="headerlink" title="HomePathInfo 新写法"></a>HomePathInfo 新写法</h4><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ===== Index.ets =====</span></span><br><span class="line"><span class="comment">// 入口组件只负责两件事：创建路由栈 + 绑定主页</span></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>, &#123; <span class="attr">name</span>: <span class="string">&#x27;HomePage&#x27;</span> &#125;) &#123;</span><br><span class="line">      <span class="comment">// 空的！所有 UI 由 NavDestination 承载</span></span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">navDestination</span>(<span class="variable language_">this</span>.<span class="property">pageBuilder</span>)</span><br><span class="line">    .<span class="title function_">mode</span>(<span class="title class_">NavigationMode</span>.<span class="property">Stack</span>)</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">pageBuilder</span>(<span class="params"><span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;HomePage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">HomePage</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;SearchPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">SearchPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;ActivityPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">ActivityPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;GoodsDetailPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">GoodsDetailPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;CartPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">CartPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ===== HomePage.ets =====</span></span><br><span class="line"><span class="comment">// 首页是一个独立组件，拥有完整的 NavDestination 生命周期</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">export</span> struct <span class="title class_">HomePage</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>?: <span class="title class_">NavPathStack</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">bannerList</span>: <span class="title class_">BannerItem</span>[] = [];</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">recommendList</span>: <span class="title class_">GoodsItem</span>[] = [];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">SearchHeader</span>(&#123;</span><br><span class="line">          <span class="attr">onSearchClick</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="comment">// 通过 pathStack 跳转</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>?.<span class="title function_">pushPath</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;SearchPage&#x27;</span> &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="title class_">BannerSwiper</span>(&#123;</span><br><span class="line">          <span class="attr">data</span>: <span class="variable language_">this</span>.<span class="property">bannerList</span>,</span><br><span class="line">          <span class="attr">onBannerClick</span>: <span class="function">(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>?.<span class="title function_">pushPath</span>(&#123;</span><br><span class="line">              <span class="attr">name</span>: <span class="string">&#x27;ActivityPage&#x27;</span>,</span><br><span class="line">              <span class="attr">param</span>: &#123; <span class="attr">activityId</span>: id &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">        <span class="title class_">RecommendList</span>(&#123;</span><br><span class="line">          <span class="attr">data</span>: <span class="variable language_">this</span>.<span class="property">recommendList</span>,</span><br><span class="line">          <span class="attr">onLoadMore</span>: <span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="title function_">loadMore</span>(); &#125;,</span><br><span class="line">          <span class="attr">onItemClick</span>: <span class="function">(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">stack</span>?.<span class="title function_">pushPath</span>(&#123;</span><br><span class="line">              <span class="attr">name</span>: <span class="string">&#x27;GoodsDetailPage&#x27;</span>,</span><br><span class="line">              <span class="attr">param</span>: &#123; <span class="attr">goodsId</span>: id &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;XX商城&#x27;</span>)</span><br><span class="line">    .<span class="title function_">onReady</span>(<span class="function">(<span class="params"><span class="attr">ctx</span>: <span class="title class_">NavDestinationContext</span></span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 获取路由栈引用</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">stack</span> = ctx.<span class="property">pathStack</span>;</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">onShown</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// ✅ 每次回到首页自动刷新数据！</span></span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;首页显示，刷新数据&#x27;</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">refreshData</span>();</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">onHidden</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;首页隐藏，暂停耗性能操作&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">refreshData</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadBanners</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadRecommends</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">loadBanners</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">  <span class="title function_">loadRecommends</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">  <span class="title function_">loadMore</span>(<span class="params"></span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对比差异一目了然：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统写法</th>
+<th>HomePathInfo 新写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>入口职责</td>
+<td>创建路由栈 + 首页布局 + 数据加载 + 路由映射</td>
+<td>只创建路由栈和路由映射</td>
+</tr>
+<tr>
+<td>首页位置</td>
+<td>混在 Navigation 闭包里</td>
+<td>独立文件，独立 @Component</td>
+</tr>
+<tr>
+<td>回首页刷新</td>
+<td>onPageShow 不生效，需用 observer</td>
+<td>onShown 原生支持</td>
+</tr>
+<tr>
+<td>数据加载位置</td>
+<td>在 Index.aboutToAppear 中</td>
+<td>在 HomePage 自己内部</td>
+</tr>
+<tr>
+<td>子组件传参</td>
+<td>需手动传递 stack 给子组件</td>
+<td>子组件不需要感知路由</td>
+</tr>
+<tr>
+<td>可维护性</td>
+<td>首页内容不可复用，不可单独测试</td>
+<td>独立组件，可测试可复用</td>
+</tr>
+</tbody></table>
+<h3 id="4-5-更进一步：Tab-栏场景"><a href="#4-5-更进一步：Tab-栏场景" class="headerlink" title="4.5 更进一步：Tab 栏场景"></a>4.5 更进一步：Tab 栏场景</h3><p>HomePathInfo 的威力在 <strong>Tab 栏 + 多页面</strong> 的场景下更加明显。如果你的 App 底部有”首页、分类、购物车、我的”四个 Tab，每个 Tab 都对应一个独立的”首页级”页面——在传统写法中，你需要在 Navigation 闭包里用 <code>if...else</code> 或 <code>switch</code> 来切换这四套不同的内容。而在 HomePathInfo 模式下，每个 Tab 就是一个独立的 NavDestination，它们天然共享同一套生命周期管理和路由体系，不再需要额外的 Tab 切换逻辑来”特殊照顾”首页。</p>
+<h2 id="五、实际项目中如何迁移"><a href="#五、实际项目中如何迁移" class="headerlink" title="五、实际项目中如何迁移"></a>五、实际项目中如何迁移</h2><p>如果你已经在使用传统写法，怎么迁移到新的 HomePathInfo 模式呢？这里给出一个渐进式的迁移方案。</p>
+<h3 id="5-1-第一步：提取首页为独立组件"><a href="#5-1-第一步：提取首页为独立组件" class="headerlink" title="5.1 第一步：提取首页为独立组件"></a>5.1 第一步：提取首页为独立组件</h3><p>把 Navigation 闭包中的内容提取成一个独立的 <code>@Component</code>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 迁移前</span></span><br><span class="line"><span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>) &#123;</span><br><span class="line">  <span class="title class_">Column</span>() &#123;</span><br><span class="line">    <span class="comment">// ...首页内容</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 迁移后 - 在独立文件中</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">export</span> struct <span class="title class_">HomePage</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="comment">// ...首页内容（保持不变）</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;首页&#x27;</span>)</span><br><span class="line">    .<span class="title function_">onReady</span>(<span class="function">(<span class="params">ctx</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 保存路由栈引用</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-第二步：路由映射表注册"><a href="#5-2-第二步：路由映射表注册" class="headerlink" title="5.2 第二步：路由映射表注册"></a>5.2 第二步：路由映射表注册</h3><p>在 <code>route_map.json</code> 中添加首页的映射，确保 <code>name</code> 与 <code>Navigation(this.stack, &#123; name: &#39;HomePage&#39; &#125;)</code> 一致。</p>
+<h3 id="5-3-第三步：替换-Navigation-接口"><a href="#5-3-第三步：替换-Navigation-接口" class="headerlink" title="5.3 第三步：替换 Navigation 接口"></a>5.3 第三步：替换 Navigation 接口</h3><p>将 <code>Navigation(this.stack)</code> 替换为 <code>Navigation(this.stack, &#123; name: &#39;HomePage&#39; &#125;)</code>，并清空闭包。</p>
+<h3 id="5-4-第四步：生命周期对齐"><a href="#5-4-第四步：生命周期对齐" class="headerlink" title="5.4 第四步：生命周期对齐"></a>5.4 第四步：生命周期对齐</h3><p>将原来依赖 <code>onPageShow</code>、<code>aboutToAppear</code>、<code>onNavBarStateChange</code> 等回调的逻辑，迁移到 <code>NavDestination</code> 的 <code>onShown</code>、<code>onHidden</code> 等生命周期回调中。</p>
+<h3 id="5-5-真实场景举例：推送通知跳转"><a href="#5-5-真实场景举例：推送通知跳转" class="headerlink" title="5.5 真实场景举例：推送通知跳转"></a>5.5 真实场景举例：推送通知跳转</h3><p>这里分享一个我在实际开发中遇到的典型场景——<strong>从推送通知跳转到指定页面</strong>。</p>
+<p>用户收到一条推送：”您的订单已发货”，点击后需要跳转到 App 内的”订单详情页”。在传统 Navigation 写法中，这个流程是这样的：</p>
+<ol>
+<li>App 启动，Index 组件的 <code>aboutToAppear</code> 触发</li>
+<li>首页数据加载中，此时推送回调触发，尝试 <code>stack.pushPath(&#123; name: &#39;OrderDetailPage&#39; &#125;)</code></li>
+<li>但 Navigation 刚初始化完成，NavDestination 映射可能还没就绪——跳转失败</li>
+<li>你需要在首页数据加载完成后，再通过某种标记位”补跳”一次</li>
+</ol>
+<p>这就是典型的”路由栈还没准备好”问题。传统的解决方案是写一个全局的路由队列，等 Navigation 准备好后再消费队列中的跳转请求。</p>
+<p>用 HomePathInfo 新写法后，这个问题迎刃而解：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">stack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">pendingNavigate</span>: &#123; <span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>?: <span class="title class_">Object</span> &#125; | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 注册推送回调</span></span><br><span class="line">    pushService.<span class="title function_">onNotificationClick</span>(<span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (data.<span class="property">type</span> === <span class="string">&#x27;order&#x27;</span>) &#123;</span><br><span class="line">        <span class="comment">// 不管 Navigation 有没有就绪，先把跳转请求记录下来</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">pendingNavigate</span> = &#123;</span><br><span class="line">          <span class="attr">name</span>: <span class="string">&#x27;OrderDetailPage&#x27;</span>,</span><br><span class="line">          <span class="attr">param</span>: &#123; <span class="attr">orderId</span>: data.<span class="property">orderId</span> &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">// 尝试立即跳转——如果 Navigation 就绪了就直接走</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">tryNavigate</span>();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">stack</span>, &#123; <span class="attr">name</span>: <span class="string">&#x27;HomePage&#x27;</span> &#125;) &#123;</span><br><span class="line">      <span class="comment">// 如果跳转已就绪，没有缓存的路由请求，直接返回</span></span><br><span class="line">      <span class="comment">// 否则尝试执行跳转</span></span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">onAppear</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// ✅ Navigation + NavPathStack 完全就绪的信号</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">tryNavigate</span>();</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">navDestination</span>(<span class="variable language_">this</span>.<span class="property">pageBuilder</span>)</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">tryNavigate</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">pendingNavigate</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">stack</span>.<span class="title function_">pushPath</span>(<span class="variable language_">this</span>.<span class="property">pendingNavigate</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">pendingNavigate</span> = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">pageBuilder</span>(<span class="params"><span class="attr">name</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">&#x27;HomePage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">HomePage</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (name === <span class="string">&#x27;OrderDetailPage&#x27;</span>) &#123;</span><br><span class="line">      <span class="title class_">OrderDetailPage</span>(&#123; <span class="attr">param</span>: param <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>&gt; &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方案的核心优势在于：<strong>Navigation 的 onAppear 回调明确告诉你”路由系统已就绪”</strong>。因为主页是通过 HomePathInfo 声明的 NavDestination，整个路由系统（NavPathStack + 路由映射）在 onAppear 之前就已经完成了初始化，你可以放心地在这个回调中执行任何跳转操作。传统写法中，由于首页内容直接写在 Navigation 闭包里，你没有一个精确的”路由就绪”信号，只能靠猜测或延迟。</p>
+<h2 id="六、总结"><a href="#六、总结" class="headerlink" title="六、总结"></a>六、总结</h2><p>至此，HomePathInfo 到底解决了什么问题，以及它和传统写法的本质区别在哪里，应该已经讲清楚了。</p>
+<p>回顾一下核心要点：</p>
+<ol>
+<li><strong>传统写法的问题</strong>：首页是 Navigation 的普通子组件，子页面是 NavDestination，两者地位不平等导致的 lifecycle、title、param 接收等全方位的割裂</li>
+<li><strong>HomePathInfo 的解决方案</strong>：通过 <code>Navigation(pathInfos, homeDestination)</code> 将主页也声明为 NavDestination，让所有页面回归统一的路由管理体系</li>
+<li><strong>本质区别</strong>：路由栈成为唯一数据源 → 首页和子页地位平等 → Navigation 从”包含首页的容器”变为”纯粹的路由容器”</li>
+</ol>
+<p>其实这个变化看起来不大——不过就是一个新的构造函数重载而已。但它在架构层面的影响是深远的。它修正了 Navigation 组件在最初设计时留下的一个”历史遗留问题”，让 Navigation 的路由体系变得更加纯粹和统一。</p>
+<p>如果你正在从事实战项目开发，我建议在新项目中直接使用新的双参数接口，这会让后续的页面架构更加清晰。如果是老项目迁移，也不必急于一时，可以按照上面给出的渐进式方案逐步推进。</p>
+<p>好了，Navigation 2.0 中 HomePathInfo 的完整解析就到这里了。下一篇我打算深入讲讲 NavDestination 的生命周期细节，以及如何利用这些生命周期做更精细化的页面状态管理。敬请期待。</p>
+<p>转载请注明出处。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/05/10/%E9%B8%BF%E8%92%99Navigation2-HomePathInfo/">https://dpzxka.github.io/2026/05/10/%E9%B8%BF%E8%92%99Navigation2-HomePathInfo/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/harmonyos/">harmonyos</a><a class="post-meta__tags" href="/tags/navigation/">navigation</a><a class="post-meta__tags" href="/tags/%E9%B8%BF%E8%92%99/">鸿蒙</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-homepathinfo.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-navigation.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航</div></div><div class="info-2"><div class="info-item-1">从基础用法到源码分析，一篇文章彻底搞懂鸿蒙 Navigation 路由导航组件</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/09/%E9%B8%BF%E8%92%99Navigation%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-navigation.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-09</div><div class="info-item-2">鸿蒙 Navigation 完全解析，带你从源码的角度彻底理解路由导航</div></div><div class="info-2"><div class="info-item-1">从基础用法到源码分析，一篇文章彻底搞懂鸿蒙 Navigation 路由导航组件</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%88%91%E4%BB%AC%E5%85%88%E6%9D%A5%E7%9C%8B%E4%B8%80%E4%B8%AA%E2%80%9D%E7%9C%8B%E4%BC%BC%E6%B2%A1%E9%97%AE%E9%A2%98%E2%80%9D%E7%9A%84%E4%BC%A0%E7%BB%9F%E5%86%99%E6%B3%95"><span class="toc-number">1.</span> <span class="toc-text">一、我们先来看一个”看似没问题”的传统写法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BC%A0%E7%BB%9F%E5%86%99%E6%B3%95%E8%97%8F%E7%9D%80%E5%93%AA%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">二、传统写法藏着哪些问题？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%A6%96%E9%A1%B5%E5%92%8C%E5%AD%90%E9%A1%B5%E9%9D%A2%E2%80%9D%E5%9C%B0%E4%BD%8D%E4%B8%8D%E5%B9%B3%E7%AD%89%E2%80%9D"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 首页和子页面”地位不平等”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%EF%BC%9A%E7%A4%BE%E4%BA%A4-Feed-%E6%B5%81-App"><span class="toc-number">2.2.</span> <span class="toc-text">场景：社交 Feed 流 App</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A0%87%E9%A2%98%E6%A0%8F%E6%8E%A7%E5%88%B6%E6%9D%83%E4%B8%8D%E7%BB%9F%E4%B8%80"><span class="toc-number">2.3.</span> <span class="toc-text">2.2 标题栏控制权不统一</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8F%82%E6%95%B0%E6%8E%A5%E6%94%B6%E6%96%B9%E5%BC%8F%E4%B8%8D%E4%B8%80%E8%87%B4"><span class="toc-number">2.4.</span> <span class="toc-text">2.3 参数接收方式不一致</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%BB%A3%E7%A0%81%E7%BB%84%E7%BB%87%E9%80%90%E6%B8%90%E5%A4%B1%E7%84%A6"><span class="toc-number">2.5.</span> <span class="toc-text">2.4 代码组织逐渐失焦</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%EF%BC%9A%E7%94%B5%E5%95%86-App-%E7%9A%84%E9%A6%96%E9%A1%B5%E8%86%A8%E8%83%80"><span class="toc-number">2.6.</span> <span class="toc-text">场景：电商 App 的首页膨胀</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81HomePathInfo-%E7%99%BB%E5%9C%BA"><span class="toc-number">3.</span> <span class="toc-text">三、HomePathInfo 登场</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%96%B0%E5%86%99%E6%B3%95%E4%B8%8E%E4%BC%A0%E7%BB%9F%E5%86%99%E6%B3%95%E7%9A%84%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB"><span class="toc-number">4.</span> <span class="toc-text">四、新写法与传统写法的本质区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%E4%B8%80%EF%BC%9A%E8%B7%AF%E7%94%B1%E6%A0%88%E6%88%90%E4%B8%BA%E5%94%AF%E4%B8%80%E6%95%B0%E6%8D%AE%E6%BA%90"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 本质区别一：路由栈成为唯一数据源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%E4%BA%8C%EF%BC%9A%E4%B8%BB%E9%A1%B5%E4%B8%8E%E5%AD%90%E9%A1%B5%E5%9C%B0%E4%BD%8D%E5%AE%8C%E5%85%A8%E5%B9%B3%E7%AD%89"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 本质区别二：主页与子页地位完全平等</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%E4%B8%89%EF%BC%9A%E6%9E%B6%E6%9E%84%E8%AF%AD%E4%B9%89%E7%9A%84%E8%BD%AC%E5%8F%98"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 本质区别三：架构语义的转变</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%AE%9E%E6%88%98%E5%AF%B9%E6%AF%94%EF%BC%9A%E5%90%8C%E4%B8%80%E4%B8%AA%E7%94%B5%E5%95%86%E9%A6%96%E9%A1%B5%EF%BC%8C%E7%94%A8%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 实战对比：同一个电商首页，用两种写法实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9F%E5%86%99%E6%B3%95"><span class="toc-number">4.4.1.</span> <span class="toc-text">传统写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HomePathInfo-%E6%96%B0%E5%86%99%E6%B3%95"><span class="toc-number">4.4.2.</span> <span class="toc-text">HomePathInfo 新写法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%9B%B4%E8%BF%9B%E4%B8%80%E6%AD%A5%EF%BC%9ATab-%E6%A0%8F%E5%9C%BA%E6%99%AF"><span class="toc-number">4.5.</span> <span class="toc-text">4.5 更进一步：Tab 栏场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%9E%E9%99%85%E9%A1%B9%E7%9B%AE%E4%B8%AD%E5%A6%82%E4%BD%95%E8%BF%81%E7%A7%BB"><span class="toc-number">5.</span> <span class="toc-text">五、实际项目中如何迁移</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E6%8F%90%E5%8F%96%E9%A6%96%E9%A1%B5%E4%B8%BA%E7%8B%AC%E7%AB%8B%E7%BB%84%E4%BB%B6"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 第一步：提取首页为独立组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E8%B7%AF%E7%94%B1%E6%98%A0%E5%B0%84%E8%A1%A8%E6%B3%A8%E5%86%8C"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 第二步：路由映射表注册</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E6%9B%BF%E6%8D%A2-Navigation-%E6%8E%A5%E5%8F%A3"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 第三步：替换 Navigation 接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%AF%B9%E9%BD%90"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 第四步：生命周期对齐</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E7%9C%9F%E5%AE%9E%E5%9C%BA%E6%99%AF%E4%B8%BE%E4%BE%8B%EF%BC%9A%E6%8E%A8%E9%80%81%E9%80%9A%E7%9F%A5%E8%B7%B3%E8%BD%AC"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 真实场景举例：推送通知跳转</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">六、总结</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
