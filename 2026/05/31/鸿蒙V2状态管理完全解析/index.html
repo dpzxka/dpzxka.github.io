@@ -1,0 +1,624 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider/@Consumer 的完整状态体系 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="深入 ArkUI V2 的五大状态装饰器——@Local、@Param、@Track、@Provider、@Consumer，对比 V1 的 @State&#x2F;@Prop&#x2F;@Link&#x2F;@Provide&#x2F;@Consume，用源码级理解掌握状态管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider&#x2F;@Consumer 的完整状态体系">
+<meta property="og:url" content="https://dpzxka.github.io/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="深入 ArkUI V2 的五大状态装饰器——@Local、@Param、@Track、@Provider、@Consumer，对比 V1 的 @State&#x2F;@Prop&#x2F;@Link&#x2F;@Provide&#x2F;@Consume，用源码级理解掌握状态管理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-state-management.svg">
+<meta property="article:published_time" content="2026-05-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-01T23:09:17.490Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="harmonyos">
+<meta property="article:tag" content="鸿蒙">
+<meta property="article:tag" content="arkts">
+<meta property="article:tag" content="state-management">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-state-management.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider/@Consumer 的完整状态体系",
+  "url": "https://dpzxka.github.io/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/",
+  "image": "https://dpzxka.github.io/img/harmonyos-state-management.svg",
+  "datePublished": "2026-05-30T16:00:00.000Z",
+  "dateModified": "2026-06-01T23:09:17.490Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider/@Consumer 的完整状态体系',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-state-management.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider/@Consumer 的完整状态体系</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider/@Consumer 的完整状态体系</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-30T16:00:00.000Z" title="发表于 2026-05-31 00:00:00">2026-05-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-01T23:09:17.490Z" title="更新于 2026-06-02 07:09:17">2026-06-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/harmonyos/">harmonyos</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>20分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-06-02 07:09:17&quot;}" hidden></div><p>在我写前面几篇文章的过程中，收到不少关于 V2 状态管理的疑问。上一篇文章《鸿蒙自定义组件与 @Builder 完全解析》末尾我预告了这篇——今天就来把 V2 的状态管理体系彻底讲清楚。</p>
+<p>V2 引入了一套全新的状态装饰器体系。如果你熟悉 V1 的 <code>@State</code>、<code>@Prop</code>、<code>@Link</code>、<code>@Provide</code>、<code>@Consume</code>，会发现 V2 的名称和语义都变了。这不仅仅是换了个名字——背后是整个状态追踪机制的重构。</p>
+<p>这篇文章会从最基础的 <code>@Local</code> 开始，逐步深入到 <code>@Track</code>、<code>@Provider</code>、<code>@Consumer</code>，中间穿插与 V1 的对比，最后用一个完整的 TodoMVC 串联所有知识点。</p>
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-state-management.svg" class="" title="鸿蒙 V2 状态管理体系全景">
+
+<h2 id="一、V1-到-V2：状态管理的演进"><a href="#一、V1-到-V2：状态管理的演进" class="headerlink" title="一、V1 到 V2：状态管理的演进"></a>一、V1 到 V2：状态管理的演进</h2><p>在深入具体装饰器之前，先理解 V1 和 V2 在状态管理上的根本区别。</p>
+<h3 id="1-1-V1-的问题"><a href="#1-1-V1-的问题" class="headerlink" title="1.1 V1 的问题"></a>1.1 V1 的问题</h3><p>V1 的装饰器看起来很完善——<code>@State</code> 管内部状态、<code>@Prop</code> 管传入数据、<code>@Link</code> 管双向绑定、<code>@Provide/@Consume</code> 管跨级传递。但在实际使用中，有几个痛点：</p>
+<p><strong>第一个问题：粗粒度刷新。</strong></p>
+<p>在 V1 中，只要 <code>@State</code> 变量的引用发生变化——比如给数组 push 一个新元素，或者修改对象的某个属性——整个组件及其所有子组件都会重建。这不是 Bug，这是 V1 的设计取舍：它不追踪”属性级”的变化。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// V1 代码</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">UserCard</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">user</span>: <span class="title class_">User</span> = &#123; <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span>, <span class="attr">age</span>: <span class="number">28</span> &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">name</span>)  <span class="comment">// 我只想显示 name</span></span><br><span class="line">      <span class="comment">// 但如果 this.user.age 变了，Text 也会重新渲染</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种情况在复杂组件中会引起级联渲染。V1 的应对方式是加 <code>ObjectUtils</code> 或者手动拆分组件，但这都属于”打补丁”式的解决。</p>
+<p><strong>第二个问题：装饰器语义模糊。</strong></p>
+<p><code>@State</code> 到底代表”这个状态属于组件自己”还是”这个状态驱动 UI 刷新”？新开发者经常搞混 <code>@State</code> 和 <code>@Prop</code> 的区别。特别是在大项目中，一个变量该用 <code>@State</code> 还是 <code>@Prop</code> 有时候很难判断。</p>
+<p><strong>第三个问题：@Link 耦合过多。</strong></p>
+<p><code>@Link</code> 在子组件中直接修改父组件的状态，这破坏了单向数据流。在大项目中，<code>@Link</code> 的滥用会导致数据流向难以追踪，调试起来非常头疼。</p>
+<h3 id="1-2-V2-的改进"><a href="#1-2-V2-的改进" class="headerlink" title="1.2 V2 的改进"></a>1.2 V2 的改进</h3><p>V2 针对上述问题做了系统性的重构：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>V1</th>
+<th>V2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内部状态</td>
+<td><code>@State</code></td>
+<td><code>@Local</code></td>
+</tr>
+<tr>
+<td>外部传入</td>
+<td><code>@Prop</code></td>
+<td><code>@Param</code></td>
+</tr>
+<tr>
+<td>双向绑定</td>
+<td><code>@Link</code></td>
+<td><code>@Param + @Event</code></td>
+</tr>
+<tr>
+<td>跨级传递</td>
+<td><code>@Provide/@Consume</code></td>
+<td><code>@Provider/@Consumer</code></td>
+</tr>
+<tr>
+<td>精确追踪</td>
+<td>不支持</td>
+<td><code>@Track</code></td>
+</tr>
+<tr>
+<td>监听变化</td>
+<td><code>@Watch</code></td>
+<td><code>@Monitor</code></td>
+</tr>
+</tbody></table>
+<p>每个装饰器的职责更加清晰，同时引入了<strong>精确追踪</strong>这一 V1 完全不具备的能力。</p>
+<h2 id="二、-Local：组件自己的状态"><a href="#二、-Local：组件自己的状态" class="headerlink" title="二、@Local：组件自己的状态"></a>二、@Local：组件自己的状态</h2><p><code>@Local</code> 是 V2 中最基础的状态装饰器，替换了 V1 的 <code>@State</code>。</p>
+<h3 id="2-1-基本用法"><a href="#2-1-基本用法" class="headerlink" title="2.1 基本用法"></a>2.1 基本用法</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Counter</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">count</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`计数: <span class="subst">$&#123;<span class="variable language_">this</span>.count&#125;</span>`</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">32</span>)</span><br><span class="line">        .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;+1&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">count</span>++;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@Local</code> 的核心语义是：<strong>这个状态由组件自己管理，不依赖外部</strong>。当 <code>this.count</code> 变化时，ArkUI 会自动重新渲染引用了 <code>this.count</code> 的 UI 部分。</p>
+<h3 id="2-2-Local-vs-State"><a href="#2-2-Local-vs-State" class="headerlink" title="2.2 @Local vs @State"></a>2.2 @Local vs @State</h3><p>V2 为什么要把 <code>@State</code> 改名为 <code>@Local</code>？这不仅仅是换个名字。</p>
+<p><strong>第一，语义更准确。</strong></p>
+<p><code>@State</code> 这个词在 React、Vue、Angular 中都有，但含义各不相同。在 ArkUI V1 中，<code>@State</code> 同时承担了”内部状态管理”和”驱动 UI 刷新”两个角色。V2 的 <code>@Local</code> 更强调”这个状态属于这个组件自己”——你还可以用 <code>@Param</code> 来标记外部传入的状态，两者分工明确。</p>
+<p><strong>第二，刷新粒度不同。</strong></p>
+<p>V1 的 <code>@State</code> 采用”引用级”的比较——只要对象的引用变了，整个组件重建。V2 的 <code>@Local</code> 采用”属性级”的追踪——它知道哪个 Text 引用了哪个属性，只有真正依赖的属性变化了才会刷新对应的 UI 节点。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// V2: @Local 精确追踪</span></span><br><span class="line"><span class="meta">@Local</span> <span class="attr">user</span>: <span class="title class_">User</span> = &#123; <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span>, <span class="attr">age</span>: <span class="number">28</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// build 中 Text(this.user.name) 只追踪 name</span></span><br><span class="line"><span class="comment">// 修改 this.user.age 不会触发该 Text 刷新</span></span><br></pre></td></tr></table></figure>
+
+<p>这一点差异在复杂组件中效果非常明显。后面讲 <code>@Track</code> 时会深入展开。</p>
+<h3 id="2-3-可变类型与不可变类型"><a href="#2-3-可变类型与不可变类型" class="headerlink" title="2.3 可变类型与不可变类型"></a>2.3 可变类型与不可变类型</h3><p><code>@Local</code> 支持的类型包括：</p>
+<ul>
+<li>简单类型：<code>number</code>、<code>string</code>、<code>boolean</code>、<code>enum</code></li>
+<li>对象类型：<code>class</code>、<code>interface</code>、<code>Record</code></li>
+<li>集合类型：<code>Array</code>、<code>Set</code>、<code>Map</code></li>
+<li>联合类型：这些类型的组合</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Dashboard</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">count</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">name</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">items</span>: <span class="built_in">string</span>[] = [];</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">config</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">number</span>&gt; = &#123;&#125;;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">status</span>: <span class="title class_">StatusEnum</span> = <span class="title class_">StatusEnum</span>.<span class="property">Loading</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于对象类型，修改属性的值就会触发 UI 刷新——不需要像 React 那样手动创建新的对象引用：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// V2: 直接修改属性即可触发 UI 更新</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">name</span> = <span class="string">&#x27;李四&#x27;</span>;  <span class="comment">// ✅ 触发 UI 刷新</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">age</span> = <span class="number">30</span>;       <span class="comment">// ✅ 触发 UI 刷新</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 而在 React 中，你需要：</span></span><br><span class="line"><span class="comment">// setUser(&#123; ...user, name: &#x27;李四&#x27; &#125;);  // 创建新对象</span></span><br></pre></td></tr></table></figure>
+
+<p>这是因为 V2 的 <code>@Local</code> 使用了 Proxy 代理机制来拦截属性的读写操作。</p>
+<h2 id="三、-Param：接收外部数据"><a href="#三、-Param：接收外部数据" class="headerlink" title="三、@Param：接收外部数据"></a>三、@Param：接收外部数据</h2><p><code>@Param</code> 是 V2 中用于接收父组件传入数据的装饰器，替换了 V1 的 <code>@Prop</code> 和 <code>@Link</code>。</p>
+<h3 id="3-1-基本用法：单向数据流"><a href="#3-1-基本用法：单向数据流" class="headerlink" title="3.1 基本用法：单向数据流"></a>3.1 基本用法：单向数据流</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Greeting</span> &#123;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">name</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Text</span>(<span class="string">`你好，<span class="subst">$&#123;<span class="variable language_">this</span>.name&#125;</span>！`</span>)</span><br><span class="line">      .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>父组件通过构造参数传入：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Parent</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">userName</span>: <span class="built_in">string</span> = <span class="string">&#x27;张三&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Greeting</span>(&#123; <span class="attr">name</span>: <span class="variable language_">this</span>.<span class="property">userName</span> &#125;)</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;换个名字&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">userName</span> = <span class="string">&#x27;李四&#x27;</span>;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@Param</code> 的数据流是<strong>单向的</strong>：父 → 子。子组件不能直接修改 <code>@Param</code> 的值。如果需要让子组件通知父组件修改数据，用 <code>@Event</code>。</p>
+<h3 id="3-2-Param-Event：替代-Link"><a href="#3-2-Param-Event：替代-Link" class="headerlink" title="3.2 @Param + @Event：替代 @Link"></a>3.2 @Param + @Event：替代 @Link</h3><p>前面说过，V1 的 <code>@Link</code> 破坏了单向数据流。V2 的做法是把”数据”和”事件”分开：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">EditableField</span> &#123;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">value</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  <span class="meta">@Event</span> <span class="attr">onValueChange</span>?: <span class="function">(<span class="params"><span class="attr">newValue</span>: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">TextInput</span>(&#123; <span class="attr">text</span>: <span class="variable language_">this</span>.<span class="property">value</span>, <span class="attr">placeholder</span>: <span class="string">&#x27;请输入...&#x27;</span> &#125;)</span><br><span class="line">      .<span class="title function_">onChange</span>(<span class="function">(<span class="params"><span class="attr">val</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">onValueChange</span>?.(val);</span><br><span class="line">      &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>父组件：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">ProfilePage</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">nickname</span>: <span class="built_in">string</span> = <span class="string">&#x27;默认昵称&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">EditableField</span>(&#123;</span><br><span class="line">        <span class="attr">value</span>: <span class="variable language_">this</span>.<span class="property">nickname</span>,</span><br><span class="line">        <span class="attr">onValueChange</span>: <span class="function">(<span class="params"><span class="attr">val</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">nickname</span> = val;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`当前昵称: <span class="subst">$&#123;<span class="variable language_">this</span>.nickname&#125;</span>`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种模式的优点是<strong>数据流向清晰</strong>：数据从父组件通过 <code>@Param</code> 流入，事件通过 <code>@Event</code> 流回。你可以在 <code>onValueChange</code> 回调中做校验、日志、甚至取消修改——这些都是 <code>@Link</code> 无法做到的。</p>
+<h3 id="3-3-Param-的默认值机制"><a href="#3-3-Param-的默认值机制" class="headerlink" title="3.3 @Param 的默认值机制"></a>3.3 @Param 的默认值机制</h3><p>每个 <code>@Param</code> 都必须有初始值。这个初始值有两个作用：</p>
+<ol>
+<li><strong>作为类型推断的锚点</strong>——ArkTS 编译器从初始值推断属性的类型</li>
+<li><strong>作为可选参数的默认值</strong>——当父组件没有传入时使用</li>
+</ol>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Button</span> &#123;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">text</span>: <span class="built_in">string</span> = <span class="string">&#x27;按钮&#x27;</span>;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">type</span>: <span class="title class_">ButtonType</span> = <span class="title class_">ButtonType</span>.<span class="property">Normal</span>;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">disabled</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">width</span>: <span class="built_in">number</span> = <span class="number">120</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用时可以只传需要的参数</span></span><br><span class="line"><span class="title class_">Button</span>(&#123; <span class="attr">text</span>: <span class="string">&#x27;提交&#x27;</span> &#125;)</span><br><span class="line"><span class="title class_">Button</span>(&#123; <span class="attr">text</span>: <span class="string">&#x27;删除&#x27;</span>, <span class="attr">type</span>: <span class="title class_">ButtonType</span>.<span class="property">Capsule</span> &#125;)</span><br><span class="line"><span class="title class_">Button</span>(&#123; <span class="attr">text</span>: <span class="string">&#x27;不可用&#x27;</span>, <span class="attr">disabled</span>: <span class="literal">true</span>, <span class="attr">width</span>: <span class="number">200</span> &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这个模式让组件的 API 设计更加灵活——所有的 <code>@Param</code> 都是”可选”的，都有合理的默认值。</p>
+<h3 id="3-4-Param-vs-Prop-V1-vs-Link-V1"><a href="#3-4-Param-vs-Prop-V1-vs-Link-V1" class="headerlink" title="3.4 @Param vs @Prop (V1) vs @Link (V1)"></a>3.4 @Param vs @Prop (V1) vs @Link (V1)</h3><table>
+<thead>
+<tr>
+<th></th>
+<th><code>@Prop</code> (V1)</th>
+<th><code>@Link</code> (V1)</th>
+<th><code>@Param</code> (V2)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据流向</td>
+<td>父 → 子</td>
+<td>父 ↔ 子</td>
+<td>父 → 子</td>
+</tr>
+<tr>
+<td>子组件修改</td>
+<td>不允许</td>
+<td>允许</td>
+<td>不允许（通过 <code>@Event</code>）</td>
+</tr>
+<tr>
+<td>默认值</td>
+<td>可选</td>
+<td>无</td>
+<td>必须</td>
+</tr>
+<tr>
+<td>同步机制</td>
+<td>拷贝</td>
+<td>引用</td>
+<td>拷贝（浅拷贝）</td>
+</tr>
+<tr>
+<td>设计理念</td>
+<td>单向</td>
+<td>双向</td>
+<td>单向 + 事件流</td>
+</tr>
+</tbody></table>
+<p>V2 的方案更接近”受控组件”模式——子组件不直接修改外部数据，而是通过事件通知父组件去修改。</p>
+<h2 id="四、-Track：真正的精确追踪"><a href="#四、-Track：真正的精确追踪" class="headerlink" title="四、@Track：真正的精确追踪"></a>四、@Track：真正的精确追踪</h2><p><code>@Track</code> 是 V2 中最重要的改进之一。它解决了 V1 中最大的性能痛点。</p>
+<h3 id="4-1-问题的本质"><a href="#4-1-问题的本质" class="headerlink" title="4.1 问题的本质"></a>4.1 问题的本质</h3><p>考虑这个组件：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">UserDashboard</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">user</span>: <span class="title class_">User</span> = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span>,</span><br><span class="line">    <span class="attr">age</span>: <span class="number">28</span>,</span><br><span class="line">    <span class="attr">email</span>: <span class="string">&#x27;zs@example.com&#x27;</span>,</span><br><span class="line">    <span class="attr">avatar</span>: <span class="string">&#x27;/images/avatar.png&#x27;</span>,</span><br><span class="line">    <span class="attr">scores</span>: [<span class="number">85</span>, <span class="number">92</span>, <span class="number">78</span>]</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// A: 只读 name 和 avatar</span></span><br><span class="line">      <span class="title class_">Row</span>() &#123;</span><br><span class="line">        <span class="title class_">Image</span>(<span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">avatar</span>).<span class="title function_">width</span>(<span class="number">40</span>).<span class="title function_">height</span>(<span class="number">40</span>)</span><br><span class="line">        <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">name</span>).<span class="title function_">fontSize</span>(<span class="number">18</span>)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Divider</span>()</span><br><span class="line"></span><br><span class="line">      <span class="comment">// B: 只读 email</span></span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">email</span>).<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Divider</span>()</span><br><span class="line"></span><br><span class="line">      <span class="comment">// C: 只读 scores</span></span><br><span class="line">      <span class="title class_">ForEach</span>(<span class="variable language_">this</span>.<span class="property">user</span>.<span class="property">scores</span>, <span class="function">(<span class="params"><span class="attr">s</span>: <span class="built_in">number</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">`<span class="subst">$&#123;s&#125;</span>分`</span>)</span><br><span class="line">      &#125;, <span class="function">(<span class="params"><span class="attr">s</span>: <span class="built_in">number</span></span>) =&gt;</span> <span class="string">`<span class="subst">$&#123;s&#125;</span>`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>this.user.email</code> 发生变化时——根据前面介绍的精确追踪机制——只有引用了 <code>email</code> 的 <code>Text</code> 会刷新。<strong>这就是 V2 默认的精确追踪行为。</strong></p>
+<p>但是，如果 <code>user</code> 对象来自一个 API 返回，并且你只修改了 <code>scores</code> 数组，真的只有 C 区域刷新吗？</p>
+<p>答案是：<strong>如果你使用了 <code>@Track</code> 标记了 <code>scores</code>，那么是的，只有 C 区域刷新。如果不加 <code>@Track</code>，框架可能无法在属性级别精确追踪。</strong></p>
+<h3 id="4-2-Track-的使用"><a href="#4-2-Track-的使用" class="headerlink" title="4.2 @Track 的使用"></a>4.2 @Track 的使用</h3><p><code>@Track</code> 装饰器标记在对象类型的属性上，告诉框架：”这个属性是一个独立的追踪单元”：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">UserDashboard</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">user</span>: &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="built_in">string</span>,</span><br><span class="line">    <span class="meta">@Track</span> <span class="attr">scores</span>: <span class="built_in">number</span>[]  <span class="comment">// 标记为独立追踪单元</span></span><br><span class="line">  &#125; = &#123; <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span>, <span class="attr">scores</span>: [] &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>scores</code> 变化时，只刷新引用了 <code>this.user.scores</code> 的 UI 部分，<code>name</code> 的 UI 不会刷新。反过来也一样。</p>
+<h3 id="4-3-什么时候需要用-Track？"><a href="#4-3-什么时候需要用-Track？" class="headerlink" title="4.3 什么时候需要用 @Track？"></a>4.3 什么时候需要用 @Track？</h3><p><code>@Track</code> 不是必须用，而是一种<strong>性能优化手段</strong>。判断标准很简单：</p>
+<ul>
+<li><strong>如果一个对象属性经常独立变化，且它的 UI 渲染成本较高</strong>——用 <code>@Track</code></li>
+<li><strong>如果一个属性几乎不和同对象下的其他属性同时变化</strong>——用 <code>@Track</code></li>
+<li><strong>如果组件很简单，性能不是问题</strong>——不用 <code>@Track</code> 也没关系</li>
+</ul>
+<p>常见的适合 <code>@Track</code> 的场景：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 表单字段 — 每个字段独立变化</span></span><br><span class="line"><span class="meta">@Local</span> <span class="attr">form</span>: &#123;</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">username</span>: <span class="built_in">string</span>,</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">password</span>: <span class="built_in">string</span>,</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">email</span>: <span class="built_in">string</span>,</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">agreed</span>: <span class="built_in">boolean</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 列表数据 — 数据更新和分页状态独立</span></span><br><span class="line"><span class="meta">@Local</span> <span class="attr">listState</span>: &#123;</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">items</span>: <span class="title class_">Item</span>[],</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">loading</span>: <span class="built_in">boolean</span>,</span><br><span class="line">  <span class="meta">@Track</span> <span class="attr">hasMore</span>: <span class="built_in">boolean</span>,</span><br><span class="line">  <span class="attr">currentPage</span>: <span class="built_in">number</span>  <span class="comment">// 不常用，不需要精确追踪</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-Track-Monitor"><a href="#4-4-Track-Monitor" class="headerlink" title="4.4 @Track + @Monitor"></a>4.4 @Track + @Monitor</h3><p><code>@Monitor</code> 可以配合 <code>@Track</code> 实现属性级的变化监听：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">FormPage</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">form</span>: &#123;</span><br><span class="line">    <span class="meta">@Track</span> <span class="attr">username</span>: <span class="built_in">string</span>,</span><br><span class="line">    <span class="meta">@Track</span> <span class="attr">password</span>: <span class="built_in">string</span></span><br><span class="line">  &#125; = &#123; <span class="attr">username</span>: <span class="string">&#x27;&#x27;</span>, <span class="attr">password</span>: <span class="string">&#x27;&#x27;</span> &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Monitor</span>(<span class="string">&#x27;form.username&#x27;</span>)</span><br><span class="line">  <span class="title function_">validateUsername</span>(<span class="params"><span class="attr">mon</span>: <span class="title class_">IMonitor</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> val = mon.<span class="title function_">value</span>() <span class="keyword">as</span> <span class="built_in">string</span>;</span><br><span class="line">    <span class="keyword">if</span> (val &amp;&amp; val.<span class="property">length</span> &lt; <span class="number">3</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;用户名太短&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Monitor</span>(<span class="string">&#x27;form.password&#x27;</span>)</span><br><span class="line">  <span class="title function_">validatePassword</span>(<span class="params"><span class="attr">mon</span>: <span class="title class_">IMonitor</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> val = mon.<span class="title function_">value</span>() <span class="keyword">as</span> <span class="built_in">string</span>;</span><br><span class="line">    <span class="keyword">if</span> (val &amp;&amp; val.<span class="property">length</span> &lt; <span class="number">6</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;密码太短&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@Monitor</code> 的参数是对应状态装饰器上的属性路径。这里加上了 <code>@Track</code>，框架就知道”只监听 <code>form.username</code> 的变化，其他属性变化不要触发我”。</p>
+<h2 id="五、-Provider-Consumer：跨层级状态共享"><a href="#五、-Provider-Consumer：跨层级状态共享" class="headerlink" title="五、@Provider &#x2F; @Consumer：跨层级状态共享"></a>五、@Provider &#x2F; @Consumer：跨层级状态共享</h2><h3 id="5-1-为什么要跨层级传递？"><a href="#5-1-为什么要跨层级传递？" class="headerlink" title="5.1 为什么要跨层级传递？"></a>5.1 为什么要跨层级传递？</h3><p>前面说的 <code>@Local</code> 和 <code>@Param</code> 解决了父子组件之间的状态传递。但考虑一个深层嵌套的场景：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Page</span><br><span class="line">  └── Header</span><br><span class="line">       └── UserMenu</span><br><span class="line">            └── ThemeSwitcher  ← 需要访问 theme</span><br><span class="line">  └── Sidebar</span><br><span class="line">       └── NavItem  ← 也需要访问 theme</span><br><span class="line">  └── Content</span><br><span class="line">       └── Card</span><br><span class="line">            └── Text  ← 也需要访问 theme</span><br></pre></td></tr></table></figure>
+
+<p>如果只用 <code>@Param</code>，<code>theme</code> 需要从 <code>Page</code> 一层层传递到 <code>ThemeSwitcher</code>、<code>NavItem</code>、<code>Text</code>——经过 3~4 层中间组件。这些中间组件自身并不需要 <code>theme</code>，只是为了传递而传递。这就是 <strong>Prop Drilling（属性钻取）</strong>。</p>
+<p>V1 的解决方式是 <code>@Provide/@Consume</code>。V2 换成了 <code>@Provider/@Consumer</code>。</p>
+<h3 id="5-2-Provider：提供状态"><a href="#5-2-Provider：提供状态" class="headerlink" title="5.2 @Provider：提供状态"></a>5.2 @Provider：提供状态</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Page</span> &#123;</span><br><span class="line">  <span class="meta">@Provider</span> <span class="attr">theme</span>: <span class="built_in">string</span> = <span class="string">&#x27;light&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Header</span>()</span><br><span class="line">      <span class="title class_">Sidebar</span>()</span><br><span class="line">      <span class="title class_">Content</span>()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@Provider</code> 将 <code>theme</code> 状态注入到组件子树中。任何后代组件都可以通过 <code>@Consumer</code> 获取到这个值。</p>
+<h3 id="5-3-Consumer：消费状态"><a href="#5-3-Consumer：消费状态" class="headerlink" title="5.3 @Consumer：消费状态"></a>5.3 @Consumer：消费状态</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">ThemeSwitcher</span> &#123;</span><br><span class="line">  <span class="meta">@Consumer</span> <span class="attr">theme</span>: <span class="built_in">string</span> = <span class="string">&#x27;light&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`当前主题: <span class="subst">$&#123;<span class="variable language_">this</span>.theme&#125;</span>`</span>)</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;切换&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">theme</span> = <span class="variable language_">this</span>.<span class="property">theme</span> === <span class="string">&#x27;light&#x27;</span> ? <span class="string">&#x27;dark&#x27;</span> : <span class="string">&#x27;light&#x27;</span>;</span><br><span class="line">          <span class="comment">// 修改 @Consumer 变量会直接反映到 @Provider！</span></span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是 V2 的一个重要特性：<strong><code>@Consumer</code> 可以修改状态，且修改会反映到 <code>@Provider</code> 上，触发所有消费该状态的组件刷新</strong>。这是 V1 的 <code>@Consume</code> 不具备的能力。</p>
+<h3 id="5-4-Provider-Consumer-vs-Provide-Consume-V1"><a href="#5-4-Provider-Consumer-vs-Provide-Consume-V1" class="headerlink" title="5.4 @Provider &#x2F; @Consumer vs @Provide &#x2F; @Consume (V1)"></a>5.4 @Provider &#x2F; @Consumer vs @Provide &#x2F; @Consume (V1)</h3><table>
+<thead>
+<tr>
+<th></th>
+<th><code>@Provide/@Consume</code> (V1)</th>
+<th><code>@Provider/@Consumer</code> (V2)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据流向</td>
+<td>提供者 → 消费者</td>
+<td>提供者 ↔ 消费者</td>
+</tr>
+<tr>
+<td>消费者可修改</td>
+<td>不允许</td>
+<td>允许</td>
+</tr>
+<tr>
+<td>类型匹配</td>
+<td>按变量名匹配</td>
+<td>按变量名匹配</td>
+</tr>
+<tr>
+<td>作用域</td>
+<td>组件子树</td>
+<td>组件子树</td>
+</tr>
+<tr>
+<td>刷新机制</td>
+<td>粗粒度</td>
+<td>精确追踪</td>
+</tr>
+</tbody></table>
+<p>V2 的 <code>@Consumer</code> 可以修改状态这个特性非常实用。比如主题切换这个场景——在 V1 中，你只能在 <code>@Provide</code> 的地方修改，然后通过事件层层传递。在 V2 中，<code>ThemeSwitcher</code> 可以直接修改 <code>theme</code>，所有订阅了 <code>theme</code> 的组件自动刷新。</p>
+<h3 id="5-5-多个-Provider-的层级关系"><a href="#5-5-多个-Provider-的层级关系" class="headerlink" title="5.5 多个 Provider 的层级关系"></a>5.5 多个 Provider 的层级关系</h3><p><code>@Provider</code> 是支持嵌套的。如果同一个变量名在多个层级被 <code>@Provider</code> 提供，<code>@Consumer</code> 会匹配最近的祖先：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">Root</span> &#123;</span><br><span class="line">  <span class="meta">@Provider</span> <span class="attr">theme</span>: <span class="built_in">string</span> = <span class="string">&#x27;light&#x27;</span>;  <span class="comment">// 全局主题</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">SectionA</span>()</span><br><span class="line">      <span class="title class_">SectionB</span>()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">SectionB</span> &#123;</span><br><span class="line">  <span class="meta">@Provider</span> <span class="attr">theme</span>: <span class="built_in">string</span> = <span class="string">&#x27;dark&#x27;</span>;  <span class="comment">// SectionB 覆盖主题</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 这里的子组件获取到的 theme 是 &#x27;dark&#x27;</span></span><br><span class="line">      <span class="title class_">NavItem</span>()</span><br><span class="line">      <span class="title class_">Card</span>()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">NavItem</span> &#123;</span><br><span class="line">  <span class="meta">@Consumer</span> <span class="attr">theme</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;  <span class="comment">// 从最近的 Provider 获取 -&gt; &#x27;dark&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种嵌套机制在设计局部覆盖的场景中非常有用——比如暗色模式的某个区域需要更暗的背景。</p>
+<h3 id="5-6-Provider-的初始化时机"><a href="#5-6-Provider-的初始化时机" class="headerlink" title="5.6 @Provider 的初始化时机"></a>5.6 @Provider 的初始化时机</h3><p><code>@Provider</code> 的初始值在组件创建时确定。如果初始值依赖异步数据，需要配合 <code>aboutToAppear</code>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">App</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">user</span>: <span class="title class_">User</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="meta">@Provider</span> <span class="attr">userTheme</span>: <span class="built_in">string</span> = <span class="string">&#x27;light&#x27;</span>;  <span class="comment">// 默认值</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadUser</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">loadUser</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> u = <span class="keyword">await</span> <span class="title function_">fetchUserProfile</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">user</span> = u;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">userTheme</span> = u.<span class="property">theme</span>;  <span class="comment">// 登录后覆盖 @Provider</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、-Monitor：监听状态变化"><a href="#六、-Monitor：监听状态变化" class="headerlink" title="六、@Monitor：监听状态变化"></a>六、@Monitor：监听状态变化</h2><h3 id="6-1-基本用法"><a href="#6-1-基本用法" class="headerlink" title="6.1 基本用法"></a>6.1 基本用法</h3><p><code>@Monitor</code> 是 V2 中替代 V1 <code>@Watch</code> 的装饰器。它用来监听某个状态变量的变化，并在变化时执行回调：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">SearchPage</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">keyword</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Monitor</span>(<span class="string">&#x27;keyword&#x27;</span>)</span><br><span class="line">  <span class="title function_">onKeywordChange</span>(<span class="params"><span class="attr">mon</span>: <span class="title class_">IMonitor</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`搜索词变为: <span class="subst">$&#123;mon.value()&#125;</span>`</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">debounceSearch</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@Monitor</code> 的参数是被监听的属性路径。回调函数接收一个 <code>IMonitor</code> 参数，通过 <code>mon.value()</code> 获取新值。</p>
+<h3 id="6-2-监听深层属性"><a href="#6-2-监听深层属性" class="headerlink" title="6.2 监听深层属性"></a>6.2 监听深层属性</h3><p>配合 <code>@Track</code>，<code>@Monitor</code> 可以监听深层嵌套的某个具体属性：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">OrderPage</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">order</span>: &#123;</span><br><span class="line">    <span class="meta">@Track</span> <span class="attr">status</span>: <span class="title class_">OrderStatus</span>,</span><br><span class="line">    <span class="meta">@Track</span> <span class="attr">items</span>: <span class="title class_">OrderItem</span>[]</span><br><span class="line">  &#125; = &#123; <span class="attr">status</span>: <span class="title class_">OrderStatus</span>.<span class="property">Pending</span>, <span class="attr">items</span>: [] &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Monitor</span>(<span class="string">&#x27;order.status&#x27;</span>)</span><br><span class="line">  <span class="title function_">onStatusChange</span>(<span class="params"><span class="attr">mon</span>: <span class="title class_">IMonitor</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> status = mon.<span class="title function_">value</span>() <span class="keyword">as</span> <span class="title class_">OrderStatus</span>;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`订单状态: <span class="subst">$&#123;status&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">if</span> (status === <span class="title class_">OrderStatus</span>.<span class="property">Paid</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">showPaymentSuccess</span>();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Monitor</span>(<span class="string">&#x27;order.items&#x27;</span>)</span><br><span class="line">  <span class="title function_">onItemsChange</span>(<span class="params"><span class="attr">mon</span>: <span class="title class_">IMonitor</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> items = mon.<span class="title function_">value</span>() <span class="keyword">as</span> <span class="title class_">OrderItem</span>[];</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`订单商品更新: <span class="subst">$&#123;items.length&#125;</span> 件`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-Monitor-vs-Watch-V1"><a href="#6-3-Monitor-vs-Watch-V1" class="headerlink" title="6.3 @Monitor vs @Watch (V1)"></a>6.3 @Monitor vs @Watch (V1)</h3><table>
+<thead>
+<tr>
+<th></th>
+<th><code>@Watch</code> (V1)</th>
+<th><code>@Monitor</code> (V2)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>监听路径</td>
+<td>仅变量名</td>
+<td>支持属性路径如 <code>form.username</code></td>
+</tr>
+<tr>
+<td>回调参数</td>
+<td>无</td>
+<td><code>IMonitor</code> 提供新值</td>
+</tr>
+<tr>
+<td>触发时机</td>
+<td>变化后</td>
+<td>变化后</td>
+</tr>
+<tr>
+<td>精确度</td>
+<td>变量级</td>
+<td>属性级（配合 <code>@Track</code>）</td>
+</tr>
+</tbody></table>
+<p>V2 的 <code>@Monitor</code> 最大的改进是<strong>支持属性路径</strong>。不需要为了监听一个对象的某个属性而单独抽一个变量。</p>
+<h2 id="七、实战：TodoMVC"><a href="#七、实战：TodoMVC" class="headerlink" title="七、实战：TodoMVC"></a>七、实战：TodoMVC</h2><p>用一个完整的 Todo 应用串联所有知识点。</p>
+<h3 id="7-1-数据层"><a href="#7-1-数据层" class="headerlink" title="7.1 数据层"></a>7.1 数据层</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// models.ets</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TodoItem</span> &#123;</span><br><span class="line">  <span class="attr">id</span>: <span class="built_in">number</span> = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">  <span class="attr">text</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  <span class="attr">done</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line">  <span class="attr">createdAt</span>: <span class="built_in">number</span> = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-根组件：App"><a href="#7-2-根组件：App" class="headerlink" title="7.2 根组件：App"></a>7.2 根组件：App</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">App</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">todos</span>: <span class="title class_">TodoItem</span>[] = [];</span><br><span class="line">  <span class="meta">@Provider</span> <span class="attr">stats</span>: &#123; <span class="meta">@Track</span> <span class="attr">total</span>: <span class="built_in">number</span>, <span class="meta">@Track</span> <span class="attr">done</span>: <span class="built_in">number</span> &#125; = &#123; <span class="attr">total</span>: <span class="number">0</span>, <span class="attr">done</span>: <span class="number">0</span> &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadTodos</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">loadTodos</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 加载数据...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">addTodo</span>(<span class="params"><span class="attr">text</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">todos</span>.<span class="title function_">push</span>(<span class="keyword">new</span> <span class="title class_">TodoItem</span>(text));</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">updateStats</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">toggleTodo</span>(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> todo = <span class="variable language_">this</span>.<span class="property">todos</span>.<span class="title function_">find</span>(<span class="function"><span class="params">t</span> =&gt;</span> t.<span class="property">id</span> === id);</span><br><span class="line">    <span class="keyword">if</span> (todo) &#123;</span><br><span class="line">      todo.<span class="property">done</span> = !todo.<span class="property">done</span>;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">updateStats</span>();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">deleteTodo</span>(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">todos</span> = <span class="variable language_">this</span>.<span class="property">todos</span>.<span class="title function_">filter</span>(<span class="function"><span class="params">t</span> =&gt;</span> t.<span class="property">id</span> !== id);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">updateStats</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">updateStats</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stats</span>.<span class="property">total</span> = <span class="variable language_">this</span>.<span class="property">todos</span>.<span class="property">length</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">stats</span>.<span class="property">done</span> = <span class="variable language_">this</span>.<span class="property">todos</span>.<span class="title function_">filter</span>(<span class="function"><span class="params">t</span> =&gt;</span> t.<span class="property">done</span>).<span class="property">length</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Monitor</span>(<span class="string">&#x27;todos&#x27;</span>)</span><br><span class="line">  <span class="title function_">onTodosChange</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">updateStats</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// Header — 标题 + 统计</span></span><br><span class="line">      <span class="title class_">TodoHeader</span>()</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Divider</span>().<span class="title function_">margin</span>(&#123; <span class="attr">vertical</span>: <span class="number">12</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 输入框</span></span><br><span class="line">      <span class="title class_">TodoInput</span>(&#123;</span><br><span class="line">        <span class="attr">onAdd</span>: <span class="function">(<span class="params"><span class="attr">text</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="title function_">addTodo</span>(text); &#125;</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 列表</span></span><br><span class="line">      <span class="title class_">List</span>() &#123;</span><br><span class="line">        <span class="title class_">LazyForEach</span>(<span class="variable language_">this</span>.<span class="property">todos</span>, <span class="function">(<span class="params"><span class="attr">item</span>: <span class="title class_">TodoItem</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="title class_">TodoItemView</span>(&#123;</span><br><span class="line">            <span class="attr">item</span>: item,</span><br><span class="line">            <span class="attr">onToggle</span>: <span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="title function_">toggleTodo</span>(item.<span class="property">id</span>); &#125;,</span><br><span class="line">            <span class="attr">onDelete</span>: <span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="title function_">deleteTodo</span>(item.<span class="property">id</span>); &#125;</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;, <span class="function">(<span class="params"><span class="attr">item</span>: <span class="title class_">TodoItem</span></span>) =&gt;</span> <span class="string">`<span class="subst">$&#123;item.id&#125;</span>`</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">padding</span>(<span class="number">16</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-TodoHeader-—-使用-Consumer-消费-Provider-数据"><a href="#7-3-TodoHeader-—-使用-Consumer-消费-Provider-数据" class="headerlink" title="7.3 TodoHeader — 使用 @Consumer 消费 Provider 数据"></a>7.3 TodoHeader — 使用 @Consumer 消费 Provider 数据</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">TodoHeader</span> &#123;</span><br><span class="line">  <span class="meta">@Consumer</span> <span class="attr">stats</span>: &#123; <span class="attr">total</span>: <span class="built_in">number</span>, <span class="attr">done</span>: <span class="built_in">number</span> &#125; = &#123; <span class="attr">total</span>: <span class="number">0</span>, <span class="attr">done</span>: <span class="number">0</span> &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">filter</span>: <span class="string">&#x27;all&#x27;</span> | <span class="string">&#x27;active&#x27;</span> | <span class="string">&#x27;done&#x27;</span> = <span class="string">&#x27;all&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;待办事项&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">28</span>)</span><br><span class="line">        .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`已完成 <span class="subst">$&#123;<span class="variable language_">this</span>.stats.done&#125;</span>/<span class="subst">$&#123;<span class="variable language_">this</span>.stats.total&#125;</span>`</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">Gray</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">4</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Row</span>(&#123; <span class="attr">space</span>: <span class="number">8</span> &#125;) &#123;</span><br><span class="line">        <span class="title class_">ForEach</span>([<span class="string">&#x27;all&#x27;</span>, <span class="string">&#x27;active&#x27;</span>, <span class="string">&#x27;done&#x27;</span>] <span class="keyword">as</span> <span class="built_in">string</span>[], <span class="function">(<span class="params"><span class="attr">f</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="title class_">Button</span>(f === <span class="string">&#x27;all&#x27;</span> ? <span class="string">&#x27;全部&#x27;</span> : f === <span class="string">&#x27;active&#x27;</span> ? <span class="string">&#x27;未完成&#x27;</span> : <span class="string">&#x27;已完成&#x27;</span>)</span><br><span class="line">            .<span class="title function_">type</span>(<span class="variable language_">this</span>.<span class="property">filter</span> === f ? <span class="title class_">ButtonType</span>.<span class="property">Capsule</span> : <span class="title class_">ButtonType</span>.<span class="property">Normal</span>)</span><br><span class="line">            .<span class="title function_">backgroundColor</span>(<span class="variable language_">this</span>.<span class="property">filter</span> === f ? <span class="string">&#x27;#007AFF&#x27;</span> : <span class="string">&#x27;#E5E5EA&#x27;</span>)</span><br><span class="line">            .<span class="title function_">fontColor</span>(<span class="variable language_">this</span>.<span class="property">filter</span> === f ? <span class="title class_">Color</span>.<span class="property">White</span> : <span class="title class_">Color</span>.<span class="property">Black</span>)</span><br><span class="line">            .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">filter</span> = f <span class="keyword">as</span> <span class="built_in">any</span>; &#125;)</span><br><span class="line">        &#125;, <span class="function">(<span class="params"><span class="attr">f</span>: <span class="built_in">string</span></span>) =&gt;</span> f)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">12</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意 <code>TodoHeader</code> 通过 <code>@Consumer</code> 直接读取 <code>stats</code>——不需要 App 通过 <code>@Param</code> 层层传递。而且 <code>stats</code> 由 App 的 <code>@Provider</code> 维护，<code>TodoHeader</code> 只读不写，数据流向清晰。</p>
+<h3 id="7-4-TodoInput-—-Param-Event"><a href="#7-4-TodoInput-—-Param-Event" class="headerlink" title="7.4 TodoInput — @Param + @Event"></a>7.4 TodoInput — @Param + @Event</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">TodoInput</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">text</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  <span class="meta">@Event</span> <span class="attr">onAdd</span>?: <span class="function">(<span class="params"><span class="attr">text</span>: <span class="built_in">string</span></span>) =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="title class_">TextInput</span>(&#123; <span class="attr">text</span>: <span class="variable language_">this</span>.<span class="property">text</span>, <span class="attr">placeholder</span>: <span class="string">&#x27;输入新的待办事项...&#x27;</span> &#125;)</span><br><span class="line">        .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">44</span>)</span><br><span class="line">        .<span class="title function_">padding</span>(&#123; <span class="attr">left</span>: <span class="number">12</span> &#125;)</span><br><span class="line">        .<span class="title function_">border</span>(&#123; <span class="attr">radius</span>: <span class="number">8</span> &#125;)</span><br><span class="line">        .<span class="title function_">onChange</span>(<span class="function">(<span class="params"><span class="attr">val</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">text</span> = val; &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;添加&#x27;</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">left</span>: <span class="number">8</span> &#125;)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">text</span>.<span class="title function_">trim</span>()) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">onAdd</span>?.(<span class="variable language_">this</span>.<span class="property">text</span>.<span class="title function_">trim</span>());</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">text</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>典型的受控组件模式——<code>TodoInput</code> 自己管理输入文本（<code>@Local</code>），通过 <code>@Event</code> 将”添加”动作通知父组件。</p>
+<h3 id="7-5-TodoItemView-—-Param-Track"><a href="#7-5-TodoItemView-—-Param-Track" class="headerlink" title="7.5 TodoItemView — @Param + @Track"></a>7.5 TodoItemView — @Param + @Track</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">TodoItemView</span> &#123;</span><br><span class="line">  <span class="meta">@Param</span> <span class="attr">item</span>: <span class="title class_">TodoItem</span> = <span class="keyword">new</span> <span class="title class_">TodoItem</span>();</span><br><span class="line">  <span class="meta">@Event</span> <span class="attr">onToggle</span>?: <span class="function">() =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line">  <span class="meta">@Event</span> <span class="attr">onDelete</span>?: <span class="function">() =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="title class_">Checkbox</span>()</span><br><span class="line">        .<span class="title function_">select</span>(<span class="variable language_">this</span>.<span class="property">item</span>.<span class="property">done</span>)</span><br><span class="line">        .<span class="title function_">onChange</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">onToggle</span>?.(); &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">item</span>.<span class="property">text</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">decoration</span>(&#123;</span><br><span class="line">          <span class="attr">type</span>: <span class="variable language_">this</span>.<span class="property">item</span>.<span class="property">done</span> ? <span class="title class_">TextDecorationType</span>.<span class="property">LineThrough</span> : <span class="title class_">TextDecorationType</span>.<span class="property">None</span></span><br><span class="line">        &#125;)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="variable language_">this</span>.<span class="property">item</span>.<span class="property">done</span> ? <span class="title class_">Color</span>.<span class="property">Gray</span> : <span class="title class_">Color</span>.<span class="property">Black</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">left</span>: <span class="number">12</span> &#125;)</span><br><span class="line">        .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="title function_">formatDate</span>(<span class="variable language_">this</span>.<span class="property">item</span>.<span class="property">createdAt</span>))</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">12</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">Gray</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;✕&#x27;</span>)</span><br><span class="line">        .<span class="title function_">type</span>(<span class="title class_">ButtonType</span>.<span class="property">Normal</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">Red</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">left</span>: <span class="number">8</span> &#125;)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">onDelete</span>?.(); &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">padding</span>(&#123; <span class="attr">vertical</span>: <span class="number">8</span>, <span class="attr">horizontal</span>: <span class="number">12</span> &#125;)</span><br><span class="line">    .<span class="title function_">backgroundColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">    .<span class="title function_">borderRadius</span>(<span class="number">8</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">formatDate</span>(<span class="attr">ts</span>: <span class="built_in">number</span>): <span class="built_in">string</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> d = <span class="keyword">new</span> <span class="title class_">Date</span>(ts);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">`<span class="subst">$&#123;d.getHours().toString().padStart(<span class="number">2</span>, <span class="string">&#x27;0&#x27;</span>)&#125;</span>:<span class="subst">$&#123;d.getMinutes().toString().padStart(<span class="number">2</span>, <span class="string">&#x27;0&#x27;</span>)&#125;</span>`</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>TodoItemView</code> 只负责渲染——通过 <code>@Param</code> 接收数据，通过 <code>@Event</code> 发出用户操作。它自己没有任何可变状态。</p>
+<h3 id="7-6-整体结构"><a href="#7-6-整体结构" class="headerlink" title="7.6 整体结构"></a>7.6 整体结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">App (@Provider stats)</span><br><span class="line">  ├── TodoHeader (@Consumer stats, @Local filter)</span><br><span class="line">  ├── TodoInput (@Local text, @Event onAdd)</span><br><span class="line">  └── TodoItemView[0..N]</span><br><span class="line">       └── (@Param item, @Event onToggle, @Event onDelete)</span><br></pre></td></tr></table></figure>
+
+<p>状态流向：</p>
+<ul>
+<li><strong>向下</strong>：<code>App</code> → <code>@Provider stats</code> → <code>TodoHeader.@Consumer stats</code></li>
+<li><strong>向上</strong>：<code>TodoInput.@Event onAdd</code> → <code>App.addTodo()</code></li>
+<li><strong>内部</strong>：<code>TodoHeader.@Local filter</code> 自己管理</li>
+<li><strong>传递</strong>：<code>TodoItemView.@Param item</code> 通过列表循环传入</li>
+</ul>
+<h2 id="八、状态管理选型指南"><a href="#八、状态管理选型指南" class="headerlink" title="八、状态管理选型指南"></a>八、状态管理选型指南</h2><p>最后，给一个<strong>选型决策树</strong>，帮助你在实际项目中快速决定用哪个装饰器：</p>
+<h3 id="8-1-决策树"><a href="#8-1-决策树" class="headerlink" title="8.1 决策树"></a>8.1 决策树</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">这个状态属于谁？</span><br><span class="line">├── 只属于组件自己，不依赖外部</span><br><span class="line">│   └── 用 @Local</span><br><span class="line">│</span><br><span class="line">├── 从外部传入</span><br><span class="line">│   ├── 只是展示，不需要修改 → @Param</span><br><span class="line">│   └── 需要通知父组件修改</span><br><span class="line">│       └── @Param + @Event</span><br><span class="line">│</span><br><span class="line">├── 需要跨多个层级传递</span><br><span class="line">│   └── @Provider / @Consumer</span><br><span class="line">│</span><br><span class="line">└── 应用级全局状态</span><br><span class="line">    └── AppStorageV2 / AppStorage</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-性能优化场景"><a href="#8-2-性能优化场景" class="headerlink" title="8.2 性能优化场景"></a>8.2 性能优化场景</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大对象只有少数属性变化</td>
+<td><code>@Track</code> 标记变化频繁的属性</td>
+</tr>
+<tr>
+<td>列表滚动卡顿</td>
+<td><code>@Reusable</code> + <code>LazyForEach</code></td>
+</tr>
+<tr>
+<td>表单字段独立校验</td>
+<td><code>@Track</code> 每个字段 + <code>@Monitor</code></td>
+</tr>
+<tr>
+<td>避免不必要的渲染</td>
+<td><code>@Track</code> 分离独立变化的属性</td>
+</tr>
+</tbody></table>
+<h3 id="8-3-装饰器速查表"><a href="#8-3-装饰器速查表" class="headerlink" title="8.3 装饰器速查表"></a>8.3 装饰器速查表</h3><table>
+<thead>
+<tr>
+<th>装饰器</th>
+<th>一句话</th>
+<th>等价于</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@Local</code></td>
+<td>组件自己的状态</td>
+<td><code>@State</code> (V1)</td>
+</tr>
+<tr>
+<td><code>@Param</code></td>
+<td>外部传入的数据</td>
+<td><code>@Prop</code> (V1)</td>
+</tr>
+<tr>
+<td><code>@Event</code></td>
+<td>通知父组件</td>
+<td><code>@Link</code> (V1)</td>
+</tr>
+<tr>
+<td><code>@Track</code></td>
+<td>精确到属性的刷新</td>
+<td>✨ V2 新增</td>
+</tr>
+<tr>
+<td><code>@Provider</code></td>
+<td>向下级提供状态</td>
+<td><code>@Provide</code> (V1)</td>
+</tr>
+<tr>
+<td><code>@Consumer</code></td>
+<td>从上级获取状态</td>
+<td><code>@Consume</code> (V1)</td>
+</tr>
+<tr>
+<td><code>@Monitor</code></td>
+<td>监听状态变化</td>
+<td><code>@Watch</code> (V1)</td>
+</tr>
+<tr>
+<td><code>@Reusable</code></td>
+<td>组件复用</td>
+<td><code>@Reusable</code> (V1)</td>
+</tr>
+</tbody></table>
+<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>V2 的状态管理体系相比 V1 有三大核心改进：</p>
+<ol>
+<li><strong>语义清晰的装饰器命名</strong>——<code>@Local</code>、<code>@Param</code>、<code>@Event</code> 各司其职，不再有 <code>@State</code> 这种含混的命名</li>
+<li><strong>精确追踪</strong>——<code>@Track</code> 让属性级刷新成为可能，解决了 V1 中粗粒度渲染的性能问题</li>
+<li><strong>更合理的跨级传递</strong>——<code>@Provider/@Consumer</code> 支持消费者直接修改，减少事件传递的中间环节</li>
+</ol>
+<p>在实际项目中，记住一个简单的原则就够了：<strong><code>@Local</code> 管自己的状态，<code>@Param</code> 管传入的数据，<code>@Provider/@Consumer</code> 管跨级共享</strong>。</p>
+<p>下一篇文章会介绍 <strong>HMRouter</strong>——鸿蒙官方推荐的模块化路由框架。它和之前讲的 <code>Navigation</code> API 是什么关系？它如何实现模块间解耦？下篇分解。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/">https://dpzxka.github.io/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/harmonyos/">harmonyos</a><a class="post-meta__tags" href="/tags/%E9%B8%BF%E8%92%99/">鸿蒙</a><a class="post-meta__tags" href="/tags/arkts/">arkts</a><a class="post-meta__tags" href="/tags/state-management/">state-management</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-state-management.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/31/%E9%B8%BF%E8%92%99%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI V2 的自定义组件体系，完整覆盖 @ComponentV2、@Builder、@BuilderParam、@Track、@Reusable 等核心装饰器，用实战理解组件化设计</div></div></div></a><a class="pagination-related" href="/2026/06/02/%E9%B8%BF%E8%92%99HMRouter%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90%E4%B8%8E%E4%BA%8C%E6%AC%A1%E5%B0%81%E8%A3%85%E5%AE%9E%E6%88%98/" title="鸿蒙 HMRouter 完全解析与二次封装实战：从注解路由到业务封装层"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-hmrouter.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">鸿蒙 HMRouter 完全解析与二次封装实战：从注解路由到业务封装层</div></div><div class="info-2"><div class="info-item-1">深入 HMRouter 路由框架——@HMRouter 注解、拦截器、自定义转场、Dialog 路由，再通过二次封装构建类型安全的业务路由层</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/11/%E9%B8%BF%E8%92%99%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%B8%89%E5%B1%82%E4%BD%93%E7%B3%BB%E5%AE%8C%E5%85%A8%E8%A7%A3%E8%AF%BB/" title="鸿蒙生命周期三层体系完全解读：从 UIAbility 到 ArkUI 组件的完整脉络"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-lifecycle-system.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-11</div><div class="info-item-2">鸿蒙生命周期三层体系完全解读：从 UIAbility 到 ArkUI 组件的完整脉络</div></div><div class="info-2"><div class="info-item-1">串联 AbilityStage、UIAbility、WindowStage、Page、NavDestination 五层生命周期，用完整的时序和实战场景讲清整个体系</div></div></div></a><a class="pagination-related" href="/2026/05/11/%E9%B8%BF%E8%92%99%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/" title="鸿蒙动画系统完全指南：从属性动画到显式动画再到转场动画"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-animation-system.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-11</div><div class="info-item-2">鸿蒙动画系统完全指南：从属性动画到显式动画再到转场动画</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI 动画体系的三大支柱——属性动画、显式动画、转场动画，用完整实战覆盖曲线、弹簧、路径动画</div></div></div></a><a class="pagination-related" href="/2026/06/02/%E9%B8%BF%E8%92%99HMRouter%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90%E4%B8%8E%E4%BA%8C%E6%AC%A1%E5%B0%81%E8%A3%85%E5%AE%9E%E6%88%98/" title="鸿蒙 HMRouter 完全解析与二次封装实战：从注解路由到业务封装层"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-hmrouter.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-02</div><div class="info-item-2">鸿蒙 HMRouter 完全解析与二次封装实战：从注解路由到业务封装层</div></div><div class="info-2"><div class="info-item-1">深入 HMRouter 路由框架——@HMRouter 注解、拦截器、自定义转场、Dialog 路由，再通过二次封装构建类型安全的业务路由层</div></div></div></a><a class="pagination-related" href="/2026/05/31/%E9%B8%BF%E8%92%99%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-31</div><div class="info-item-2">鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI V2 的自定义组件体系，完整覆盖 @ComponentV2、@Builder、@BuilderParam、@Track、@Reusable 等核心装饰器，用实战理解组件化设计</div></div></div></a><a class="pagination-related" href="/2026/05/11/%E9%B8%BF%E8%92%99Navigation%E5%A4%9A%E6%A0%8F%E9%80%82%E9%85%8D%E4%B8%8E%E8%B7%AF%E7%94%B1%E6%8B%A6%E6%88%AA/" title="鸿蒙 Navigation 多栏适配与路由拦截：从折叠屏到平板的全场景方案"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-navigation-split-intercept.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-11</div><div class="info-item-2">鸿蒙 Navigation 多栏适配与路由拦截：从折叠屏到平板的全场景方案</div></div><div class="info-2"><div class="info-item-1">深入 Navigation 的 Split/Stack 双模式自适应与 setInterception 路由守卫机制，用完整的实战代码覆盖折叠屏、平板和手机</div></div></div></a><a class="pagination-related" href="/2026/06/02/%E9%B8%BF%E8%92%99V2%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" title="鸿蒙 V2 项目架构设计：从模块划分到 MVVM 分层再到工程落地"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-architecture.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-02</div><div class="info-item-2">鸿蒙 V2 项目架构设计：从模块划分到 MVVM 分层再到工程落地</div></div><div class="info-2"><div class="info-item-1">基于 ArkUI V2 的完整项目架构方案——多模块划分、MVVM 分层、路由封装、网络层、主题管理、目录模板，一套可直接落地的企业级架构设计</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81V1-%E5%88%B0-V2%EF%BC%9A%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">1.</span> <span class="toc-text">一、V1 到 V2：状态管理的演进</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-V1-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 V1 的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-V2-%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 V2 的改进</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81-Local%EF%BC%9A%E7%BB%84%E4%BB%B6%E8%87%AA%E5%B7%B1%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-number">2.</span> <span class="toc-text">二、@Local：组件自己的状态</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 基本用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Local-vs-State"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 @Local vs @State</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8F%AF%E5%8F%98%E7%B1%BB%E5%9E%8B%E4%B8%8E%E4%B8%8D%E5%8F%AF%E5%8F%98%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 可变类型与不可变类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81-Param%EF%BC%9A%E6%8E%A5%E6%94%B6%E5%A4%96%E9%83%A8%E6%95%B0%E6%8D%AE"><span class="toc-number">3.</span> <span class="toc-text">三、@Param：接收外部数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95%EF%BC%9A%E5%8D%95%E5%90%91%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 基本用法：单向数据流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Param-Event%EF%BC%9A%E6%9B%BF%E4%BB%A3-Link"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 @Param + @Event：替代 @Link</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Param-%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC%E6%9C%BA%E5%88%B6"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 @Param 的默认值机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Param-vs-Prop-V1-vs-Link-V1"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 @Param vs @Prop (V1) vs @Link (V1)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-Track%EF%BC%9A%E7%9C%9F%E6%AD%A3%E7%9A%84%E7%B2%BE%E7%A1%AE%E8%BF%BD%E8%B8%AA"><span class="toc-number">4.</span> <span class="toc-text">四、@Track：真正的精确追踪</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%97%AE%E9%A2%98%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 问题的本质</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Track-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 @Track 的使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%9C%80%E8%A6%81%E7%94%A8-Track%EF%BC%9F"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 什么时候需要用 @Track？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Track-Monitor"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 @Track + @Monitor</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81-Provider-Consumer%EF%BC%9A%E8%B7%A8%E5%B1%82%E7%BA%A7%E7%8A%B6%E6%80%81%E5%85%B1%E4%BA%AB"><span class="toc-number">5.</span> <span class="toc-text">五、@Provider &#x2F; @Consumer：跨层级状态共享</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%B7%A8%E5%B1%82%E7%BA%A7%E4%BC%A0%E9%80%92%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 为什么要跨层级传递？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Provider%EF%BC%9A%E6%8F%90%E4%BE%9B%E7%8A%B6%E6%80%81"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 @Provider：提供状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Consumer%EF%BC%9A%E6%B6%88%E8%B4%B9%E7%8A%B6%E6%80%81"><span class="toc-number">5.3.</span> <span class="toc-text">5.3 @Consumer：消费状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Provider-Consumer-vs-Provide-Consume-V1"><span class="toc-number">5.4.</span> <span class="toc-text">5.4 @Provider &#x2F; @Consumer vs @Provide &#x2F; @Consume (V1)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%A4%9A%E4%B8%AA-Provider-%E7%9A%84%E5%B1%82%E7%BA%A7%E5%85%B3%E7%B3%BB"><span class="toc-number">5.5.</span> <span class="toc-text">5.5 多个 Provider 的层级关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-Provider-%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E6%97%B6%E6%9C%BA"><span class="toc-number">5.6.</span> <span class="toc-text">5.6 @Provider 的初始化时机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81-Monitor%EF%BC%9A%E7%9B%91%E5%90%AC%E7%8A%B6%E6%80%81%E5%8F%98%E5%8C%96"><span class="toc-number">6.</span> <span class="toc-text">六、@Monitor：监听状态变化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 基本用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E7%9B%91%E5%90%AC%E6%B7%B1%E5%B1%82%E5%B1%9E%E6%80%A7"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 监听深层属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Monitor-vs-Watch-V1"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 @Monitor vs @Watch (V1)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AE%9E%E6%88%98%EF%BC%9ATodoMVC"><span class="toc-number">7.</span> <span class="toc-text">七、实战：TodoMVC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%95%B0%E6%8D%AE%E5%B1%82"><span class="toc-number">7.1.</span> <span class="toc-text">7.1 数据层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%A0%B9%E7%BB%84%E4%BB%B6%EF%BC%9AApp"><span class="toc-number">7.2.</span> <span class="toc-text">7.2 根组件：App</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-TodoHeader-%E2%80%94-%E4%BD%BF%E7%94%A8-Consumer-%E6%B6%88%E8%B4%B9-Provider-%E6%95%B0%E6%8D%AE"><span class="toc-number">7.3.</span> <span class="toc-text">7.3 TodoHeader — 使用 @Consumer 消费 Provider 数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-TodoInput-%E2%80%94-Param-Event"><span class="toc-number">7.4.</span> <span class="toc-text">7.4 TodoInput — @Param + @Event</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-TodoItemView-%E2%80%94-Param-Track"><span class="toc-number">7.5.</span> <span class="toc-text">7.5 TodoItemView — @Param + @Track</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">7.6.</span> <span class="toc-text">7.6 整体结构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E9%80%89%E5%9E%8B%E6%8C%87%E5%8D%97"><span class="toc-number">8.</span> <span class="toc-text">八、状态管理选型指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">8.1.</span> <span class="toc-text">8.1 决策树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%9C%BA%E6%99%AF"><span class="toc-number">8.2.</span> <span class="toc-text">8.2 性能优化场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E8%A3%85%E9%A5%B0%E5%99%A8%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">8.3.</span> <span class="toc-text">8.3 装饰器速查表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">九、总结</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

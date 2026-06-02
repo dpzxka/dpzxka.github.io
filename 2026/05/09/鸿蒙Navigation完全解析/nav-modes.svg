@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <defs>
+    <linearGradient id="phoneGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E3F2FD"/>
+      <stop offset="100%" stop-color="#BBDEFB"/>
+    </linearGradient>
+    <linearGradient id="splitLeftGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8F5E9"/>
+      <stop offset="100%" stop-color="#C8E6C9"/>
+    </linearGradient>
+    <linearGradient id="splitRightGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF3E0"/>
+      <stop offset="100%" stop-color="#FFE0B2"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="480" rx="12" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text x="400" y="35" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">三种导航模式对比</text>
+
+  <!-- Mode 1: Stack -->
+  <rect x="30" y="60" width="220" height="390" rx="10" fill="#F5F5F5" stroke="#ccc" stroke-width="1"/>
+  <text x="140" y="85" text-anchor="middle" font-size="14" font-weight="bold" fill="#1565C0">Stack（单栏）</text>
+  <text x="140" y="105" text-anchor="middle" font-size="11" fill="#666">手机 / 手表</text>
+
+  <!-- Phone frame -->
+  <rect x="65" y="120" width="150" height="260" rx="16" fill="#fff" stroke="#ddd" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="125" y="128" width="30" height="4" rx="2" fill="#333"/>
+  
+  <!-- Page 1 -->
+  <rect x="80" y="142" width="120" height="170" rx="6" fill="url(#phoneGrad)" stroke="#90CAF9" stroke-width="1"/>
+  <rect x="85" y="148" width="110" height="12" rx="3" fill="#64B5F6"/>
+  <text x="140" y="170" text-anchor="middle" font-size="10" fill="#fff">首页 (Home)</text>
+  <rect x="85" y="190" width="50" height="8" rx="2" fill="#BBDEFB"/>
+  <rect x="85" y="205" width="80" height="8" rx="2" fill="#BBDEFB"/>
+  <rect x="85" y="220" width="60" height="8" rx="2" fill="#BBDEFB"/>
+  <rect x="140" y="270" width="50" height="22" rx="4" fill="#1565C0"/>
+  <text x="165" y="285" text-anchor="middle" font-size="9" fill="#fff">点击进入</text>
+
+  <!-- Page 2 overlay -->
+  <rect x="95" y="200" width="105" height="140" rx="6" fill="#E8F5E9" stroke="#81C784" stroke-width="1" opacity="0.85"/>
+  <rect x="100" y="206" width="95" height="12" rx="3" fill="#43A047"/>
+  <text x="147" y="215" text-anchor="middle" font-size="9" fill="#fff">详情页</text>
+
+  <!-- Label -->
+  <text x="140" y="400" text-anchor="middle" font-size="10" fill="#999">全屏显示一个页面，逐层进入</text>
+
+  <!-- Arrow -->
+  <text x="270" y="260" font-size="28" fill="#999" text-anchor="middle">→</text>
+
+  <!-- Mode 2: Split -->
+  <rect x="295" y="60" width="220" height="390" rx="10" fill="#F5F5F5" stroke="#ccc" stroke-width="1"/>
+  <text x="405" y="85" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E7D32">Split（分栏）</text>
+  <text x="405" y="105" text-anchor="middle" font-size="11" fill="#666">平板 / 折叠屏展开态</text>
+
+  <!-- Tablet frame -->
+  <rect x="310" y="120" width="190" height="260" rx="10" fill="#fff" stroke="#ddd" stroke-width="2" filter="url(#shadow)"/>
+
+  <!-- Left panel -->
+  <rect x="318" y="128" width="82" height="244" rx="6" fill="url(#splitLeftGrad)" stroke="#81C784" stroke-width="1"/>
+  <text x="359" y="148" text-anchor="middle" font-size="10" font-weight="bold" fill="#2E7D32">列表</text>
+  <rect x="322" y="155" width="74" height="18" rx="4" fill="#A5D6A7"/>
+  <text x="359" y="167" text-anchor="middle" font-size="8" fill="#fff">文章 1</text>
+  <rect x="322" y="177" width="74" height="18" rx="4" fill="#C8E6C9"/>
+  <text x="359" y="189" text-anchor="middle" font-size="8" fill="#666">文章 2</text>
+  <rect x="322" y="199" width="74" height="18" rx="4" fill="#C8E6C9"/>
+  <text x="359" y="211" text-anchor="middle" font-size="8" fill="#666">文章 3</text>
+  <rect x="322" y="221" width="74" height="18" rx="4" fill="#C8E6C9"/>
+  <text x="359" y="233" text-anchor="middle" font-size="8" fill="#666">文章 4</text>
+
+  <!-- Divider -->
+  <line x1="404" y1="128" x2="404" y2="372" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Right panel -->
+  <rect x="409" y="128" width="83" height="244" rx="6" fill="url(#splitRightGrad)" stroke="#FFB74D" stroke-width="1"/>
+  <text x="450" y="148" text-anchor="middle" font-size="10" font-weight="bold" fill="#E65100">详情</text>
+  <rect x="413" y="155" width="75" height="10" rx="2" fill="#FFCC80"/>
+  <rect x="413" y="170" width="50" height="10" rx="2" fill="#FFCC80"/>
+  <rect x="413" y="185" width="70" height="10" rx="2" fill="#FFCC80"/>
+  <rect x="413" y="210" width="75" height="50" rx="4" fill="#FFE0B2"/>
+  <rect x="413" y="270" width="60" height="8" rx="2" fill="#FFCC80"/>
+  <rect x="413" y="283" width="75" height="8" rx="2" fill="#FFCC80"/>
+  <rect x="413" y="296" width="40" height="8" rx="2" fill="#FFCC80"/>
+
+  <text x="405" y="400" text-anchor="middle" font-size="10" fill="#999">左列表 + 右详情，主从视图并行</text>
+
+  <!-- Arrow -->
+  <text x="535" y="260" font-size="28" fill="#999" text-anchor="middle">→</text>
+
+  <!-- Mode 3: Auto -->
+  <rect x="560" y="60" width="220" height="390" rx="10" fill="#F5F5F5" stroke="#ccc" stroke-width="1"/>
+  <text x="670" y="85" text-anchor="middle" font-size="14" font-weight="bold" fill="#6A1B9A">Auto（自适应）</text>
+  <text x="670" y="105" text-anchor="middle" font-size="11" fill="#666">全设备</text>
+
+  <!-- Auto mode illustration -->
+  <rect x="575" y="120" width="190" height="260" rx="10" fill="#fff" stroke="#ddd" stroke-width="2" filter="url(#shadow)"/>
+
+  <!-- Small screen config -->
+  <rect x="583" y="130" width="80" height="115" rx="6" fill="#F3E5F5" stroke="#CE93D8" stroke-width="1"/>
+  <text x="623" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#6A1B9A">&lt; 600vp</text>
+  <text x="623" y="165" text-anchor="middle" font-size="8" fill="#666">Stack 模式</text>
+  <rect x="587" y="175" width="72" height="60" rx="4" fill="#E1BEE7"/>
+  <text x="623" y="200" text-anchor="middle" font-size="8" fill="#6A1B9A">单页面</text>
+  <text x="623" y="215" text-anchor="middle" font-size="8" fill="#6A1B9A">全屏显示</text>
+
+  <!-- Arrow small -->
+  <text x="670" y="190" font-size="16" fill="#999" text-anchor="middle">⇄</text>
+
+  <!-- Large screen config -->
+  <rect x="680" y="130" width="77" height="115" rx="6" fill="#F3E5F5" stroke="#CE93D8" stroke-width="1"/>
+  <text x="718" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#6A1B9A">≥ 600vp</text>
+  <text x="718" y="165" text-anchor="middle" font-size="8" fill="#666">Split 模式</text>
+  <rect x="684" y="175" width="69" height="60" rx="4" fill="#E1BEE7"/>
+  <text x="718" y="200" text-anchor="middle" font-size="8" fill="#6A1B9A">列表+详情</text>
+  <text x="718" y="215" text-anchor="middle" font-size="8" fill="#6A1B9A">分栏显示</text>
+
+  <!-- Bottom: single codebase -->
+  <rect x="583" y="265" width="174" height="100" rx="6" fill="#FAFAFA" stroke="#CE93D8" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="670" y="285" text-anchor="middle" font-size="10" font-weight="bold" fill="#6A1B9A">同一套页面组件</text>
+  <text x="670" y="305" text-anchor="middle" font-size="9" fill="#666">根据屏幕宽度自动切换</text>
+  <text x="670" y="325" text-anchor="middle" font-size="9" fill="#666">无需额外适配代码</text>
+  <text x="670" y="345" text-anchor="middle" font-size="9" fill="#999">← 手机端 → 平板端 →</text>
+
+  <text x="670" y="400" text-anchor="middle" font-size="10" fill="#999">按屏幕宽度自动切换模式</text>
+</svg>

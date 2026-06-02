@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="'Microsoft YaHei','PingFang SC',sans-serif">
+  <defs>
+    <linearGradient id="headerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0070F0"/>
+      <stop offset="100%" stop-color="#00A6FF"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8F4FF"/>
+      <stop offset="100%" stop-color="#D0EAFF"/>
+    </linearGradient>
+    <linearGradient id="contentGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF8E1"/>
+      <stop offset="100%" stop-color="#FFECB3"/>
+    </linearGradient>
+    <linearGradient id="actionGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8F5E9"/>
+      <stop offset="100%" stop-color="#C8E6C9"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="520" rx="12" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">Navigation 组件三层架构</text>
+
+  <!-- Navigation Container -->
+  <rect x="50" y="55" width="700" height="430" rx="10" fill="none" stroke="#0070F0" stroke-width="2.5" stroke-dasharray="8,4"/>
+  <text x="400" y="78" text-anchor="middle" font-size="14" fill="#0070F0" font-weight="bold">Navigation 根容器</text>
+
+  <!-- Layer 1: Title Bar -->
+  <rect x="75" y="95" width="650" height="100" rx="8" fill="url(#titleGrad)" filter="url(#shadow)" stroke="#90CAF9" stroke-width="1"/>
+  <rect x="75" y="95" width="650" height="30" rx="8" fill="#0070F0"/>
+  <rect x="75" y="117" width="650" height="8" fill="#0070F0"/>
+  <text x="100" y="115" font-size="14" font-weight="bold" fill="#fff">标题层（Title Bar）</text>
+
+  <!-- Title bar details -->
+  <text x="100" y="152" font-size="12" fill="#555">标题：鸿蒙应用</text>
+  <text x="300" y="152" font-size="12" fill="#555">副标题：Navigation 示例</text>
+  <text x="520" y="152" font-size="12" fill="#555">字体缩放 | 菜单</text>
+
+  <!-- Mode indicator -->
+  <rect x="100" y="162" width="80" height="22" rx="11" fill="#E3F2FD" stroke="#64B5F6" stroke-width="1"/>
+  <text x="140" y="177" text-anchor="middle" font-size="11" fill="#1565C0">Mini 模式</text>
+  <rect x="195" y="162" width="80" height="22" rx="11" fill="#E3F2FD" stroke="#64B5F6" stroke-width="1"/>
+  <text x="235" y="177" text-anchor="middle" font-size="11" fill="#1565C0">Free 模式</text>
+  <rect x="290" y="162" width="80" height="22" rx="11" fill="#1565C0"/>
+  <text x="330" y="177" text-anchor="middle" font-size="11" fill="#fff">Full 模式</text>
+
+  <!-- Arrow -->
+  <line x1="400" y1="195" x2="400" y2="215" stroke="#999" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 2: Content Area -->
+  <rect x="75" y="220" width="650" height="130" rx="8" fill="url(#contentGrad)" filter="url(#shadow)" stroke="#FFD54F" stroke-width="1"/>
+  <rect x="75" y="220" width="650" height="30" rx="8" fill="#FF9800"/>
+  <rect x="75" y="242" width="650" height="8" fill="#FF9800"/>
+  <text x="100" y="240" font-size="14" font-weight="bold" fill="#fff">内容层（Content Area）</text>
+
+  <!-- Content details: NavDestination -->
+  <text x="100" y="270" font-size="13" font-weight="bold" fill="#E65100">NavDestination（首页）</text>
+  <text x="100" y="290" font-size="12" fill="#666">┌─────────────────────────────────────────┐</text>
+  <text x="100" y="310" font-size="12" fill="#666">│  标题：首页                    ●●●    │</text>
+  <text x="100" y="330" font-size="12" fill="#666">│  内容区域...                            │</text>
+  <text x="100" y="345" font-size="12" fill="#666">└─────────────────────────────────────────┘</text>
+
+  <!-- Arrow -->
+  <line x1="400" y1="350" x2="400" y2="370" stroke="#999" stroke-width="2"/>
+
+  <!-- Layer 3: Toolbar / Action Bar -->
+  <rect x="75" y="375" width="650" height="90" rx="8" fill="url(#actionGrad)" filter="url(#shadow)" stroke="#A5D6A7" stroke-width="1"/>
+  <rect x="75" y="375" width="650" height="30" rx="8" fill="#43A047"/>
+  <rect x="75" y="397" width="650" height="8" fill="#43A047"/>
+  <text x="100" y="425" font-size="14" font-weight="bold" fill="#fff">交互层 / 工具栏（Toolbar）</text>
+
+  <!-- Toolbar items -->
+  <rect x="100" y="440" width="60" height="22" rx="4" fill="#66BB6A"/>
+  <text x="130" y="455" text-anchor="middle" font-size="11" fill="#fff">搜索</text>
+  <rect x="175" y="440" width="60" height="22" rx="4" fill="#66BB6A"/>
+  <text x="205" y="455" text-anchor="middle" font-size="11" fill="#fff">收藏</text>
+  <rect x="250" y="440" width="60" height="22" rx="4" fill="#66BB6A"/>
+  <text x="280" y="455" text-anchor="middle" font-size="11" fill="#fff">分享</text>
+  <rect x="325" y="440" width="60" height="22" rx="4" fill="#66BB6A"/>
+  <text x="355" y="455" text-anchor="middle" font-size="11" fill="#fff">更多</text>
+
+  <!-- Right side: Labels -->
+  <line x1="500" y1="110" x2="680" y2="110" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="685" y="114" font-size="11" fill="#999">主/副标题配置</text>
+
+  <line x1="500" y1="250" x2="680" y2="250" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="685" y="254" font-size="11" fill="#999">NavDestination 页面容器</text>
+
+  <line x1="500" y1="410" x2="680" y2="410" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="685" y="414" font-size="11" fill="#999">标准化操作入口</text>
+</svg>

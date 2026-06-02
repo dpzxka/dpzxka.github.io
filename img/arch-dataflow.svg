@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" width="800" height="340">
+  <defs>
+    <linearGradient id="bgdf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d0d1e"/>
+      <stop offset="100%" stop-color="#151530"/>
+    </linearGradient>
+    <linearGradient id="gView" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(0,212,255,0.2)"/>
+      <stop offset="100%" stop-color="rgba(0,212,255,0.05)"/>
+    </linearGradient>
+    <linearGradient id="gVM" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(233,69,96,0.2)"/>
+      <stop offset="100%" stop-color="rgba(233,69,96,0.05)"/>
+    </linearGradient>
+    <linearGradient id="gData" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(75,192,192,0.2)"/>
+      <stop offset="100%" stop-color="rgba(75,192,192,0.05)"/>
+    </linearGradient>
+    <marker id="arrowDown" markerWidth="12" markerHeight="8" refX="6" refY="8" orient="auto">
+      <polygon points="0,0 12,0 6,8" fill="#e94560" opacity="0.7"/>
+    </marker>
+    <marker id="arrowUp" markerWidth="12" markerHeight="8" refX="6" refY="0" orient="auto">
+      <polygon points="0,8 12,8 6,0" fill="#00d4ff" opacity="0.5"/>
+    </marker>
+    <marker id="arrowRight" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0,0 10,3.5 0,7" fill="rgba(255,255,255,0.2)"/>
+    </marker>
+    <filter id="shadf">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="340" rx="16" fill="url(#bgdf)"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" fill="#00d4ff" font-family="system-ui, sans-serif" font-size="13" font-weight="600">MVVM 数据流向图</text>
+
+  <!-- Layer 4: View -->
+  <g filter="url(#shadf)">
+    <rect x="40" y="48" width="720" height="52" rx="8" fill="url(#gView)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+    <rect x="40" y="48" width="720" height="20" rx="8" fill="rgba(0,212,255,0.08)"/>
+    <text x="60" y="63" fill="#00d4ff" font-family="system-ui, sans-serif" font-size="11" font-weight="600">View 层</text>
+    <text x="130" y="63" fill="rgba(255,255,255,0.3)" font-family="system-ui, sans-serif" font-size="9">页面组件 · @Builder · @BuilderParam · Widget</text>
+
+    <!-- Event arrows going down from View -->
+    <line x1="300" y1="100" x2="300" y2="118" stroke="#e94560" stroke-width="2" marker-end="url(#arrowDown)" opacity="0.7"/>
+    <text x="270" y="112" fill="#e94560" font-family="system-ui, sans-serif" font-size="8" opacity="0.7">用户操作</text>
+  </g>
+
+  <!-- Layer 3: ViewModel -->
+  <g filter="url(#shadf)">
+    <rect x="40" y="122" width="720" height="52" rx="8" fill="url(#gVM)" stroke="rgba(233,69,96,0.15)" stroke-width="1"/>
+    <rect x="40" y="122" width="720" height="20" rx="8" fill="rgba(233,69,96,0.07)"/>
+    <text x="60" y="137" fill="#e94560" font-family="system-ui, sans-serif" font-size="11" font-weight="600">ViewModel 层</text>
+    <text x="150" y="137" fill="rgba(255,255,255,0.3)" font-family="system-ui, sans-serif" font-size="9">@Local 状态 · @Monitor 副作用 · @Provider/@Consumer 跨级共享</text>
+
+    <rect x="280" y="150" width="80" height="18" rx="9" fill="rgba(233,69,96,0.08)" stroke="rgba(233,69,96,0.15)" stroke-width="0.5"/>
+    <text x="320" y="163" text-anchor="middle" fill="rgba(233,69,96,0.6)" font-family="monospace, sans-serif" font-size="8">业务逻辑</text>
+
+    <!-- Arrow down -->
+    <line x1="400" y1="174" x2="400" y2="192" stroke="#4bc0c0" stroke-width="2" marker-end="url(#arrowDown)" opacity="0.7"/>
+    <text x="370" y="186" fill="#4bc0c0" font-family="system-ui, sans-serif" font-size="8" opacity="0.7">请求数据</text>
+  </g>
+
+  <!-- Layer 2: Data -->
+  <g filter="url(#shadf)">
+    <rect x="40" y="196" width="720" height="52" rx="8" fill="url(#gData)" stroke="rgba(75,192,192,0.15)" stroke-width="1"/>
+    <rect x="40" y="196" width="720" height="20" rx="8" fill="rgba(75,192,192,0.07)"/>
+    <text x="60" y="211" fill="#4bc0c0" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Data 层</text>
+    <text x="140" y="211" fill="rgba(255,255,255,0.3)" font-family="system-ui, sans-serif" font-size="9">Repository · RCP 网络请求 · Preferences/KVStore</text>
+  </g>
+
+  <!-- Return arrow (Data → ViewModel) -->
+  <line x1="520" y1="196" x2="520" y2="176" stroke="#00d4ff" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrowUp)" opacity="0.6"/>
+  <text x="530" y="188" fill="#00d4ff" font-family="system-ui, sans-serif" font-size="8" opacity="0.6">数据返回</text>
+
+  <!-- Auto-render arrow (ViewModel → View) -->
+  <line x1="620" y1="126" x2="620" y2="102" stroke="#00d4ff" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrowUp)" opacity="0.6"/>
+  <text x="630" y="116" fill="#00d4ff" font-family="system-ui, sans-serif" font-size="8" opacity="0.6">自动刷新 UI</text>
+
+  <!-- Layer 1: Route (bottom) -->
+  <g filter="url(#shadf)">
+    <rect x="40" y="270" width="720" height="40" rx="8" fill="rgba(124,58,237,0.06)" stroke="rgba(124,58,237,0.12)" stroke-width="1"/>
+    <rect x="40" y="270" width="720" height="18" rx="8" fill="rgba(124,58,237,0.06)"/>
+    <text x="60" y="284" fill="#a855f7" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Route 层</text>
+    <text x="150" y="284" fill="rgba(255,255,255,0.3)" font-family="system-ui, sans-serif" font-size="9">HMRouter · Navigator 封装 · 拦截器链 · 模块解耦</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(40, 318)">
+    <line x1="0" y1="5" x2="18" y2="5" stroke="#e94560" stroke-width="2"/>
+    <text x="24" y="9" fill="rgba(255,255,255,0.25)" font-family="system-ui, sans-serif" font-size="8">事件向上流（@Event）</text>
+
+    <line x1="210" y1="5" x2="228" y2="5" stroke="#00d4ff" stroke-width="2" stroke-dasharray="4,2"/>
+    <text x="234" y="9" fill="rgba(255,255,255,0.25)" font-family="system-ui, sans-serif" font-size="8">数据向下流（自动刷新）</text>
+  </g>
+</svg>

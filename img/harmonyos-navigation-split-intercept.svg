@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e27"/>
+      <stop offset="100%" stop-color="#1a1f3a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#007aff"/>
+      <stop offset="100%" stop-color="#00d4aa"/>
+    </linearGradient>
+    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#ffa94d"/>
+    </linearGradient>
+    <linearGradient id="card1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a2f4a"/>
+      <stop offset="100%" stop-color="#1e2340"/>
+    </linearGradient>
+    <linearGradient id="card2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e2a4a"/>
+      <stop offset="100%" stop-color="#151e38"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#ff8e53"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bg)" rx="12"/>
+
+  <!-- Title -->
+  <text x="400" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#e8edf5" text-anchor="middle" filter="url(#glow)">Navigation 多栏适配 × 路由拦截</text>
+
+  <!-- === LEFT SIDE: Multi-pane illustration === -->
+
+  <!-- Stack mode phone -->
+  <rect x="55" y="60" width="130" height="220" rx="12" fill="url(#card1)" stroke="#3a3f5a" stroke-width="1.5"/>
+  <text x="120" y="78" font-family="system-ui" font-size="9" fill="#8899bb" text-anchor="middle">Stack 模式（手机）</text>
+  <!-- Nav bar area -->
+  <rect x="65" y="88" width="110" height="28" rx="4" fill="#2d7ff9" opacity="0.3"/>
+  <text x="120" y="105" font-family="system-ui" font-size="8" fill="#7ab4ff" text-anchor="middle">导航栏</text>
+  <!-- Content area -->
+  <rect x="65" y="122" width="110" height="68" rx="4" fill="#00d4aa" opacity="0.15"/>
+  <text x="120" y="145" font-family="system-ui" font-size="7" fill="#5ddab0" text-anchor="middle">首页内容</text>
+  <rect x="65" y="196" width="110" height="68" rx="4" fill="#2d7ff9" opacity="0.15"/>
+  <text x="120" y="216" font-family="system-ui" font-size="7" fill="#7ab4ff" text-anchor="middle">详情页（NavDestination）</text>
+  <!-- Arrow indicating push -->
+  <line x1="120" y1="192" x2="120" y2="190" stroke="#4a5a7a" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <!-- Divider -->
+  <line x1="200" y1="60" x2="200" y2="280" stroke="#2a2f4a" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Split mode tablet -->
+  <rect x="215" y="60" width="220" height="220" rx="12" fill="url(#card1)" stroke="#3a3f5a" stroke-width="1.5"/>
+  <text x="325" y="78" font-family="system-ui" font-size="9" fill="#8899bb" text-anchor="middle">Split 模式（平板 / 折叠屏展开）</text>
+  <!-- Left nav bar -->
+  <rect x="225" y="88" width="65" height="180" rx="4" fill="#2d7ff9" opacity="0.25"/>
+  <rect x="233" y="96" width="50" height="22" rx="3" fill="#2d7ff9" opacity="0.6"/>
+  <text x="258" y="110" font-family="system-ui" font-size="7" fill="#7ab4ff" text-anchor="middle">商品</text>
+  <rect x="233" y="122" width="50" height="22" rx="3" fill="#3a4a6a" opacity="0.5"/>
+  <text x="258" y="136" font-family="system-ui" font-size="7" fill="#667799" text-anchor="middle">购物车</text>
+  <rect x="233" y="148" width="50" height="22" rx="3" fill="#3a4a6a" opacity="0.5"/>
+  <text x="258" y="162" font-family="system-ui" font-size="7" fill="#667799" text-anchor="middle">订单</text>
+  <rect x="233" y="174" width="50" height="22" rx="3" fill="#3a4a6a" opacity="0.5"/>
+  <text x="258" y="188" font-family="system-ui" font-size="7" fill="#667799" text-anchor="middle">设置</text>
+  <!-- Right content area -->
+  <rect x="296" y="88" width="130" height="180" rx="4" fill="#00d4aa" opacity="0.08"/>
+  <text x="361" y="120" font-family="system-ui" font-size="8" fill="#5ddab0" text-anchor="middle">商品列表</text>
+  <rect x="306" y="132" width="110" height="24" rx="3" fill="#2a3a4a" opacity="0.6"/>
+  <text x="361" y="147" font-family="system-ui" font-size="6" fill="#667799" text-anchor="middle">商品 1  |  ¥199</text>
+  <rect x="306" y="160" width="110" height="24" rx="3" fill="#2a3a4a" opacity="0.6"/>
+  <text x="361" y="175" font-family="system-ui" font-size="6" fill="#667799" text-anchor="middle">商品 2  |  ¥299</text>
+  <rect x="306" y="188" width="110" height="24" rx="3" fill="#2a3a4a" opacity="0.6"/>
+  <text x="361" y="203" font-family="system-ui" font-size="6" fill="#667799" text-anchor="middle">商品 3  |  ¥399</text>
+  <rect x="306" y="216" width="110" height="24" rx="3" fill="#2a3a4a" opacity="0.6"/>
+  <text x="361" y="231" font-family="system-ui" font-size="6" fill="#667799" text-anchor="middle">商品 4  |  ¥499</text>
+
+  <!-- Auto mode arrow transition -->
+  <text x="185" y="320" font-family="system-ui" font-size="10" fill="#4a5a7a" text-anchor="middle">Auto 自动切换</text>
+  <line x1="120" y1="292" x2="120" y2="310" stroke="#4a5a7a" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <line x1="325" y1="292" x2="325" y2="310" stroke="#4a5a7a" stroke-width="1" marker-end="url(#arrowhead)"/>
+  <!-- Bi-directional arrow -->
+  <line x1="130" y1="320" x2="310" y2="320" stroke="#00d4aa" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="220" y="314" font-family="system-ui" font-size="8" fill="#5ddab0" text-anchor="middle">&lt; 600vp → Stack | ≥ 600vp → Split →</text>
+
+  <!-- === RIGHT SIDE: Route interception illustration === -->
+
+  <!-- Vertical divider -->
+  <line x1="460" y1="60" x2="460" y2="480" stroke="#2a2f4a" stroke-width="1"/>
+
+  <text x="630" y="38" font-family="system-ui" font-size="13" font-weight="700" fill="#e8edf5" text-anchor="middle">路由拦截（Route Interception）</text>
+
+  <!-- Flow diagram -->
+  <!-- User action -->
+  <rect x="490" y="62" width="130" height="32" rx="6" fill="#2a2f4a" stroke="#4a5a7a" stroke-width="1"/>
+  <text x="555" y="81" font-family="system-ui" font-size="9" fill="#aabbdd" text-anchor="middle">用户点击跳转</text>
+
+  <line x1="555" y1="94" x2="555" y2="112" stroke="#4a5a7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- willShow intercept -->
+  <rect x="490" y="115" width="130" height="40" rx="6" fill="#3a1a20" stroke="#ff6b6b" stroke-width="1.5"/>
+  <text x="555" y="130" font-family="monospace" font-size="8" fill="#f08080" text-anchor="middle">willShow 拦截</text>
+  <text x="555" y="144" font-family="system-ui" font-size="7" fill="#aa6666" text-anchor="middle">权限校验 / 登录判断</text>
+
+  <!-- Decision diamond (using rect) -->
+  <line x1="555" y1="155" x2="555" y2="173" stroke="#4a5a7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <rect x="510" y="175" width="90" height="30" rx="4" fill="#2a3a2a" stroke="#5ddab0" stroke-width="1"/>
+  <text x="555" y="193" font-family="system-ui" font-size="8" fill="#5ddab0" text-anchor="middle">权限通过？</text>
+
+  <!-- Yes branch -->
+  <line x1="600" y1="190" x2="640" y2="190" stroke="#5ddab0" stroke-width="1"/>
+  <text x="620" y="186" font-family="system-ui" font-size="7" fill="#5ddab0" text-anchor="middle">是</text>
+  <line x1="640" y1="190" x2="640" y2="230" stroke="#5ddab0" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <rect x="600" y="232" width="100" height="30" rx="6" fill="#1a3240" stroke="#00d4aa" stroke-width="1"/>
+  <text x="650" y="250" font-family="system-ui" font-size="8" fill="#5ddab0" text-anchor="middle">允许跳转 → didShow</text>
+
+  <!-- No branch -->
+  <line x1="555" y1="205" x2="555" y2="218" stroke="#f08080" stroke-width="1"/>
+  <text x="538" y="215" font-family="system-ui" font-size="7" fill="#f08080" text-anchor="middle">否</text>
+  <line x1="555" y1="218" x2="555" y2="248" stroke="#f08080" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+  <rect x="500" y="250" width="110" height="30" rx="6" fill="#3a1a20" stroke="#ff6b6b" stroke-width="1"/>
+  <text x="555" y="268" font-family="system-ui" font-size="8" fill="#f08080" text-anchor="middle">拦截 → 跳转登录页</text>
+
+  <!-- modeChange -->
+  <line x1="650" y1="262" x2="690" y2="310" stroke="#4a5a7a" stroke-width="1" stroke-dasharray="4,2"/>
+  <rect x="620" y="310" width="130" height="32" rx="6" fill="#2a2f4a" stroke="#ffa94d" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="685" y="330" font-family="monospace" font-size="8" fill="#f0b060" text-anchor="middle">modeChange 回调</text>
+  <text x="685" y="348" font-family="system-ui" font-size="7" fill="#886644" text-anchor="middle">监听 Stack / Split 切换</text>
+
+  <!-- Summary at bottom -->
+  <line x1="490" y1="370" x2="760" y2="370" stroke="#2a2f4a" stroke-width="1"/>
+  <text x="490" y="390" font-family="system-ui" font-size="9" fill="#8899bb">setInterception 三个回调：</text>
+  <circle cx="490" cy="402" r="3" fill="#ff6b6b"/>
+  <text x="500" y="406" font-family="monospace" font-size="8" fill="#aa6666">willShow</text>
+  <text x="545" y="406" font-family="system-ui" font-size="8" fill="#667799">— 跳转前拦截（权限校验）</text>
+  <circle cx="490" cy="416" r="3" fill="#00d4aa"/>
+  <text x="500" y="420" font-family="monospace" font-size="8" fill="#5ddab0">didShow</text>
+  <text x="545" y="420" font-family="system-ui" font-size="8" fill="#667799">— 跳转后回调（埋点日志）</text>
+  <circle cx="490" cy="430" r="3" fill="#ffa94d"/>
+  <text x="500" y="434" font-family="monospace" font-size="8" fill="#f0b060">modeChange</text>
+  <text x="565" y="434" font-family="system-ui" font-size="8" fill="#667799">— 单双栏切换回调</text>
+
+  <!-- Bottom: key principle -->
+  <text x="490" y="465" font-family="system-ui" font-size="10" fill="#7a8aaa">核心场景：登录态校验 / 埋点统计 / 权限控制 / 布局同步</text>
+</svg>

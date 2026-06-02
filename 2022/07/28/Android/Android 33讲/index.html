@@ -1,0 +1,987 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Android 33讲 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="android 常见面试类型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 33讲">
+<meta property="og:url" content="https://dpzxka.github.io/2022/07/28/Android/Android%2033%E8%AE%B2/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="android 常见面试类型">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/android-33lectures.svg">
+<meta property="article:published_time" content="2022-07-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-09T01:01:39.142Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/android-33lectures.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Android 33讲",
+  "url": "https://dpzxka.github.io/2022/07/28/Android/Android%2033%E8%AE%B2/",
+  "image": "https://dpzxka.github.io/img/android-33lectures.svg",
+  "datePublished": "2022-07-27T16:00:00.000Z",
+  "dateModified": "2026-05-09T01:01:39.142Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2022/07/28/Android/Android%2033%E8%AE%B2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Android 33讲',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/android-33lectures.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">Android 33讲</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Android 33讲</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-07-27T16:00:00.000Z" title="发表于 2022-07-28 00:00:00">2022-07-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-09T01:01:39.142Z" title="更新于 2026-05-09 09:01:39">2026-05-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/android/">android</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">9.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>29分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-05-09 09:01:39&quot;}" hidden></div><hr>
+<h2 id="Android进阶34讲"><a href="#Android进阶34讲" class="headerlink" title="Android进阶34讲"></a>Android进阶34讲</h2><h2 id="Android进阶34讲-1"><a href="#Android进阶34讲-1" class="headerlink" title="Android进阶34讲"></a>Android进阶34讲</h2><h2 id="1、运行时内存分配"><a href="#1、运行时内存分配" class="headerlink" title="1、运行时内存分配"></a>1、运行时内存分配</h2><blockquote>
+<p>将Java的内存分为堆（heap）内存和栈内存（stack）实际上，Java虚拟机在执行java程序的过程钟，会把它所管理的内存划分为不同的数据区域</p>
+</blockquote>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/rft6ZoBQGeph1un.png" alt="image-20220703175531282"></p>
+<ul>
+<li><p><code>程序计数器</code>：Java程序是多线程的，CPU可以在多个线程中分配执行的时间片段</p>
+<ul>
+<li>作用：当某一个线程被CPU挂起时，需要记录代码已经执行的位置，方便CPU重新执行此线程时，知道从哪行指令开始执行</li>
+<li>是虚拟机中一块较小的内存空间，主要用于记录当前线程执行的位置</li>
+<li><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/WBNYa5wbVMpXmqC.png" alt="image-20220703175822819"></li>
+</ul>
+<p><strong>关于程序计数器的几点注意：</strong></p>
+<ol>
+<li><p>在Java虚拟机规范中对程序计数器这一区域没有规定任何OutOfMemoryError情况</p>
+</li>
+<li><p>程序计数器是线程私有的，每条线程内部都有一个私有程序计数器它的生命周期随着线程的创建而创建，随着线程的结束而死亡3.当一个线程正在执行一个Java方法的时候，这个计数器记录的是正在执行的虚拟机字节码指令的地址如果正在执行的是Native方法，这个计数器值则为空（Undefined）</p>
+</li>
+</ol>
+</li>
+<li><p><code>虚拟机栈</code>：是线程私有的，与线程的生命周期同步。在java虚拟机中规范中，对这个去域规定了两种异常情况：</p>
+<ul>
+<li><strong><code>StackOverflowError</code></strong>：当线程请求栈深度超过虚拟机栈所允许的深度时抛出</li>
+<li><strong><code>OutOfMemoryError</code></strong>：当Java虚拟机动态扩展到无法申请足够内容时抛出</li>
+</ul>
+</li>
+<li><p><code>Java堆（Heap）</code></p>
+<ul>
+<li><p>是JVM所管理的内存中最大的一块，该区域唯一目的就是存放对象实例</p>
+</li>
+<li><p>是Java垃圾收集器（GC）管理的主要区域，有时候也叫作“GC堆”</p>
+</li>
+<li><p>是所有线程共享的内存区域</p>
+<p>被分配在此区域的对象如果被多个线程访问，需要考虑线程安全问题</p>
+</li>
+</ul>
+<p>按照对象存储时间的不同，可分为：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/PBwte9SXdoARMcz.png" alt="image-20220821210700053.png"></p>
+</li>
+<li><p><code>方法区（Method Area）</code>是JVM规范里规定的一块运行时数据区<br>方法区主要是存储：</p>
+<ul>
+<li>已经被JVM加载的类信息（版本、字段、方法、接口）</li>
+<li>常量</li>
+<li>静态变量</li>
+<li>即时编译器编译后的代码</li>
+<li>数据<br><strong>该区域是被各个线程共享的内存区域</strong></li>
+</ul>
+<p><strong>总结：</strong><br><code>方法区</code>：是规范层面的东西，规定了这一个区域要存放哪些数据</p>
+<p><code>永久区或者是metaspace</code>：是对方法区的不同实现，是实现层面的东西</p>
+</li>
+</ul>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/iIeWLFAtZYPHfJ1.png" alt="image-20220821211309132.png"></p>
+<h2 id="2、GC回收机制与分代回收策略"><a href="#2、GC回收机制与分代回收策略" class="headerlink" title="2、GC回收机制与分代回收策略"></a>2、GC回收机制与分代回收策略</h2><blockquote>
+<p>垃圾回收(Grabage Collection,GC)</p>
+<p>程序计数器、虚拟机栈、本地方法栈3个区域随线程而生，随线程而灭栈中的栈帧随着方法的进入和退出而有条不紊地执行着出栈和入栈操作这几个区域内不需要过多考虑回收的问题</p>
+<p>堆和方法区需要回收，垃圾就是内存中已经没有用的对象</p>
+<p>Java虚拟机中使用一种叫作”<code>可达性分析</code>”的算法<code>来决定对象是否可以被回收</code></p>
+</blockquote>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/sCq1xofcWFH4MV3.png" alt="image-20220821211722392.png"></p>
+<p>在Java中，有以下几种对象可以作为GC Root：</p>
+<ol>
+<li>Java虚拟机栈（局部变量表）中的引用的对象</li>
+<li>方法区中静态引用指向的对象</li>
+<li>仍处于存活状态中的线程对象</li>
+<li>Native方法中JNI引用的对象</li>
+</ol>
+<p><strong><code>不同的虚拟机实现有着不同的GC实现机制</code></strong></p>
+<p>一般情况下每一种GC实现都会在以下两种情况下触发垃圾回收：</p>
+<ol>
+<li><strong>Allocation Failure</strong>：在堆内存中分配时，如果因为可用剩余空间不足导致对象内存分配失败这时系统会触发一次GC</li>
+<li><strong>System.gc（）</strong>：在应用层，Java 开发工程师可以主动调用此API来请求一次GC</li>
+</ol>
+<blockquote>
+<p>执行Java命令时的参数<br>     -Xms初始分配JVM运行时的内存大小，如果不指定默认为物理内存的1&#x2F;64</p>
+<p>从物理内存中分配出200M空间分配给JVM内存</p>
+<p><code>java -Xms200m HelloWorld</code></p>
+</blockquote>
+<h4 id="1、-如何回收垃圾"><a href="#1、-如何回收垃圾" class="headerlink" title="1、 如何回收垃圾:"></a><strong>1、 如何回收垃圾:</strong></h4><p><code>标记清除算法（Mark and Sweep GC）</code></p>
+<p>从”GCRoots”集合开始，将内存整个遍历一次,保留所有可以被GC Roots直接或间接引用到的对象，而剩下的对象都当作垃圾对待并回收过程分两步：</p>
+<ol>
+<li><code>Mark 标记阶段</code>：找到内存中的所有GC Root对象，只要是和GCRoot对象直接或者间接相连则标记为灰色（也就是存活对象），否则标记为黑色（也就是垃圾对象）</li>
+<li><code>Sweep 清除阶段</code>：当遍历完所有的GCRoot之后，则将标记为垃圾的对象直接清除</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/eCvE7IqkMcWQ9Ah.png" alt="image-20220821220427076.png"></p>
+<p><code>复制算法（Copying）</code></p>
+<p>将现有的内存空间分为两快，每次只使用其中一块,在垃圾回收时将正在使用的内存中的存活对象复制到未被使用的内存块中,之后清除正在使用的内存块中的所有对象交换两个内存的角色，完成垃圾回收</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/Wvq86kJscFMoLNK.png" alt="image-20220821220606062.png"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/tMVqWQbrZxHzSkN.png" alt="image-20220821220625309.png"></p>
+<p><code>标记-压缩算法（Mark-Compact）</code></p>
+<p>需要先从根节点开始对所有可达对象做一次标记</p>
+<p>之后并不简单地清理未标记的对象，而是将所有的存活对象压缩到内存的一端最后清理边界外所有的空间</p>
+<p>标记压缩也分两步完成：</p>
+<ol>
+<li><code>Mark 标记阶段：</code>找到内存中的所有GC Root对象，只要是和GC Root对象直接或者间接相连则标记为灰色（也就是存活对象），否则标记为黑色（也就是垃圾对象）</li>
+<li><code>Compact压缩阶段：</code>将剩余存活对象按顺序压缩到内存的某一端</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/7a6GYVxdMlrcNug.png" alt="image-20220821220855955.png"></p>
+<h4 id="2、JVM分代回收策略："><a href="#2、JVM分代回收策略：" class="headerlink" title="2、JVM分代回收策略："></a><strong>2、JVM分代回收策略：</strong></h4><p>Java虚拟机根据对象存活的周期不同</p>
+<p>把堆内存划分为<code>新生代</code>、<code>老年代</code>，这就是JVM的内存分代策略</p>
+<p>注意：在HotSpot中除了新生代和老年代，还有<code>永久代</code></p>
+<p><strong>分代回收的中心思想：</strong></p>
+<p>对于新创建的对象会在新生代中分配内存，此区域的对象生命周期一般较短，如果经过多次回收仍然存活下来，则将它们转移到老年代中。</p>
+<p><code>年轻代（Young Generation）</code>新生成的对象优先存放在新生代中，存活率很低</p>
+<p>新生代中，常规应用进行一次垃圾收集一般可以回收70%~95%的空间，<a href="">回收效率很高</a></p>
+<p>所以一般采用的GC回收算法是<strong>复制算法</strong></p>
+<p>新生代细分为3部分：Eden、Survivor0（简称S0）、Survivor1（简称S1）这3部分</p>
+<p>按照8：1：1的比例来划分新生代</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/Pp3lAuNCMSQxgKj.png" alt="image-20220821221508815.png"></p>
+<p>Eden区域满的时候，会进行第一次垃圾回收，把存活对象发在S0</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/DnJAF6IB7ic5GXb.png" alt="image-20220821221539884.png"></p>
+<p>下一次Eden区域满的时候，会再次执行一次垃圾回收，清空Eden和S0区域垃圾对象</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/8ktUdvTSs1NP4Ol.png" alt="image-20220821221715229.png"></p>
+<p>不断切换Eden和S0、S1，15次之后，还有存活的对象，则将这部分对象发在老年代tenured区域中。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/E9vZXgnhePYfd3A.png" alt="image-20220821221740861.png"></p>
+<p><code>年老代（Old Generation）</code></p>
+<p>一个对象如果在新生代存活了足够长的时间而没有被清理掉，则会被复制到老年代</p>
+<p>老年代的内存大小一般比新生代大，能存放更多的对象</p>
+<p>如果对象比较大（比如长字符串或者大数组），并且新生代的剩余空间不足</p>
+<p>则这个大对象会直接被分配到老年代上</p>
+<p>可以使用<a href=""><strong>-XX:PretenureSizeThreshold</strong></a>来控制直接升入老年代的对象大小</p>
+<p>因为对象的生明周期较长，不需要过多的复制操作，所以一般采用标记压缩的回收算法</p>
+<p><strong>GC Log分析</strong></p>
+<p>其中新生代和老年代所打印的日志是有区别的：</p>
+<ul>
+<li><p><a href="">新生代GC：</a></p>
+<p>这一区域的GC叫作Minor GC</p>
+<p>因为Java对象大多都具备朝生夕灭的特性，所以MinorGC非常频繁，一般回收速度也比较快</p>
+</li>
+<li><p><code>老年代GC：</code></p>
+<p>发生在这一区域的GC也叫作 Major GC或者Full GC</p>
+<p>当出现了MajorGC，经常会伴随至少一次的Minor GC</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>命令参数</th>
+<th>功能描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-verbose:gc</td>
+<td>显示GC的操作内容</td>
+</tr>
+<tr>
+<td>-Xms20M</br>-Xmx20M</td>
+<td>初始化堆大小为20M</br>设置堆最大分配内存20M</td>
+</tr>
+<tr>
+<td>Xmn10M</td>
+<td>设置新生代的内存大小为10M</td>
+</tr>
+<tr>
+<td>-XX：+printGCDetails</td>
+<td>打印GC的详细log日志</td>
+</tr>
+<tr>
+<td>-XX:SurvivorRatio&#x3D;8</td>
+<td>新生代中Eden区域与Survivor区域的大小比值为8：1：1</td>
+</tr>
+</tbody></table>
+<p>通过GC Roots的引用可达性来判断的对象是否存活</p>
+<p>JVM中的引用关系根据引用强度的由强到弱，他们分别是：</p>
+<ul>
+<li>强引用（Strong Reference）</li>
+<li>软引用（Soft Reference）</li>
+<li>弱引用（Weak Reference）</li>
+<li>虚引用（Phantom Reference）</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>引用</th>
+<th>GC回收时机</th>
+<th>使用示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>强引用</td>
+<td>如果一个对象具有强引用，那垃圾收器绝不会回收它</td>
+<td>object obj&#x3D;new object（）；</td>
+</tr>
+<tr>
+<td>软引用</td>
+<td>在内存实在不足时，会对软引用进行回收</td>
+<td>SoftReferencecobject&gt; softobj&#x3D;newSoftReference（）；</td>
+</tr>
+<tr>
+<td>弱引用</td>
+<td>第一次GC回收时，如果垃圾回收器遍历到此弱引用，则将其回收</td>
+<td>WeakReference<Object>weakObj&#x3D;newWeakReference（）；</td>
+</tr>
+<tr>
+<td>虚引用</td>
+<td>一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过品引用来获取一个对象的实例</td>
+<td>不会使用</td>
+</tr>
+</tbody></table>
+<p><strong>软引用隐藏问题</strong></p>
+<p>注意：</p>
+<p>被软引用对象关联的对象会自动被垃圾回收器回收</p>
+<p>但是软引用对象本身也是一个对象</p>
+<p>这些创建的软引用并不会自动被垃圾回收器回收掉</p>
+<h2 id="3、字节码层面分析cla类文件结构"><a href="#3、字节码层面分析cla类文件结构" class="headerlink" title="3、字节码层面分析cla类文件结构"></a>3、字节码层面分析cla类文件结构</h2><p>java中String字符串的长度有限制吗？</p>
+<blockquote>
+<p>java提供了一种可以在所有平台上都能使用的一种中间代码-字节码类文件(.class文件)</p>
+<ul>
+<li>有了字节码，无论是哪种平台只要安装了虚拟机都可以直接运行字节码</li>
+<li>有了字节码，解除了Java虚拟机和Java语言之间的耦合</li>
+</ul>
+</blockquote>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/rfTteURCKQVwqn3.png" alt="image-20220703224242199"></p>
+<p>从纵观的角度看，class文件里只有两种数据结构：<code>无符号数</code>和<a href="">表</a></p>
+<ul>
+<li><p>&#x3D;&#x3D;无符号数&#x3D;&#x3D;：属于基本的数据类型</p>
+<p>以u1、u2、u4、u8来分别代表1个字节、2个字节、4个字节和8个字节的无符号数，无符号数可以用来描述数字、索引引用、数量值或字符串(UTF-8编码)</p>
+</li>
+<li><p>&#x3D;&#x3D;表&#x3D;&#x3D;：表是多个无符号数或其他表作为数据项构成的复合数据类型</p>
+<p>class文件中所有的表都以“_info”结尾</p>
+<p>整个Class文件本质上就是一张表</p>
+</li>
+</ul>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/hD8bNlRrJFWeSio.png" alt="image-20220703224802209"></p>
+<h4 id="Class文件结构"><a href="#Class文件结构" class="headerlink" title="Class文件结构"></a>Class文件结构</h4><p>无符号数和表组成了class中的各个结构这些结构按照&#x3D;&#x3D;预先规定好的顺序&#x3D;&#x3D;紧密的从前向后排列，相邻的项之间没有任何间隙</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/N5Xla3rAjRCDnLg.png" alt="image-20220821224848178.png"></p>
+<h2 id="13、Android是如何通过Activity进行交互的"><a href="#13、Android是如何通过Activity进行交互的" class="headerlink" title="13、Android是如何通过Activity进行交互的"></a>13、Android是如何通过Activity进行交互的</h2><h4 id="taskAffinity"><a href="#taskAffinity" class="headerlink" title="taskAffinity"></a>taskAffinity</h4><p>通过设置不同的启动模式可以实现调度不同的Task，但是taskAffinity在一定程度上也会影响任务栈的调配流程</p>
+<p>每一个Activity都有一个Affinity属性，如果不在清单文件中指定，默认为当前应用的包名</p>
+<blockquote>
+<p>注意：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/vwEBlAO2CDQHZXa.png" alt="image-20220722153848579"></p>
+<p>点击First中的Button，从First页面跳转到Second页面</p>
+<p>adb shell dumpsys activity activities</p>
+<p>TaskRecord代表一个任务栈</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Fhp2weZUrOJ183W.png" alt="image-20220722154010602"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/kAH4rq3uGjlIRFy.png" alt="image-20220722154138806"></p>
+<p>重新查看任务栈情况</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/c9rP3MKbdfTGJqZ.png" alt="image-20220722154204655"></p>
+<p>修改Second的启动模式，修改为SingleTask</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/R7yfCTuPawvroLb.png" alt="image-20220722154252478"></p>
+<p>单纯使用taskAffinity不能导致Activity被创建在新的任务栈中，需要配合**<code>singleTask或singleInstance</code>**.</p>
+</blockquote>
+<p>allowTaskReparenting赋予Activity在各个Task中间转移的特性</p>
+<p>一个在后台任务中的Activity A当有其他任务前台，并且taskAffinity与A相同，则会自动将A添加到当前启动的任务栈中</p>
+<h4 id="通过Binder传递数据的限制"><a href="#通过Binder传递数据的限制" class="headerlink" title="通过Binder传递数据的限制"></a>通过Binder传递数据的限制</h4><p>Activity 界面跳转时，使用Intent传递数据是最常用的操作，Intent传值也会导致数据崩溃。</p>
+<p>方法一：减少通过Intent传递的数据，将非必须字段使用transient关键字修饰</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">startFirstB</span><span class="params">(View view)</span> &#123;</span><br><span class="line">	<span class="type">Intent</span> <span class="variable">intent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>(<span class="built_in">this</span>,FirstB.class);</span><br><span class="line">	intent.putExtra(<span class="string">&quot;bean&quot;</span>,<span class="keyword">new</span> <span class="title class_">Bean</span>());<span class="comment">//传递Bean中的数据</span></span><br><span class="line">	startActivity(intent);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Bean</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">transient</span> <span class="type">byte</span>[] data = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span> * <span class="number">1024</span>];</span><br><span class="line">	<span class="type">String</span> <span class="variable">str</span> <span class="operator">=</span> <span class="string">&quot;data string&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法二：将对象转化为JSON字符串，减少数据体积（Gson.toJson）</p>
+<p>​             大多时候，将类转化为JSON字符串之后，还是会超出Binder限制这种情况则需要考虑使用本地持久化                来实现数据共享，或者使用EVentBus 来实现数据传递</p>
+<h4 id="process造成多个Application"><a href="#process造成多个Application" class="headerlink" title="process造成多个Application"></a>process造成多个Application</h4><p>在自定义的Application中做一些初始化的操作，比如App分包、推送初始化、图片加载库的全局配置等</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//图片加载全局设置</span></span><br><span class="line"><span class="type">ImagePipelineConfig</span> <span class="variable">config</span> <span class="operator">=</span> ImagePipelineConfig.newBuilder(<span class="built_in">this</span>)</span><br><span class="line">							 .setDownsampleenabled(<span class="literal">true</span>)</span><br><span class="line">							 .setProgressiveJpegConfig(<span class="keyword">new</span> <span class="title class_">SimpleProgressiveJpegConfig</span>())</span><br><span class="line">							 .build();</span><br><span class="line"></span><br><span class="line">Fresco.initialize(<span class="built_in">this</span>,config);</span><br><span class="line"><span class="comment">//App 分包处理</span></span><br><span class="line">MultiDex.install(context);</span><br><span class="line"><span class="comment">//推送初始化</span></span><br><span class="line">JPushInterface.init(context);</span><br></pre></td></tr></table></figure>
+
+<p>处理方式：</p>
+<ul>
+<li>onCreate方法中判断进程的名称，只有在符合要求的进程里，才执行初始化操作</li>
+<li>抽象出一个与Application 生命周期同步的类，并根据不同的进程创建相应的Application实例</li>
+</ul>
+<h4 id="后台启动Activity失效"><a href="#后台启动Activity失效" class="headerlink" title="后台启动Activity失效"></a>后台启动Activity失效</h4><h2 id="14、彻底掌握Android-touch-事件分发时许"><a href="#14、彻底掌握Android-touch-事件分发时许" class="headerlink" title="14、彻底掌握Android touch 事件分发时许"></a>14、彻底掌握Android touch 事件分发时许</h2><p><a href="">分析角度：</a></p>
+<ul>
+<li>touch事件是如何从驱动层传递给Framework层的InputManagerService</li>
+<li>WMS是如何通过ViewRoolmple将事件传递给目标窗口</li>
+<li>touch事件到达DecorView后，是如何一步步传递到内部的子View中</li>
+</ul>
+<p><strong><code>ViewGroup</code></strong>：是一组view的组合，在其内部有可能包含多个子view</p>
+<p>当手指触摸屏幕上时，手指所在区域既能在viewGroup显示范围内，也可能在其内部view控件上。内部的事件分发的重心是处理**<code>当前Group和子View之间的逻辑关系:</code>**</p>
+<ul>
+<li>当前group是否需要拦截touch事件</li>
+<li>是否需要将touch事件继续分发给子view</li>
+<li>如何将touch事件分发给子view</li>
+</ul>
+<p><strong><code>View</code></strong>：是一个单纯的控件，它的事件分发的重点在于当前的View如何去处理touch事件，并根据相应的手势逻辑进行一些列的效果展示(比如滑动，放大、点击、长按)</p>
+<ul>
+<li>是否存在touchListener</li>
+<li>是否自己接收处理touch事件（主要逻辑在onTouchEvent方法中）</li>
+</ul>
+<h4 id="事件分发核心：dispatchTouchEvent"><a href="#事件分发核心：dispatchTouchEvent" class="headerlink" title="事件分发核心：dispatchTouchEvent"></a>事件分发核心：<code>dispatchTouchEvent</code></h4><p>整个view之间的事件分发，实质是一个大的递归函数，这个递归函数就是<code>dispatchTouchEvent</code>方法，在这个递归过程中会适时调用<code>onInterceptTouchEvent</code>来拦截事件或调用<code>onTouchEvent</code>方法来处理事件。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/dtWMoGvI9KsVqDh.png" alt="image-20220722215754960"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/olfbmyLQ2A9x1qj.png" alt="image-20220722220755799"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/24/JwhuAtfyBgvR31r.png" alt="image-20220824231244226.png"></p>
+<ol>
+<li>表明事件主动分发的前提是事件为DOWN事件</li>
+<li>遍历所有的子view</li>
+<li>判断事件坐标是否在子view坐标范围内，并且子view并没有处于动画状态。</li>
+<li>dispatchTransformedTOuchEvent方法将事件分发给子view，如果子view捕获事件成功，则将mFirstTouchTarget赋值给子view</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Ql5UHZdPLwDhAyG.png" alt="image-20220722221512901"></p>
+<p>如果没有子view捕获处理touch事件，ViewGroup会通过自身的onTouchEvent方法进行处理。</p>
+<h5 id="为什么Down事件特殊"><a href="#为什么Down事件特殊" class="headerlink" title="为什么Down事件特殊"></a>为什么Down事件特殊</h5><ul>
+<li>所有touch事件都是从Down事件开始的</li>
+<li>Down事件的处理结果会直接影响后续的MOVE、UP事件的逻辑</li>
+</ul>
+<p>只有Down事件会传递给子view进行捕获判断，一旦子View捕获成功，后续的MOVE和UP事件是通过遍历mFirstTouchTarger链表查找之前接收ACTION_DOWN的子View，并将触摸事件分配给子View</p>
+<p><strong><code>后续的MOVE、UP等事件的分发交给谁，取决于他们的起始事件DOWN由谁捕获的</code></strong></p>
+<h5 id="dispatchTouchEvent事件处理流程机制"><a href="#dispatchTouchEvent事件处理流程机制" class="headerlink" title="dispatchTouchEvent事件处理流程机制"></a>dispatchTouchEvent事件处理流程机制</h5><ul>
+<li>判断是否需要拦截-&gt;主要根据onInterceptTouchEvent方法的返回值来决定是否拦截</li>
+<li>在Down事件中将Touch事件分发给子View-&gt;这一过程如果有子View捕获消费了touch事件，会对mFirstTouchEvent进行赋值</li>
+<li>DOWN、MOVE、UP事件都会根据mFirstTouchTarget是否为null，决定是自己处理touch事件还是再次分发给子view</li>
+</ul>
+<h5 id="事件分发特殊点"><a href="#事件分发特殊点" class="headerlink" title="事件分发特殊点"></a>事件分发特殊点</h5><p>**DOWN事件的特殊之处：**事件的起点；决定后续事件由谁来消费处理</p>
+<p>mFirstTouchEvent作用：记录捕获消费touch事件的view，是一个链表结构</p>
+<p>**CANCEL事件的触发场景：**当父视图先不拦截，然后在MOVE事件中重新拦截，此时子View会接收一个CANCEL事件</p>
+<h2 id="15、自定义View"><a href="#15、自定义View" class="headerlink" title="15、自定义View"></a>15、自定义View</h2><p>自定义控件有两种方式：</p>
+<ul>
+<li><a href="">继承系统提供的成熟控件</a>（LinearLayout、RelativeLayout、ImageView）</li>
+</ul>
+<p>自定义属性： 在res的values目录下attrs.xml文件，使用<declare-styleable>标签<code>自定义属性</code><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/qdXfRH98z7BL6Mu.png" alt="image-20220722224750588"></p>
+<p>获取自定义属性值：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/G6ayXZd7iSkVhWR.png" alt="image-20220722224918096"></p>
+<ul>
+<li><p><a href="">直接继承系统View或ViewGroup</a>，并自绘制显示内容</p>
+<p>注意问题：</p>
+<ul>
+<li>如何根据相应的属性将UI元素绘制到界面 —onDraw</li>
+<li>自定义控件的大小，也就是宽和高分别设置多少 – onMeasure</li>
+<li>如果是ViewGroup，如果合理安排其内部子view的摆放位置—onLayout</li>
+</ul>
+</li>
+</ul>
+<h5 id="onDraw"><a href="#onDraw" class="headerlink" title="onDraw:"></a>onDraw:</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/rPAtBY9NHbuqnli.png" alt="image-20220722225216434"></p>
+<p>paint的属性，就是一个画笔</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/f5j9JiGRpxl2SVE.png" alt="image-20220722225233994"></p>
+<h5 id="onMeasure"><a href="#onMeasure" class="headerlink" title="onMeasure"></a>onMeasure</h5><p>直接在XML布局文件中定义好View的宽高，然后让自定义View在此宽高的区域内显示</p>
+<p>Android系统提供了wrap_content和match_parent属性来规范空间的 显示规则</p>
+<p>分别代表自适应大小和填充父视图的大小，这两个属性没有指定具体的大小，需要在onMeasure方法中过滤这两种情况。</p>
+<p>三种测量模式</p>
+<ul>
+<li>EXACTLY:表示在XML布局文件中宽高使用match_parent或者固定大小的宽高</li>
+<li>AT_MOST：表示在XML布局文件中宽高使用wrap_content</li>
+<li>UNSPECIFIED:父容器没有对当前View有任何限制，当前View可以取任意尺寸，比如ListView中item</li>
+</ul>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/F5jGdYntIBxQchT.png" alt="image-20220722230512812"></p>
+<h2 id="16、RecyclerView"><a href="#16、RecyclerView" class="headerlink" title="16、RecyclerView"></a>16、RecyclerView</h2><p>目的：在有限的屏幕展示大量的内容，复用机制的实现是他的核心部分</p>
+<p><strong><code>使用方法：</code></strong></p>
+<p><code>setLayoutManager</code>:必选项，设置RV的布局管理器，决定RV的显示风格</p>
+<p>常用的线性布局管理器(<code>LinearLayoutManager</code>)、网格布局管理器(<code>GridLayouManager</code>)、瀑布流布局管理器(<code>StaggerredGridLayoutManager</code>)</p>
+<p><code>setAdapter</code>：必选项，设置RV的数据适配器</p>
+<p>当数据发生改变时，以通知者的身份，通知RV数据改变进行列表刷新操作。</p>
+<p><code>setItemDecoration</code>:非必选项，设置RV中item的装饰器，经常用来设置item的分割线</p>
+<p><code>setItemAnimator</code>:非必选项，设置RV中Item的动画</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/tzhwEoNWHnX8rmP.png" alt="image-20220723111521958"></p>
+<p>缓存复用：</p>
+<p>主要实现了ViewHolder的缓存以及复用</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/H5ZMm1oPSpbkXnF.png" alt="image-20220723111608091"></p>
+<p>缓存根据访问优先级从上到下分为4级</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/F8Uhq7B2YnLNR1d.png" alt="image-20220723111747076"></p>
+<p>第一级缓存主要用来缓存屏幕内的viewHolder</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/4lBpFmyG1jM5NiD.png" alt="image-20220723114102836"></p>
+<p>第二级缓存：</p>
+<p>主要保存移除屏幕的viewitem，容量只有2</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Gt8hIKzdfO2ykAN.png" alt="image-20220723114249098"></p>
+<p>第三级缓存:继承之后实现自定义缓存</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/madyukroXe5St2W.png" alt="image-20220723114320300"></p>
+<p>第四级缓存：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/GHFyiTOBIAqegsx.png" alt="image-20220723114433945"></p>
+<p>可以多个RV共享recycledViewPool，多个RV共享时，确保使用的apater是同一个</p>
+<h5 id="核心实现："><a href="#核心实现：" class="headerlink" title="核心实现："></a>核心实现：</h5><ul>
+<li>RV如何经过测量、布局、最终绘制到屏幕上，其中大部分工作是通过委托给LayoutManager来实现</li>
+<li>RV的缓存复用机制，主要通过内部类Recycler来实现</li>
+</ul>
+<h2 id="17、OKhttp"><a href="#17、OKhttp" class="headerlink" title="17、OKhttp"></a>17、OKhttp</h2><blockquote>
+<p>是一套处理Http网络请求的依赖库</p>
+<p>Retrofit+OkHttp实现网络请求</p>
+</blockquote>
+<p>流程分析：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/yEcFtJYmZQpPsxg.png" alt="image-20220723151013165"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/SKI8hQX2sMpF3C4.png" alt="image-20220723151040597"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/yOVAGzRIL6ETrah.png" alt="image-20220723151205002"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/sKaWvdUg9xhJpQY.png" alt="image-20220723151228034"></p>
+<p>Dispatcher是OkHttpClient的调度器，是一种门户模式，主要用来实现执行、取消异步请求操作。本质上是内部维护了一个线程池去执行异步操作，保证最大并发个数，同一host主机允许执行请求的线程个数。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/YVfuU2AbdsiLMDj.png" alt="image-20220723151439147"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/zIsqDbBw3AlxMEX.png" alt="image-20220723151543544"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/zI4HxArthwSJBE8.png" alt="image-20220723151558636"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Ik6Ns7MOhLWeubv.png" alt="image-20220723151633961"></p>
+<h2 id="18、Bitmap"><a href="#18、Bitmap" class="headerlink" title="18、Bitmap"></a>18、Bitmap</h2><blockquote>
+<p>用来描述一张图片的长、宽、颜色等信息</p>
+<p>可以使用BitmapFactory来将某一个路径下的图片解析为Bitmap对象</p>
+</blockquote>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/dCRnYaH5uOAxsNI.png" alt="image-20220723220323510"></p>
+<p>BitmapFactory在解析图片的过程中，根据当前设备屏幕密度和图片所在的drawable目录来做一个对比，根据这个对比值进行缩放操作</p>
+<p>公式：</p>
+<p>缩放比例scale&#x3D;当前设备屏幕密度&#x2F;图片所在drawable目录对应的屏幕密度</p>
+<p>Bitamp实际大小&#x3D;宽*scale * 高 * scale  *Config对应的存储像素数</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/3novS8jQ4TmZdP5.png" alt="image-20220723221513397"></p>
+<p>Android中的图片不仅可以保存在drawable目录中，还可以保存在assets目录下，然后通过AssetManager获取图片的输入流</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/FEmIwxQWVp4NJGX.png" alt="image-20220723221639170"></p>
+<p>Bitmap优化：</p>
+<ul>
+<li><p>缩略优化：</p>
+<ul>
+<li><p>修改图片加载的config，一个像素占用两个字节</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/SX5ihAVx7bjJGk1.png" alt="image-20220723221729025"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/IVdlxLNiU29BnWc.png" alt="image-20220723221824078"></p>
+</li>
+</ul>
+</li>
+</ul>
+<p>Bitmap复用</p>
+<ul>
+<li><p>使用Options.inBitmap优化</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/W8LgKNt7msFv549.png" alt="image-20220723221955782"></p>
+</li>
+</ul>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/lijwb6EQnA27IkC.png" alt="image-20220723222057256"></p>
+<h2 id="19、startActivity启动过程分析"><a href="#19、startActivity启动过程分析" class="headerlink" title="19、startActivity启动过程分析"></a>19、startActivity启动过程分析</h2><p>在手机桌面应用中点击某一个icon之后，最终是通过 startActivity 去打开某一个Activity页面Android中的<code>一个App就相当于一个进程</code>，startActivity 操作中还需要判断，<code>目标Activity的进程是否已经创建，</code>如果没有，则在显示Activity之前还需要将进程Process提前创建出来。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/Ik6978rvnCgm3Uo.png" alt="image-20220825074649126.png"></p>
+<p>整个startActivity的流程分为3大部分，也涉及3个进程之间的交互：</p>
+<ul>
+<li>ActivityA–&gt;ActivityManagerService（简称AMS）</li>
+<li>ActivityManagerService–&gt;ApplicationThread</li>
+<li>ApplicationThread–&gt;Activity</li>
+</ul>
+<h5 id="ActivityA–-ActivityManagerService阶段"><a href="#ActivityA–-ActivityManagerService阶段" class="headerlink" title="ActivityA–&gt;ActivityManagerService阶段"></a>ActivityA–&gt;ActivityManagerService阶段</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/TW52D4HnKBxesAj.png" alt="image-20220825074847930.png"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/kJutxz197jAiMZR.png" alt="image-20220825074916021.png"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/D7demF3kpJnWCHM.png" alt="image-20220825074943399.png"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/NiIUBOA4EjeYSVZ.png" alt="image-20220825075032758.png"></p>
+<h5 id="ActivityManagerService–-ApplicationThread"><a href="#ActivityManagerService–-ApplicationThread" class="headerlink" title="ActivityManagerService–&gt;ApplicationThread"></a>ActivityManagerService–&gt;ApplicationThread</h5><p><a href="">ApplicationThread 类</a>负责进程间通信</p>
+<p>AMS最终调用了B进程中的一个ApplicationThread 引用，从而间接地通知B进程进行相应操作</p>
+<p><code>AMS-&gt;ApplicationThread 流程：</code></p>
+<ol>
+<li>综合处理launchMode和Intent中的Flag标志位并根据处理结果生成一个目标 Activity B的对象（ActivityRecord）</li>
+<li>判断是否需要为目标ActivityB创建一个新的进程（ProcessRecord）、新的任务栈（TaskRecord）</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/VZCJFQYtXTULdO7.png" alt="image-20220825075305478.png"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/G4Fhf6jdqOiIx2S.png" alt="image-20220825075346022.png"></p>
+<p>最终会调用的ActivityStarter中的startActivityUnchecked方法来获取启动Activity的结果</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/FdCWekDZi6jz2T7.png" alt="image-20220825075511861.png"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/fMNUutGS1x34noE.png" alt="image-20220825075525140.png"></p>
+<h5 id="ActivityThread的handleLaunchActivity"><a href="#ActivityThread的handleLaunchActivity" class="headerlink" title="ActivityThread的handleLaunchActivity"></a>ActivityThread的handleLaunchActivity</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/25/xNdbZCgSOVElMqo.png" alt="image-20220825080032196.png"></p>
+<p><strong><code>Activity的启动在源码中的实现流程</code></strong></p>
+<p>主要涉及3个进程间的通信过程：</p>
+<ul>
+<li><p>进程A通过Binder 调用AMS的startActivity方法</p>
+</li>
+<li><p>AMS通过一系列的计算构造目标Intent</p>
+<p>然后在ActivityStack与ActivityStackSupervisor中处理Task和Activity的入栈操作</p>
+</li>
+<li><p>AMS通过Binder机制<br>调用目标进程中ApplicationThread的方法来创建并执行Activity生命周期方法</p>
+<p>ApplicationThread 是ActivityThread的一个内部类，最终都调用到了ActivityThread中的相应方法</p>
+</li>
+</ul>
+<h2 id="20、Window、Activity、View"><a href="#20、Window、Activity、View" class="headerlink" title="20、Window、Activity、View"></a>20、Window、Activity、View</h2><h4 id="Activity的setcontentView"><a href="#Activity的setcontentView" class="headerlink" title="Activity的setcontentView"></a>Activity的setcontentView</h4><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/SdjthBDfy2wLg4r.png" alt="image-20220726080408295"></p>
+<p>屏幕绘制在Window中绘制，通过getwindow传入</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/4yi1UKq8M9XGShe.png" alt="image-20220726080515208"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ISWPHCeJfGhvrq5.png" alt="image-20220726080651976"></p>
+<p>具体的setcontView</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/G25O3PVhvckZLHe.png" alt="image-20220726080803368"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/oUzI9VfBDv8AxGT.png" alt="image-20220726080954106"></p>
+<p>通过setcontview调用window的Phonewindow, DecorView是一个FragmentLayout，mContentParent是一个viewgroup，layoutId自定义布局</p>
+<p>DecorView什么时候被绘制？</p>
+<p><code>OnCreate阶段</code>只是初始化了Activiyt需要显示的内容</p>
+<p><code>OnResume阶段</code>会将Phonewindow中的DecorView真正绘制到屏幕上。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/z6798R4kfOXZuhG.png" alt="image-20220726081235367"></p>
+<p>WindowManager的addview效果：</p>
+<ul>
+<li>decorView被渲染 绘制到屏幕上显示</li>
+<li>Decorview可以接收屏幕触摸事件</li>
+</ul>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/xiSJnUR3OHXcyCP.png" alt="image-20220726081428373"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/WdL7ESJH8PO4tcA.png" alt="image-20220726081526485"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/XoMk5EqSaQdVhmY.png" alt="image-20220726081605093"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/FZtWdksnH6O8AS5.png" alt="image-20220726081637123"></p>
+<p>addView成功的一个标志就是能够接受触屏事件</p>
+<p>通过堆setContentView流程的分析，可以看出：</p>
+<p>添加View的操作实质上是PhoneWindow在全盘操作，背后负责人是WMS</p>
+<p>当触屏事件发生后，Touch事件首先被传入到Ac  tivity，然后被下发到布局的ViewGroup或View中。</p>
+<h4 id="Touch事件如何传递到Activity上？"><a href="#Touch事件如何传递到Activity上？" class="headerlink" title="Touch事件如何传递到Activity上？"></a>Touch事件如何传递到Activity上？</h4><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/X4zCoJbhST91PAm.png" alt="image-20220726081939012"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/PMweSu9QZxn5Uki.png" alt="image-20220726082122339"></p>
+<h2 id="22、如何通过View进行渲染？"><a href="#22、如何通过View进行渲染？" class="headerlink" title="22、如何通过View进行渲染？"></a>22、如何通过View进行渲染？</h2><p>**<code>ViewRootImpl</code>**在整个流程中，起着承上启下的作用</p>
+<ul>
+<li>ViewRootImpl中通过Binder通信机制，远程调用WindowSession将View添加到Window中</li>
+<li>ViewRootImpl在添加View之前，需要调用requestLayout方法，执行完成的View树的渲染操作。</li>
+</ul>
+<h5 id="ViewRootImpl-requestLayout流程"><a href="#ViewRootImpl-requestLayout流程" class="headerlink" title="ViewRootImpl requestLayout流程"></a>ViewRootImpl requestLayout流程</h5><p>请求布局操作</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/91LsRjMCrEumgYS.png" alt="image-20220727212613188"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/uor46HxtJPWcsp2.png" alt="image-20220727213425948"></p>
+<p>1：检测是否是合法进程。一般是主线程</p>
+<p>2：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/rBg3t4Z7lxOfaAM.png" alt="image-20220727213513228"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/E3Y4VLCrXvqeG7m.png" alt="image-20220727213631052"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/823orqbNaFnCIyR.png" alt="image-20220727213738218"></p>
+<p>performTraversals()方法开始View绘制：measure-&gt;layout-&gt;draw</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/bi5VotW7UY1lAds.png" alt="image-20220727213844888"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/WOpI1mR4FH2gyvr.png" alt="image-20220727213933371"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/oqbwQ3fkMms6vIS.png" alt="image-20220727213959720"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/9ETYs8wQDtRFxfh.png" alt="image-20220727214030873"></p>
+<p>&#x2F;&#x2F;注释1</p>
+<p>ViewRootImpl中有一个非常重要的对象Surface</p>
+<p>ViewRootImpl的一个核心功能是负责UI渲染</p>
+<p>在ViewRootImpl中会将在draw方法中绘制的UI元素，绑定到这个Surface上，Surface中的内容最终会被传递给底层的SurfaceFliger。</p>
+<p>最终将Surface中的内容进行合成并显示到屏幕上。</p>
+<p>&#x2F;&#x2F;注释2</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/gU3LljGdRXH8m2B.png" alt="image-20220727214358889"></p>
+<p>默认情况下，软件绘制没有采用GPU渲染的方式，drawSoftware工作完全由CPU来完成。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/GUiIeMopZgxmH9y.png" alt="image-20220727214517048"></p>
+<p>启动硬件加速：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ZeWpIuzS97atvif.png" alt="image-20220727214558053"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/eRH5vALxIr1kWgY.png" alt="image-20220727214613991"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ds6hex5Ztl8apQu.png" alt="image-20220727214627640"></p>
+<h5 id="Invalidate轻量刷新"><a href="#Invalidate轻量刷新" class="headerlink" title="Invalidate轻量刷新"></a>Invalidate轻量刷新</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/sYcQz273xTRW8pg.png" alt="image-20220727214847934"></p>
+<p>**<code>invalidate</code><strong>与</strong><code>postInvalidate</code>**两者之间的区别</p>
+<p>**<code>invalidate</code><strong>是在UI线程调用，</strong><code>postInvalidate</code>**是在非UI线程调用</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/bTZtLFAVu2adhq7.png" alt="image-20220727215134246"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/fm6PzTchLeiOJDE.png" alt="image-20220727215259092"></p>
+<h2 id="22、APP安装"><a href="#22、APP安装" class="headerlink" title="22、APP安装"></a>22、APP安装</h2><blockquote>
+<p>PackageManagerService（PMS ）</p>
+</blockquote>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Xd5MKtUwFcgYhD9.png" alt="image-20220727220520673"></p>
+<p>每一个module中的内容可以分为2部分：</p>
+<ul>
+<li>resources资源文件</li>
+<li>Java或者Kotlin源代码</li>
+</ul>
+<h5 id="编译阶段–Resources资源文件"><a href="#编译阶段–Resources资源文件" class="headerlink" title="编译阶段–Resources资源文件"></a>编译阶段–Resources资源文件</h5><p>资源文件包括项目中res目录下的各种xml文件、动画、drawable图片、音视频等</p>
+<p>**<code>AAPT工具</code>**负责编译项目中的这些资源文件，所有资源文件会被编译处理</p>
+<p>XML文件(Drawable图片除外)会被编译成二进制文件</p>
+<p><code>assets和raw目录下的资源并不会被编译，会被原封不动的打包到apk压缩包中。</code></p>
+<p>资源文件编译之后的产物包括两部分：</p>
+<ul>
+<li>resources.arsc文件 （保存的是一个资源索引表）</li>
+<li>R.java文件 （定义了各个资源ID差两个常量）</li>
+</ul>
+<p>resources.arsc相当于一个资源索引表，也可以理解为一个map映射表，map的<code>key</code>是R.java中的资源ID，而value是其对应的资源所在路径。</p>
+<h5 id="编译阶段–源码部分"><a href="#编译阶段–源码部分" class="headerlink" title="编译阶段–源码部分"></a>编译阶段–源码部分</h5><p>项目中源代码首先会通过javac编译成.class字节码文件</p>
+<p>然后这些.class文件连同依赖的三方库中的.class文件一同被dx工具优化为.dex文件</p>
+<p>如果由分包，那么也可能会生成多个.dex文件</p>
+<p>源代码文件也包括**<code>AIDL接口文件编译之后生成的.java文件</code>**</p>
+<p>Android项目中如果包含.aidl接口文件，这些.aidl文件会被编译成.java文件。</p>
+<h5 id="打包阶段"><a href="#打包阶段" class="headerlink" title="打包阶段"></a>打包阶段</h5><p>使用工具APK Builder将经过编译之后的resource和.dex文件一起打包到apk中，实际上被打包到apk中的还有一些其他资源，比如AndroidManifest.xml清单列表和三方库中使用的动态库.so文件。</p>
+<p>apk创建好之后，需要使用工具jarsigner对其进行签名，签名之后会生成META_INF文件夹，次文件夹中保存着跟签名相关的各个文件</p>
+<ul>
+<li>CETF.SF:生成每个文件相对的密钥</li>
+<li>MANIFEST.MF：数字签名信息</li>
+<li>xxx.SF:JAR文件的签名文件</li>
+<li>xxx.DSA：对输出文件的签名和公钥</li>
+</ul>
+<p>实际打包过程还会多一步APK优化操作</p>
+<p>使用工具zipalign对APK中的未压缩资源(图片、视频等)进行对其操作，让资源按照4字节的边界进行对其：<code>主要为了加快资源的访问速度</code>。如果每个资源的开始位置都是上一个资源之后的4*n字节，那么访问下一个资源就不用编译，直接跳到4 * n字节处判断是不是一个新的资源即可</p>
+<h5 id="安装过程"><a href="#安装过程" class="headerlink" title="安装过程"></a>安装过程</h5><p>当点击某一个App安装包进行安装时，首先会弹出一个系统界面指示我们进行安装操作</p>
+<p>这个界面是Android Framework中预置的一个Activity-PackagelnstallerActivity.java，当点击安装后，PackagelnstallerActivity 最终会将所安装的apk信息通过PackagelnstallerSession 传给PMS</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/bu5J3zQx2Ck8NKS.png" alt="image-20220727233249743"></p>
+<p>整个apk的安装过程可以分为两大步</p>
+<ul>
+<li>拷贝安装包</li>
+<li>装载代码</li>
+</ul>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/uwXPjSDomaHt2V3.png" alt="image-20220727233346688"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/HEhGxNPiWvFdAOy.png" alt="image-20220727233408784"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/g8FwKpI32BhEenq.png" alt="image-20220727233429918"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/PpbW1fx2tmTUDBZ.png" alt="image-20220727233437183"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/HOhoDlrN5dSKQTw.png" alt="image-20220727233451082"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/UGAktEFLoWeCiN8.png" alt="image-20220727233510239"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/owrO1C5xHbcUl6F.png" alt="image-20220727233541474"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/7yWGILlz5O8gVtr.png" alt="image-20220727233618767"></p>
+<p>装载代码：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/PZqIH4FMyXnfCao.png" alt="image-20220727233644798"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Z941AtabWMScfRE.png" alt="image-20220727233719985"></p>
+<p>安装核心</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/Dcg1LXTHAW7sRve.png" alt="image-20220727233749999"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/2fhDVzP3WK6BFej.png" alt="image-20220727233835484"></p>
+<p>安装成功之后，还会发送一个App安装成功的广播ACTION_PACKAGE_ADDED手机桌面应用注册了这个广播，当接收到应用安装成功之后就将apk的启动icon显示在桌面上</p>
+<h2 id="23、Handler"><a href="#23、Handler" class="headerlink" title="23、Handler"></a>23、Handler</h2><blockquote>
+<p>主要场景是子线程完成耗时操作的过程中通过Handler向主线程发送消息Message，用来刷新UI界面</p>
+</blockquote>
+<h5 id="从new-Handler-开始"><a href="#从new-Handler-开始" class="headerlink" title="从new Handler()开始"></a>从new Handler()开始</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/D8qLdlyxtM25s76.png" alt="image-20220727234128243"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ZgVKUMnE4qLv18I.png" alt="image-20220727234241883"></p>
+<h5 id="Looper介绍"><a href="#Looper介绍" class="headerlink" title="Looper介绍"></a>Looper介绍</h5><p>Looper内部维护一个无限循环，保证App进程持续进行</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/OjJQSq3MGbuHrLF.png" alt="image-20220727234419996"></p>
+<h5 id="Looper初始化"><a href="#Looper初始化" class="headerlink" title="Looper初始化"></a>Looper初始化</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/7aG4bzq5pJWxNCV.png" alt="image-20220728221907991"></p>
+<ol>
+<li><p>创建Looper对象</p>
+</li>
+<li><p>判断是否绑定过Looper对象，将looper对象设置到本地线程，与线程绑定</p>
+<p>2处，确保在一个线程中Looper.prepare()方法只能被调用1次。</p>
+</li>
+<li><p>取出Looper对象</p>
+</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/EHZXtJPKiS9BfzN.png" alt="image-20220728222500325"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/hmJiHUFuqDrK8LG.png" alt="image-20220728222528872"></p>
+<p>在MainActivity 所在进程被创建时，Looper的prepare方法已经在main方法中调用了1遍这会直接导致一个非常重要的结果：是</p>
+<ul>
+<li>prepare方法在一个线程中只能被调用1次；</li>
+<li>Looper的构造方法在一个线程中只能被调用1次</li>
+<li>最终导致MessageQueue在一个线程中只会被初始化1次</li>
+</ul>
+<h5 id="Looper负责内容"><a href="#Looper负责内容" class="headerlink" title="Looper负责内容"></a>Looper负责内容</h5><blockquote>
+<p>不断从MessageQueue中取出Message，然后处理Message中指定的任务</p>
+</blockquote>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/WXglFR3EMy6DUxs.png" alt="image-20220728222954847"></p>
+<p>looper方法，执行一个死循环，不断的获取message</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/2qKJVhzFbdsRLHi.png" alt="image-20220728223118376"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/sKVdZCHYxtTJDju.png" alt="image-20220728223130262"></p>
+<h5 id="Handler的sendMessage方法"><a href="#Handler的sendMessage方法" class="headerlink" title="Handler的sendMessage方法"></a>Handler的sendMessage方法</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/gaSV8Tkzc2GhNmp.png" alt="image-20220728223201726"></p>
+<h5 id="Handler的enqueueMessage方法"><a href="#Handler的enqueueMessage方法" class="headerlink" title="Handler的enqueueMessage方法"></a>Handler的enqueueMessage方法</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/6VzfDW5URYMS3TK.png" alt="image-20220728223238200"></p>
+<h5 id="Handler的post-Runnable-与sendMessage有什么区别"><a href="#Handler的post-Runnable-与sendMessage有什么区别" class="headerlink" title="Handler的post(Runnable)与sendMessage有什么区别"></a>Handler的post(Runnable)与sendMessage有什么区别</h5><p>​                  <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/oOfcFmjyV7uaX3D.png" alt="image-20220727215547798"></p>
+<p>Looper从MessageQueue中取出message之后，会调用dispatchMessage方法进行处理</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/pkoxXscwhiFZJBd.png" alt="image-20220727215611740"></p>
+<p>如果msg.callback为空，则为sendmessage处理</p>
+<h5 id="Looper-loop（）方法为什么不回阻塞主线程"><a href="#Looper-loop（）方法为什么不回阻塞主线程" class="headerlink" title="Looper.loop（）方法为什么不回阻塞主线程"></a>Looper.loop（）方法为什么不回阻塞主线程</h5><p>Looper中的loop方法实际上是一个死循环，但是我们的ui线程却并没有被阻塞，反而可以进行各种手势操作？</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/RYnU5PxTVM4zrvQ.png" alt="image-20220728223545960"></p>
+<p>nativePollOnce 方法是一个native方法，当调用此native 方法时主线程会释放CPU资源进入休眠状态，直到下条消息到达或者有事务发生通过往 pipe 管道写端写入数据来唤醒主线程工作。</p>
+<h5 id="Handler的sendMessageDelayed或者postDelayed是如何实现的"><a href="#Handler的sendMessageDelayed或者postDelayed是如何实现的" class="headerlink" title="Handler的sendMessageDelayed或者postDelayed是如何实现的"></a>Handler的sendMessageDelayed或者postDelayed是如何实现的</h5><p>在向MessageQueue队列中插入Message时，会根据Message的执行时间顺序，而消息的延迟处理的核心是在获取Messge阶段。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/A3iEaQouO95Zegz.png" alt="image-20220727215622424"></p>
+<p>如果当前系统时间大于等于message.when，那么会返回Message给Looper.loop()，但是这个逻辑只能保证在when之前消息不被处理，不能够保证一定在when时被处理</p>
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><ul>
+<li><p>应用启动是从ActivityThread的main开始的先是执行了Looper.prepare（），该方法先是new了一个Looper对象在私有的构造方法中又创建了MessageQueue作为此Looper对象的成员变量Looper 对象通过ThreadLocal绑定MainThread中</p>
+</li>
+<li><p>当创建 Handler子类对象时，在构造方法中通过ThreadLocal 获取绑定的Looper对象并获取此Looper对象的成员变量MessageQueue作为该Handler对象的成员变量</p>
+</li>
+<li><p>在子线程中调用上一步创建的Handler子类对象的sendMesage（msg）方法时<br>在该方法中将msg的target属性设置为自己本身<br>同时调用成员变量MessageQueue对象的enqueueMessag（）方法将msg放入MessageQueue中</p>
+</li>
+<li><p>主线程创建好之后，会执行Looper.loop（）方法，该方法中获取与线程绑定的Looper对象继而获取该Looper对象的成员变量MessageQueue对象并开启一个会阻塞（不占用资源）的死循环，只要MessageQueue中有msg，就会获取该msg并执行msg.target.dispatchMessage（msg）方法（msg.target即上一步引用的handler对象）此方法中调用了第二步创建 handler 子类对象时覆写的handleMessage（）方法</p>
+</li>
+</ul>
+<h2 id="24、APK如何包体积优化"><a href="#24、APK如何包体积优化" class="headerlink" title="24、APK如何包体积优化"></a>24、APK如何包体积优化</h2><ol>
+<li><p>安装包监控</p>
+<p>a)   Android Analyzer</p>
+<p>Android Studio的APK Analyser是Android Studio提供的一个APK检测工具通过它可以查看一个APK文件内部各项内容所占的大小，并且按照大小排序显示可以很容易观察到APK中哪一部分内容占用了最大空间</p>
+<p>实际上APK Analyzer的作用不光是查看APK大小，也能用来分析APK因此可以使用它来分析一些优秀APK的目录结构、代码规范甚至是使用了哪些动态库技术等</p>
+<p>b)   Matrix中的ApkChecker</p>
+<p>ApkChecker 是腾讯开源框架Matrix的一部分<br>主要是用来对Android安装包进行分析检测，并输出较为详细的检测结果报告正常情况下需要下载Matrix源码，并单独编译matrix-apk-cananry部分如果想快速使用ApkChecker，可以在网上下载其ApkChecker.jar文件，然后创建一个配置文件.json</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ZrXvqwka3p5dc1F.png" alt="image-20220728224128978"></p>
+</li>
+<li><p>安装包大小优化</p>
+<p>a)   删除无用文件</p>
+<p>​    使用Lint查看未引用资源</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/LBkdnGwoa742Zc5.png" alt="image-20220728224222616"></p>
+<p>下面两个选项可以在项目编译时期减少被打包到APK中的文件：</p>
+<ul>
+<li>使用shrinkResources能够在项目编译阶段，删除所有在项目中未被使用到的资源文件但是需要将minifyEnabled选项设置为true</li>
+<li>使用resConfig 限定国际化资源文件</li>
+</ul>
+<p>b)  文件优化</p>
+<ul>
+<li>静态图片优化<ul>
+<li>有限使用drawable</li>
+<li>WebP格式</li>
+</ul>
+</li>
+<li>动态图片优化</li>
+</ul>
+<p>c) 引入第三方库</p>
+<ul>
+<li>在引入之前最好权衡一下是否需要将其代码全部引入，造成不必要的代码或者资源也被打包到APK中</li>
+</ul>
+<h5 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h5><ul>
+<li>安装包的监控<br>主要介绍了几个可以用来分析安装包大小以及详细内容的工具：Apk Analyzer和ApkChecker在开发过程中，良好的编程习惯和严格的code review也是非常重要的</li>
+<li>安装包优化实践<br>主要思路是删减无用资源或者代码，并对资源文件进行相应的压缩优化对于代码部分也可以更进一步的优化，比如使用Proguard，或者直接使用R8编译方式极力推荐阅读Jake Wharton的个人博客：jakewharton中的相关介绍</li>
+</ul>
+</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/S9dp7Q1fu6FOEIj.png" alt="image-20220727215720386"></p>
+<h2 id="25、android-崩溃日志"><a href="#25、android-崩溃日志" class="headerlink" title="25、android 崩溃日志"></a>25、android 崩溃日志</h2><p>crash日志分类：</p>
+<ul>
+<li><p><strong><code>JVM异常(Exception)堆栈信息</code></strong></p>
+<ul>
+<li>检测异常 checked exception<ul>
+<li>检查异常是在代码编译时期，Android Studio 就会提示代码有错误，无法通过编译比如I0Exception。如果没有在代码中将这些异常catch，而是直接抛出，最终也有可能导致程序崩溃<br><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/8FBsrQDlPjAp7S2.png" alt="image-20220728225456511"></li>
+</ul>
+</li>
+<li>非检查异常 unchecked Exception<ul>
+<li>非检查异常包括error 和运行时异常（RuntimeException）<br>AS并不会在编译时期提示这些异常信息，而是在程序运行时期因为代码错误而直接导致程序崩溃比如OOM或者空指针异常（NPE）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong><code>native代码崩溃日志</code></strong></p>
+<ul>
+<li><p>当程序中的native代码发生崩溃时<br>系统会在&#x2F;data&#x2F;tombstones&#x2F;目录下保存一份详细的崩溃日志信息</p>
+<p>如果一个native crash是必现的，不妨在模拟器上重现bug</p>
+<p>并将&#x2F;data&#x2F;tombstones中的崩溃日志拉到本地电脑中加以分析</p>
+</li>
+<li><p>需要一种机制，将native crash现场的日志信息保存到可以访问的手机目录中目前比较成熟，使用也比较广泛的是谷歌的BreakPad Breakpad 是一个跨平台的开源库，也可以在其Breakpad Github上下载自己编译并通过JNI的方式引入到项目中</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="26、内存泄漏"><a href="#26、内存泄漏" class="headerlink" title="26、内存泄漏"></a>26、内存泄漏</h2><h4 id="Activity内存泄漏预防"><a href="#Activity内存泄漏预防" class="headerlink" title="Activity内存泄漏预防"></a>Activity内存泄漏预防</h4><p>因为Activity承担了与用户交互的职责，因此内部需要持有大量的资源引用以及与系统交互的Context</p>
+<p>这会导致一个Activity对象的retained size特别大</p>
+<h6 id="造成Activity内存泄漏的场景"><a href="#造成Activity内存泄漏的场景" class="headerlink" title="造成Activity内存泄漏的场景"></a>造成Activity内存泄漏的场景</h6><ol>
+<li>将Context或View设置为static</li>
+</ol>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/gutN4OTAr3hXWwo.png" alt="image-20220728225953692"></p>
+<ol start="2">
+<li><p>未解注册各种Listener</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/sgBKalLNW8UfJox.png" alt="image-20220728230115561"></p>
+</li>
+<li><p>非静态Handler导致Acitivity泄漏</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ybMCIYa1tkoS8zs.png" alt="image-20220728233011907"></p>
+<p>正确用法：</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/NdgmxrtKHpiGh6a.png" alt="image-20220728233044052"></p>
+</li>
+<li><p>三方库使用Context</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/xwN2Z7cjgOoWBq8.png" alt="image-20220728235522921"></p>
+<p>正确使用</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/bSoE6ZnCR3XMtxi.png" alt="image-20220728235633843"></p>
+<p>在开发阶段可以直接使用<code>Android Studio</code>来查看Activity是否存在内存泄漏<br>并结合MAT来查看发生内存泄漏的具体对象<br>详细使用过程可以参考：Android Studio和MAT结合使用来分析内存问题</p>
+<h4 id="内存泄漏检测"><a href="#内存泄漏检测" class="headerlink" title="内存泄漏检测"></a>内存泄漏检测</h4><p><code>LeakCanary</code> 是Square公司的一个开源库，通过它可以在App运行过程中检测内存泄漏，当内存泄漏发生时会生成发生泄漏对象的引用链，并通知程序开发人员</p>
+<p>LeakCanary 主要分2大核心部分：</p>
+<ol>
+<li>如何检测内存泄漏</li>
+<li>分析内存泄漏对象的引用链</li>
+</ol>
+<h5 id="如果检测内存泄漏–JVM理论知识"><a href="#如果检测内存泄漏–JVM理论知识" class="headerlink" title="如果检测内存泄漏–JVM理论知识"></a>如果检测内存泄漏–JVM理论知识</h5><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/c4PNygnVh1i78eM.png" alt="image-20220728235938304"></p>
+<p>实现思路：</p>
+<p>LeakCanary 中对内存泄漏检测的核心原理就是<code>基于WeakReference和ReferenceQueue实现的</code><br>1.当一个Activity需要被回收时，就将其包装到一个WeakReference中并且在WeakReference的构造器中传入自定义的ReferenceQueue<br>2.给包装后的WeakReference做一个标记Key，并且在一个强引用Set中添加相应的Key记录<br>3.主动触发GC，遍历自定义ReferenceQueue中所有的记录并根据获取的Reference对象将Set中的记录也删除<br>还保留在Set中的是：<code>应当被GC回收，但是实际还保留在内存中的对象，也就是发生泄漏了的对象</code></p>
+<p>源码分析</p>
+<p>一个可回收对象在System.gc（）之后就应该被GC回收在AndroidApp中，我们并不清楚何时系统会回收Activity按照正常流程，当Activity 调用onDestroy 方法时就说明这个Activity就已经处于无用状态因此需要<code>监听到每一个Activity的onDestroy 方法的调用</code></p>
+<p>总结：</p>
+<p>这节课主要介绍了Android内存泄漏优化的相关知识<br>·内存泄漏预防<br>这需要了解JVM发生内存泄漏的原因，并在平时开发阶段养成良好的编码规范针对编码规范Android Studio可以安装一个阿里代码规范的插件，能够起到一定的代码检查效果<br>·内存泄漏检测<br>内存泄漏检测工具有很多Android Studio自带的Profiler，以及MAT都是不错的选择使用这些工具排查内存泄漏门槛稍高，并且全部是手动操作，略显麻烦</p>
+</li>
+</ol>
+<h2 id="27、UI卡顿"><a href="#27、UI卡顿" class="headerlink" title="27、UI卡顿"></a>27、UI卡顿</h2><p>systrace工具：通过Android提供的脚本systrace.py，可以设置数据采集并收集相关程序运行数据，最终生成一个网页文件提供程序开发者分析程序性能问题。</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/sp61TkPxu2IvelV.png" alt="image-20220726080025126"></p>
+<h2 id="29、MVP中presenter生命周期管理"><a href="#29、MVP中presenter生命周期管理" class="headerlink" title="29、MVP中presenter生命周期管理"></a>29、MVP中presenter生命周期管理</h2><p>presenter层经常做一些耗时操作，根据请求后的结果刷新View。</p>
+<p>如果按返回结束Activity，而Presenter依然在执行耗时操作，就有可能造成内存泄漏，甚至程序崩溃。</p>
+<p><code>将Activity的某些生命周期方法与Presenter保持一致</code></p>
+<h5 id="Lifecycle绑定Presenter生命周期"><a href="#Lifecycle绑定Presenter生命周期" class="headerlink" title="Lifecycle绑定Presenter生命周期"></a>Lifecycle绑定Presenter生命周期</h5><p>Activity通过继承AppCompatActivity会自动继承来自父类CimponentActivity的方法getLifeCycle</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/rOBtNYVzEdu7eTh.png" alt="image-20220726075329090"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/xNdvmuGgQSRKi8U.png" alt="image-20220726075423485"></p>
+<p>需要在自定义类中实现这些方法</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/1v5So4C9AqXYnsy.png" alt="image-20220726075515675"></p>
+<p>修改Activity，将BasePresenter注册到LifeCycle中</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/1RxOpKLjazgedu8.png" alt="image-20220726075621690"></p>
+<h2 id="30、LogUtil"><a href="#30、LogUtil" class="headerlink" title="30、LogUtil"></a>30、LogUtil</h2><p>​	Xlog</p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/ETLNet3pCyxPwKr.png" alt="image-20220726074321935"></p>
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://s2.loli.net/2022/08/07/COPpfeGQ1ksHTn5.png" alt="image-20220726074423740"></p>
+<h2 id="31、屏幕适配"><a href="#31、屏幕适配" class="headerlink" title="31、屏幕适配"></a>31、屏幕适配</h2><ol>
+<li>ConStrainLayout(约束布局)（前身是percentLayout百分百布局）+dimens</li>
+<li>控件适配：TextView使用wrap_congt(自适应),ImageView使用固定大小dp</li>
+<li>手机和平板或折叠屏，布局是否需要拆分，控件布局方式或大小</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2022/07/28/Android/Android%2033%E8%AE%B2/">https://dpzxka.github.io/2022/07/28/Android/Android%2033%E8%AE%B2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/android/">android</a></div><div class="post-share"><div class="social-share" data-image="/img/android-33lectures.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/07/08/Android/Android%20%E9%9D%A2%E8%AF%95/" title="Android 面试宝典"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-interview.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Android 面试宝典</div></div><div class="info-2"><div class="info-item-1">android 常见面试类型</div></div></div></a><a class="pagination-related" href="/2022/08/08/Android/Android%20%E7%BE%A4%E8%8B%B1%E4%BC%A0%20%E6%80%BB%E7%BB%93%E8%AE%B0%E5%BD%95/" title="Android 群英传笔记"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-heroes.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Android 群英传笔记</div></div><div class="info-2"><div class="info-item-1">android 笔记记录</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/09/13/Android/4%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89View/" title="4、自定义View"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-customview.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-13</div><div class="info-item-2">4、自定义View</div></div><div class="info-2"><div class="info-item-1">自定义View相关</div></div></div></a><a class="pagination-related" href="/2022/09/13/Android/5%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" title="5、性能优化"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-performance.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-13</div><div class="info-item-2">5、性能优化</div></div><div class="info-2"><div class="info-item-1">技术知识汇总</div></div></div></a><a class="pagination-related" href="/2022/07/08/Android/Android%20%E9%9D%A2%E8%AF%95/" title="Android 面试宝典"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-interview.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-08</div><div class="info-item-2">Android 面试宝典</div></div><div class="info-2"><div class="info-item-1">android 常见面试类型</div></div></div></a><a class="pagination-related" href="/2022/04/22/Android/Android%E7%9F%A5%E8%AF%86%E7%82%B9/" title="Android 知识点"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-knowledge.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-04-22</div><div class="info-item-2">Android 知识点</div></div><div class="info-2"><div class="info-item-1">android 面试知识点</div></div></div></a><a class="pagination-related" href="/2022/02/13/Android/%E7%AC%AC%E4%BA%94%E7%AB%A0%20%E5%B9%BF%E6%92%AD%E6%9C%BA%E5%88%B6/" title="Android之广播机制(五)"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-broadcast.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-13</div><div class="info-item-2">Android之广播机制(五)</div></div><div class="info-2"><div class="info-item-1">《第一行代码》：广播机制</div></div></div></a><a class="pagination-related" href="/2022/08/31/PdfTest-1/" title="PDF TestNew"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/android-pdf.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-31</div><div class="info-item-2">PDF TestNew</div></div><div class="info-2"><div class="info-item-1">  	      	       	      	    </div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Android%E8%BF%9B%E9%98%B634%E8%AE%B2"><span class="toc-number">1.</span> <span class="toc-text">Android进阶34讲</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Android%E8%BF%9B%E9%98%B634%E8%AE%B2-1"><span class="toc-number">2.</span> <span class="toc-text">Android进阶34讲</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E8%BF%90%E8%A1%8C%E6%97%B6%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="toc-number">3.</span> <span class="toc-text">1、运行时内存分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81GC%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%88%86%E4%BB%A3%E5%9B%9E%E6%94%B6%E7%AD%96%E7%95%A5"><span class="toc-number">4.</span> <span class="toc-text">2、GC回收机制与分代回收策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%E3%80%81-%E5%A6%82%E4%BD%95%E5%9B%9E%E6%94%B6%E5%9E%83%E5%9C%BE"><span class="toc-number">4.0.1.</span> <span class="toc-text">1、 如何回收垃圾:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%E3%80%81JVM%E5%88%86%E4%BB%A3%E5%9B%9E%E6%94%B6%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="toc-number">4.0.2.</span> <span class="toc-text">2、JVM分代回收策略：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E5%AD%97%E8%8A%82%E7%A0%81%E5%B1%82%E9%9D%A2%E5%88%86%E6%9E%90cla%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="toc-number">5.</span> <span class="toc-text">3、字节码层面分析cla类文件结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Class%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">Class文件结构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13%E3%80%81Android%E6%98%AF%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87Activity%E8%BF%9B%E8%A1%8C%E4%BA%A4%E4%BA%92%E7%9A%84"><span class="toc-number">6.</span> <span class="toc-text">13、Android是如何通过Activity进行交互的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#taskAffinity"><span class="toc-number">6.0.1.</span> <span class="toc-text">taskAffinity</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%80%9A%E8%BF%87Binder%E4%BC%A0%E9%80%92%E6%95%B0%E6%8D%AE%E7%9A%84%E9%99%90%E5%88%B6"><span class="toc-number">6.0.2.</span> <span class="toc-text">通过Binder传递数据的限制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#process%E9%80%A0%E6%88%90%E5%A4%9A%E4%B8%AAApplication"><span class="toc-number">6.0.3.</span> <span class="toc-text">process造成多个Application</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8E%E5%8F%B0%E5%90%AF%E5%8A%A8Activity%E5%A4%B1%E6%95%88"><span class="toc-number">6.0.4.</span> <span class="toc-text">后台启动Activity失效</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14%E3%80%81%E5%BD%BB%E5%BA%95%E6%8E%8C%E6%8F%A1Android-touch-%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%97%B6%E8%AE%B8"><span class="toc-number">7.</span> <span class="toc-text">14、彻底掌握Android touch 事件分发时许</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%A0%B8%E5%BF%83%EF%BC%9AdispatchTouchEvent"><span class="toc-number">7.0.1.</span> <span class="toc-text">事件分发核心：dispatchTouchEvent</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88Down%E4%BA%8B%E4%BB%B6%E7%89%B9%E6%AE%8A"><span class="toc-number">7.0.1.1.</span> <span class="toc-text">为什么Down事件特殊</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#dispatchTouchEvent%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.1.2.</span> <span class="toc-text">dispatchTouchEvent事件处理流程机制</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E7%89%B9%E6%AE%8A%E7%82%B9"><span class="toc-number">7.0.1.3.</span> <span class="toc-text">事件分发特殊点</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89View"><span class="toc-number">8.</span> <span class="toc-text">15、自定义View</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#onDraw"><span class="toc-number">8.0.0.1.</span> <span class="toc-text">onDraw:</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#onMeasure"><span class="toc-number">8.0.0.2.</span> <span class="toc-text">onMeasure</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16%E3%80%81RecyclerView"><span class="toc-number">9.</span> <span class="toc-text">16、RecyclerView</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0%EF%BC%9A"><span class="toc-number">9.0.0.1.</span> <span class="toc-text">核心实现：</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#17%E3%80%81OKhttp"><span class="toc-number">10.</span> <span class="toc-text">17、OKhttp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#18%E3%80%81Bitmap"><span class="toc-number">11.</span> <span class="toc-text">18、Bitmap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#19%E3%80%81startActivity%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90"><span class="toc-number">12.</span> <span class="toc-text">19、startActivity启动过程分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ActivityA%E2%80%93-ActivityManagerService%E9%98%B6%E6%AE%B5"><span class="toc-number">12.0.0.1.</span> <span class="toc-text">ActivityA–&gt;ActivityManagerService阶段</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ActivityManagerService%E2%80%93-ApplicationThread"><span class="toc-number">12.0.0.2.</span> <span class="toc-text">ActivityManagerService–&gt;ApplicationThread</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ActivityThread%E7%9A%84handleLaunchActivity"><span class="toc-number">12.0.0.3.</span> <span class="toc-text">ActivityThread的handleLaunchActivity</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#20%E3%80%81Window%E3%80%81Activity%E3%80%81View"><span class="toc-number">13.</span> <span class="toc-text">20、Window、Activity、View</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Activity%E7%9A%84setcontentView"><span class="toc-number">13.0.1.</span> <span class="toc-text">Activity的setcontentView</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Touch%E4%BA%8B%E4%BB%B6%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E5%88%B0Activity%E4%B8%8A%EF%BC%9F"><span class="toc-number">13.0.2.</span> <span class="toc-text">Touch事件如何传递到Activity上？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#22%E3%80%81%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87View%E8%BF%9B%E8%A1%8C%E6%B8%B2%E6%9F%93%EF%BC%9F"><span class="toc-number">14.</span> <span class="toc-text">22、如何通过View进行渲染？</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ViewRootImpl-requestLayout%E6%B5%81%E7%A8%8B"><span class="toc-number">14.0.0.1.</span> <span class="toc-text">ViewRootImpl requestLayout流程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Invalidate%E8%BD%BB%E9%87%8F%E5%88%B7%E6%96%B0"><span class="toc-number">14.0.0.2.</span> <span class="toc-text">Invalidate轻量刷新</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#22%E3%80%81APP%E5%AE%89%E8%A3%85"><span class="toc-number">15.</span> <span class="toc-text">22、APP安装</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E9%98%B6%E6%AE%B5%E2%80%93Resources%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6"><span class="toc-number">15.0.0.1.</span> <span class="toc-text">编译阶段–Resources资源文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E9%98%B6%E6%AE%B5%E2%80%93%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86"><span class="toc-number">15.0.0.2.</span> <span class="toc-text">编译阶段–源码部分</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E9%98%B6%E6%AE%B5"><span class="toc-number">15.0.0.3.</span> <span class="toc-text">打包阶段</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B"><span class="toc-number">15.0.0.4.</span> <span class="toc-text">安装过程</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#23%E3%80%81Handler"><span class="toc-number">16.</span> <span class="toc-text">23、Handler</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BB%8Enew-Handler-%E5%BC%80%E5%A7%8B"><span class="toc-number">16.0.0.1.</span> <span class="toc-text">从new Handler()开始</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Looper%E4%BB%8B%E7%BB%8D"><span class="toc-number">16.0.0.2.</span> <span class="toc-text">Looper介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Looper%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">16.0.0.3.</span> <span class="toc-text">Looper初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Looper%E8%B4%9F%E8%B4%A3%E5%86%85%E5%AE%B9"><span class="toc-number">16.0.0.4.</span> <span class="toc-text">Looper负责内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Handler%E7%9A%84sendMessage%E6%96%B9%E6%B3%95"><span class="toc-number">16.0.0.5.</span> <span class="toc-text">Handler的sendMessage方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Handler%E7%9A%84enqueueMessage%E6%96%B9%E6%B3%95"><span class="toc-number">16.0.0.6.</span> <span class="toc-text">Handler的enqueueMessage方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Handler%E7%9A%84post-Runnable-%E4%B8%8EsendMessage%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB"><span class="toc-number">16.0.0.7.</span> <span class="toc-text">Handler的post(Runnable)与sendMessage有什么区别</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Looper-loop%EF%BC%88%EF%BC%89%E6%96%B9%E6%B3%95%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%9B%9E%E9%98%BB%E5%A1%9E%E4%B8%BB%E7%BA%BF%E7%A8%8B"><span class="toc-number">16.0.0.8.</span> <span class="toc-text">Looper.loop（）方法为什么不回阻塞主线程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Handler%E7%9A%84sendMessageDelayed%E6%88%96%E8%80%85postDelayed%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-number">16.0.0.9.</span> <span class="toc-text">Handler的sendMessageDelayed或者postDelayed是如何实现的</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">16.0.0.10.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#24%E3%80%81APK%E5%A6%82%E4%BD%95%E5%8C%85%E4%BD%93%E7%A7%AF%E4%BC%98%E5%8C%96"><span class="toc-number">17.</span> <span class="toc-text">24、APK如何包体积优化</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="toc-number">17.0.0.1.</span> <span class="toc-text">总结：</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25%E3%80%81android-%E5%B4%A9%E6%BA%83%E6%97%A5%E5%BF%97"><span class="toc-number">18.</span> <span class="toc-text">25、android 崩溃日志</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#26%E3%80%81%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F"><span class="toc-number">19.</span> <span class="toc-text">26、内存泄漏</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Activity%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E9%A2%84%E9%98%B2"><span class="toc-number">19.0.1.</span> <span class="toc-text">Activity内存泄漏预防</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%80%A0%E6%88%90Activity%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">19.0.1.0.1.</span> <span class="toc-text">造成Activity内存泄漏的场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%A3%80%E6%B5%8B"><span class="toc-number">19.0.2.</span> <span class="toc-text">内存泄漏检测</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E6%A3%80%E6%B5%8B%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E2%80%93JVM%E7%90%86%E8%AE%BA%E7%9F%A5%E8%AF%86"><span class="toc-number">19.0.2.1.</span> <span class="toc-text">如果检测内存泄漏–JVM理论知识</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#27%E3%80%81UI%E5%8D%A1%E9%A1%BF"><span class="toc-number">20.</span> <span class="toc-text">27、UI卡顿</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#29%E3%80%81MVP%E4%B8%ADpresenter%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%AE%A1%E7%90%86"><span class="toc-number">21.</span> <span class="toc-text">29、MVP中presenter生命周期管理</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Lifecycle%E7%BB%91%E5%AE%9APresenter%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">21.0.0.1.</span> <span class="toc-text">Lifecycle绑定Presenter生命周期</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#30%E3%80%81LogUtil"><span class="toc-number">22.</span> <span class="toc-text">30、LogUtil</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#31%E3%80%81%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D"><span class="toc-number">23.</span> <span class="toc-text">31、屏幕适配</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

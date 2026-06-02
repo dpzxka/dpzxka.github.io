@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e27"/><stop offset="100%" stop-color="#1a1f3a"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="300" fill="url(#bg)" rx="8"/>
+
+  <!-- Axes -->
+  <line x1="60" y1="40" x2="60" y2="260" stroke="#2a2f4a" stroke-width="1.5"/>
+  <line x1="60" y1="260" x2="600" y2="260" stroke="#2a2f4a" stroke-width="1.5"/>
+  <text x="55" y="50" font-family="system-ui" font-size="8" fill="#667799" text-anchor="end">值</text>
+  <text x="595" y="272" font-family="system-ui" font-size="8" fill="#667799" text-anchor="end">时间</text>
+
+  <!-- Linear -->
+  <line x1="60" y1="260" x2="580" y2="80" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="500" y="95" font-family="system-ui" font-size="8" fill="#a855f7">linear</text>
+
+  <!-- Ease-in-out -->
+  <path d="M 60 260 C 200 260, 350 80, 580 80" fill="none" stroke="#007aff" stroke-width="2"/>
+  <text x="350" y="82" font-family="system-ui" font-size="8" fill="#007aff">ease-in-out</text>
+
+  <!-- Spring -->
+  <path d="M 60 260 C 120 260, 200 40, 250 80 Q 280 100, 290 100 Q 320 80, 340 110 Q 360 120, 380 115 Q 400 110, 430 100 Q 460 95, 580 80" fill="none" stroke="#00d4aa" stroke-width="2"/>
+  <text x="200" y="45" font-family="system-ui" font-size="8" fill="#00d4aa">spring(1, 1, 200, 30)</text>
+
+  <!-- Cubic bezier demo -->
+  <path d="M 60 260 C 100 260, 120 80, 580 80" fill="none" stroke="#ffa94d" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="80" y="175" font-family="system-ui" font-size="7" fill="#ffa94d">cubicBezier(0.1, 0, 0.3, 1)</text>
+
+  <!-- Labels -->
+  <text x="60" y="280" font-family="system-ui" font-size="10" fill="#8899bb">0</text>
+  <text x="575" y="280" font-family="system-ui" font-size="10" fill="#8899bb">T</text>
+
+  <text x="60" y="290" font-family="system-ui" font-size="9" fill="#667799">开始</text>
+  <text x="560" y="290" font-family="system-ui" font-size="9" fill="#667799">结束</text>
+</svg>

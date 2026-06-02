@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="50%" stop-color="#12122e"/>
+      <stop offset="100%" stop-color="#1a1a3e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e94560"/>
+      <stop offset="100%" stop-color="#ff6b81"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f3460"/>
+      <stop offset="100%" stop-color="#1a5276"/>
+    </linearGradient>
+    <linearGradient id="box1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(15,52,96,0.8)"/>
+      <stop offset="100%" stop-color="rgba(15,52,96,0.3)"/>
+    </linearGradient>
+    <linearGradient id="box2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(233,69,96,0.25)"/>
+      <stop offset="100%" stop-color="rgba(233,69,96,0.08)"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative grid dots -->
+  <g opacity="0.06">
+    <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="15" cy="15" r="1" fill="#ffffff"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#dots)"/>
+  </g>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="200" fill="rgba(233,69,96,0.03)"/>
+  <circle cx="1100" cy="530" r="250" fill="rgba(15,52,96,0.05)"/>
+  <circle cx="600" cy="315" r="300" fill="rgba(233,69,96,0.02)"/>
+
+  <!-- Title area -->
+  <!-- Category badge -->
+  <rect x="60" y="45" width="140" height="30" rx="15" fill="rgba(233,69,96,0.15)" stroke="#e94560" stroke-width="0.8"/>
+  <text x="130" y="65" text-anchor="middle" fill="#e94560" font-family="system-ui, sans-serif" font-size="13" font-weight="600">HARMONYOS · ARKTS</text>
+
+  <!-- Main title -->
+  <text x="60" y="125" fill="#ffffff" font-family="system-ui, sans-serif" font-size="38" font-weight="700">
+    鸿蒙自定义组件与
+  </text>
+  <text x="60" y="175" fill="url(#accent)" font-family="system-ui, sans-serif" font-size="42" font-weight="800">
+    @Builder 完全解析
+  </text>
+
+  <!-- Subtitle -->
+  <text x="60" y="215" fill="rgba(255,255,255,0.5)" font-family="system-ui, sans-serif" font-size="16">
+    从组件基础到插槽模式 · V2 组件体系深度指南
+  </text>
+
+  <!-- Component hierarchy visualization -->
+  <!-- Parent component box (largest) -->
+  <g filter="url(#shadow)">
+    <rect x="520" y="100" width="620" height="420" rx="16" fill="url(#box1)" stroke="rgba(15,52,96,0.6)" stroke-width="1.5"/>
+    <rect x="520" y="100" width="620" height="40" rx="16" fill="rgba(15,52,96,0.5)"/>
+    <rect x="520" y="124" width="620" height="16" fill="rgba(15,52,96,0.5)"/>
+    <text x="830" y="126" text-anchor="middle" fill="#8ab4f8" font-family="monospace, sans-serif" font-size="14" font-weight="600">@ComponentV2 ParentComponent</text>
+  </g>
+
+  <!-- Child component A -->
+  <g filter="url(#shadow)">
+    <rect x="555" y="165" width="260" height="320" rx="12" fill="url(#box2)" stroke="rgba(233,69,96,0.4)" stroke-width="1"/>
+    <rect x="555" y="165" width="260" height="32" rx="12" fill="rgba(233,69,96,0.15)"/>
+    <rect x="555" y="183" width="260" height="14" fill="rgba(233,69,96,0.15)"/>
+    <text x="685" y="187" text-anchor="middle" fill="#ff8a9e" font-family="monospace, sans-serif" font-size="11" font-weight="600">@Builder SectionA</text>
+
+    <!-- Inner items -->
+    <rect x="575" y="215" width="220" height="28" rx="6" fill="rgba(255,255,255,0.06)"/>
+    <text x="685" y="234" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="monospace, sans-serif" font-size="11">@Param title: string</text>
+
+    <rect x="575" y="255" width="220" height="28" rx="6" fill="rgba(255,255,255,0.06)"/>
+    <text x="685" y="274" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="monospace, sans-serif" font-size="11">@Local expanded: boolean</text>
+
+    <rect x="575" y="295" width="220" height="60" rx="8" fill="rgba(233,69,96,0.08)" stroke="rgba(233,69,96,0.2)" stroke-width="0.8" stroke-dasharray="4,3"/>
+    <text x="685" y="320" text-anchor="middle" fill="rgba(233,69,96,0.6)" font-family="monospace, sans-serif" font-size="10">@BuilderParam</text>
+    <text x="685" y="338" text-anchor="middle" fill="rgba(233,69,96,0.5)" font-family="monospace, sans-serif" font-size="10">content?: () =&gt; void</text>
+
+    <!-- @Track annotation -->
+    <rect x="575" y="370" width="220" height="28" rx="6" fill="rgba(255,255,255,0.04)"/>
+    <text x="685" y="389" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="monospace, sans-serif" font-size="11">@Track status: State</text>
+
+    <!-- @Monitor annotation -->
+    <rect x="575" y="410" width="220" height="28" rx="6" fill="rgba(255,255,255,0.04)"/>
+    <text x="685" y="429" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="monospace, sans-serif" font-size="11">@Monitor('status')</text>
+
+    <!-- Reusable badge -->
+    <rect x="575" y="450" width="80" height="20" rx="10" fill="rgba(75,192,192,0.15)" stroke="rgba(75,192,192,0.3)" stroke-width="0.8"/>
+    <text x="615" y="464" text-anchor="middle" fill="#4bc0c0" font-family="monospace, sans-serif" font-size="10">@Reusable</text>
+  </g>
+
+  <!-- Connection line from parent to child A -->
+  <line x1="735" y1="140" x2="685" y2="165" stroke="rgba(233,69,96,0.3)" stroke-width="1.5"/>
+
+  <!-- Child component B -->
+  <g filter="url(#shadow)">
+    <rect x="838" y="165" width="275" height="210" rx="12" fill="url(#box2)" stroke="rgba(233,69,96,0.4)" stroke-width="1"/>
+    <rect x="838" y="165" width="275" height="32" rx="12" fill="rgba(233,69,96,0.15)"/>
+    <rect x="838" y="183" width="275" height="14" fill="rgba(233,69,96,0.15)"/>
+    <text x="975" y="187" text-anchor="middle" fill="#ff8a9e" font-family="monospace, sans-serif" font-size="11" font-weight="600">@Builder SectionB</text>
+
+    <rect x="858" y="212" width="235" height="28" rx="6" fill="rgba(255,255,255,0.06)"/>
+    <text x="975" y="231" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="monospace, sans-serif" font-size="11">@Param config: Config</text>
+
+    <rect x="858" y="252" width="235" height="28" rx="6" fill="rgba(255,255,255,0.06)"/>
+    <text x="975" y="271" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="monospace, sans-serif" font-size="11">@Local data: DataModel</text>
+
+    <rect x="858" y="295" width="235" height="60" rx="8" fill="rgba(233,69,96,0.08)" stroke="rgba(233,69,96,0.2)" stroke-width="0.8" stroke-dasharray="4,3"/>
+    <text x="975" y="320" text-anchor="middle" fill="rgba(233,69,96,0.6)" font-family="monospace, sans-serif" font-size="10">@BuilderParam</text>
+    <text x="975" y="338" text-anchor="middle" fill="rgba(233,69,96,0.5)" font-family="monospace, sans-serif" font-size="10">footer?: () =&gt; void</text>
+  </g>
+
+  <line x1="735" y1="140" x2="975" y2="165" stroke="rgba(233,69,96,0.3)" stroke-width="1.5"/>
+
+  <!-- Arrow indicators -->
+  <g fill="rgba(233,69,96,0.4)">
+    <polygon points="735,138 739,145 731,145"/>
+    <polygon points="735,138 739,145 731,145" transform="translate(290,0)"/>
+  </g>
+
+  <!-- Footer decoration bar -->
+  <rect x="60" y="565" width="60" height="3" rx="1.5" fill="url(#accent)"/>
+  <text x="135" y="569" fill="rgba(255,255,255,0.25)" font-family="system-ui, sans-serif" font-size="12">鸿蒙 V2 组件开发系列 · 第 7 篇</text>
+
+  <!-- Decorative code lines on left side -->
+  <g opacity="0.12">
+    <rect x="60" y="280" width="350" height="2" rx="1" fill="#ffffff"/>
+    <rect x="60" y="310" width="300" height="2" rx="1" fill="#ffffff"/>
+    <rect x="60" y="340" width="320" height="2" rx="1" fill="#ffffff"/>
+    <rect x="60" y="370" width="280" height="2" rx="1" fill="#ffffff"/>
+    <rect x="60" y="400" width="330" height="2" rx="1" fill="#ffffff"/>
+    <rect x="60" y="460" width="200" height="2" rx="1" fill="#ffffff"/>
+    <rect x="60" y="490" width="250" height="2" rx="1" fill="#ffffff"/>
+  </g>
+
+  <!-- Decorative brackets -->
+  <g opacity="0.08" fill="none" stroke="#e94560" stroke-width="2">
+    <path d="M45,270 L35,270 L35,500 L45,500"/>
+    <path d="M425,270 L435,270 L435,500 L425,500"/>
+  </g>
+</svg>
