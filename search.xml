@@ -7473,4 +7473,348 @@
         <tag>mvvm</tag>
       </tags>
   </entry>
+  <entry>
+    <title>鸿蒙常用三方库完全总结</title>
+    <url>/2026/06/02/%E9%B8%BF%E8%92%99%E5%B8%B8%E7%94%A8%E4%B8%89%E6%96%B9%E5%BA%93%E5%AE%8C%E5%85%A8%E6%80%BB%E7%BB%93/</url>
+    <content><![CDATA[<h2 id="一、引言"><a href="#一、引言" class="headerlink" title="一、引言"></a>一、引言</h2><p>截至 2026 年，鸿蒙生态已从”有没有”迈入”好不好用”的阶段。o h p m 三方库中心仓的包数量突破 <strong>5000+</strong>，月下载量超千万次，覆盖了网络请求、UI 组件、数据存储、图片加载、动画渲染、扫码识别等全场景。</p>
+<p>但问题也随之而来——库太多，选哪个？</p>
+<p>本文从<strong>实际工程落地</strong>的角度，梳理鸿蒙开发中真正高频、稳定、社区活跃的三方库。每个库都附安装命令、核心 API、实战代码片段，并给出选型建议。</p>
+<blockquote>
+<p>适用版本：HarmonyOS NEXT &#x2F; API 12+ &#x2F; Stage 模型</p>
+</blockquote>
+<hr>
+<h2 id="二、网络与数据交互"><a href="#二、网络与数据交互" class="headerlink" title="二、网络与数据交互"></a>二、网络与数据交互</h2><h3 id="2-1-ohos-axios-—-网络请求首选"><a href="#2-1-ohos-axios-—-网络请求首选" class="headerlink" title="2.1 @ohos&#x2F;axios — 网络请求首选"></a>2.1 @ohos&#x2F;axios — 网络请求首选</h3><p>社区最活跃的 HTTP 库，月下载量 <strong>100K+</strong>，API 与 Web 端 axios 完全一致。</p>
+<p><strong>安装：</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/axios</span><br></pre></td></tr></table></figure>
+
+<p><strong>基础用法：</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> axios <span class="keyword">from</span> <span class="string">&#x27;@ohos/axios&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建实例（推荐每个模块独立实例）</span></span><br><span class="line"><span class="keyword">const</span> request = axios.<span class="title function_">create</span>(&#123;</span><br><span class="line">  <span class="attr">baseURL</span>: <span class="string">&#x27;https://api.example.com&#x27;</span>,</span><br><span class="line">  <span class="attr">timeout</span>: <span class="number">10000</span>,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 请求拦截器 — 自动注入 Token</span></span><br><span class="line">request.<span class="property">interceptors</span>.<span class="property">request</span>.<span class="title function_">use</span>(</span><br><span class="line">  <span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> token = <span class="title class_">AppStorage</span>.<span class="property">get</span>&lt;<span class="built_in">string</span>&gt;(<span class="string">&#x27;token&#x27;</span>) ?? <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    <span class="keyword">if</span> (token) &#123;</span><br><span class="line">      config.<span class="property">headers</span>.<span class="property">Authorization</span> = <span class="string">`Bearer <span class="subst">$&#123;token&#125;</span>`</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> config;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="function">(<span class="params">error</span>) =&gt;</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(error)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 响应拦截器 — 统一错误处理</span></span><br><span class="line">request.<span class="property">interceptors</span>.<span class="property">response</span>.<span class="title function_">use</span>(</span><br><span class="line">  <span class="function">(<span class="params">response</span>) =&gt;</span> response.<span class="property">data</span>,</span><br><span class="line">  <span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (error.<span class="property">code</span> === <span class="number">401</span>) &#123;</span><br><span class="line">      <span class="comment">// 跳转登录</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(error);</span><br><span class="line">  &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// GET 请求</span></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">UserInfo</span> &#123;</span><br><span class="line">  <span class="attr">id</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">name</span>: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">getUser</span>(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>): <span class="title class_">Promise</span>&lt;<span class="title class_">UserInfo</span>&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">await</span> request.<span class="title function_">get</span>(<span class="string">`/user/<span class="subst">$&#123;id&#125;</span>`</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// POST 请求</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">login</span>(<span class="params"><span class="attr">phone</span>: <span class="built_in">string</span>, <span class="attr">code</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">await</span> request.<span class="title function_">post</span>(<span class="string">&#x27;/auth/login&#x27;</span>, &#123; phone, code &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 文件上传</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">uploadAvatar</span>(<span class="params"><span class="attr">uri</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">await</span> request.<span class="title function_">upload</span>(<span class="string">&#x27;/user/avatar&#x27;</span>, [</span><br><span class="line">    &#123; <span class="attr">name</span>: <span class="string">&#x27;file&#x27;</span>, uri &#125;</span><br><span class="line">  ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>与 RCP（官方框架）简要对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>@ohos&#x2F;axios</th>
+<th>RCP (官方)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语法风格</td>
+<td>Promise &#x2F; 拦截器</td>
+<td>链式回调</td>
+</tr>
+<tr>
+<td>社区资源</td>
+<td>丰富（文档&#x2F;issue&#x2F;教程）</td>
+<td>较少</td>
+</tr>
+<tr>
+<td>学习成本</td>
+<td>几乎为零</td>
+<td>需重新学习</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>大多数项目首选</td>
+<td>对官方捆绑有偏好的团队</td>
+</tr>
+</tbody></table>
+<p><strong>结论</strong>：除非有特殊约束，否则 <strong>@ohos&#x2F;axios 是绝大多数工程的第一选择</strong>。</p>
+<hr>
+<h3 id="2-2-ohos-websocket-—-长连接通信"><a href="#2-2-ohos-websocket-—-长连接通信" class="headerlink" title="2.2 @ohos&#x2F;websocket — 长连接通信"></a>2.2 @ohos&#x2F;websocket — 长连接通信</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/websocket</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">WebSocket</span> <span class="keyword">from</span> <span class="string">&#x27;@ohos/websocket&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ChatClient</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">ws</span>: <span class="title class_">WebSocket</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">url</span>: <span class="built_in">string</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"><span class="attr">url</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">url</span> = url;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">connect</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span> = <span class="keyword">new</span> <span class="title class_">WebSocket</span>(<span class="variable language_">this</span>.<span class="property">url</span>);</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onopen</span> = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;WS Connected&#x27;</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">heartbeat</span>();</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onmessage</span> = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> msg = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(event.<span class="property">data</span> <span class="keyword">as</span> <span class="built_in">string</span>);</span><br><span class="line">      <span class="comment">// 分发消息</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onclose</span> = <span class="function">(<span class="params">code, reason</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`WS Closed: <span class="subst">$&#123;code&#125;</span> <span class="subst">$&#123;reason&#125;</span>`</span>);</span><br><span class="line">      <span class="comment">// 自动重连</span></span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">connect</span>(), <span class="number">3000</span>);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>.<span class="property">onerror</span> = <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;WS Error:&#x27;</span>, err);</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">send</span>(<span class="params"><span class="attr">data</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Object</span>&gt;</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>?.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(data));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">heartbeat</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">send</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;ping&#x27;</span> &#125;);</span><br><span class="line">    &#125;, <span class="number">30000</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">close</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span>?.<span class="title function_">close</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">ws</span> = <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、UI-组件库"><a href="#三、UI-组件库" class="headerlink" title="三、UI 组件库"></a>三、UI 组件库</h2><h3 id="3-1-TDesign-for-HarmonyOS"><a href="#3-1-TDesign-for-HarmonyOS" class="headerlink" title="3.1 TDesign for HarmonyOS"></a>3.1 TDesign for HarmonyOS</h3><p>腾讯出品，与 Flutter&#x2F;React&#x2F;Vue 三端 TDesign 设计语言统一。包含按钮、表单、弹窗、导航、数据展示等 <strong>40+ 组件</strong>。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @tdesign/arkui-harmonyos</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Button</span>, <span class="title class_">Dialog</span>, <span class="title class_">Tag</span>, <span class="title class_">Table</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@tdesign/arkui-harmonyos&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">TDemo</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">showDialog</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">tags</span>: <span class="built_in">string</span>[] = [<span class="string">&#x27;推荐&#x27;</span>, <span class="string">&#x27;热门&#x27;</span>, <span class="string">&#x27;最新&#x27;</span>];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 按钮</span></span><br><span class="line">      <span class="title class_">Button</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;primary&#x27;</span>, <span class="attr">text</span>: <span class="string">&#x27;主要操作&#x27;</span> &#125;)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">showDialog</span> = <span class="literal">true</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 标签</span></span><br><span class="line">      <span class="title class_">Row</span>() &#123;</span><br><span class="line">        <span class="title class_">ForEach</span>(<span class="variable language_">this</span>.<span class="property">tags</span>, <span class="function">(<span class="params"><span class="attr">tag</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="title class_">Tag</span>(&#123;</span><br><span class="line">            <span class="attr">text</span>: tag,</span><br><span class="line">            <span class="attr">variant</span>: <span class="string">&#x27;outline&#x27;</span>,</span><br><span class="line">            <span class="attr">color</span>: <span class="string">&#x27;#ff6b35&#x27;</span></span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 弹窗</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">showDialog</span>) &#123;</span><br><span class="line">        <span class="title class_">Dialog</span>(&#123;</span><br><span class="line">          <span class="attr">title</span>: <span class="string">&#x27;确认删除&#x27;</span>,</span><br><span class="line">          <span class="attr">content</span>: <span class="string">&#x27;此操作不可恢复&#x27;</span>,</span><br><span class="line">          <span class="attr">onConfirm</span>: <span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">showDialog</span> = <span class="literal">false</span> &#125;,</span><br><span class="line">          <span class="attr">onCancel</span>: <span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">showDialog</span> = <span class="literal">false</span> &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">padding</span>(<span class="number">16</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当前版本 v0.8.5，组件数量仍在快速增长中。</p>
+<h3 id="3-2-TuniaoUI"><a href="#3-2-TuniaoUI" class="headerlink" title="3.2 TuniaoUI"></a>3.2 TuniaoUI</h3><p>比 TDesign 更轻量，GitHub Star <strong>500+</strong>，专注于高频基础组件。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @tuniao/tuniao-ui</span><br></pre></td></tr></table></figure>
+
+<p>特点：API 设计接近前端 Vue 风格，包体积小（≤300KB），对小型项目友好。</p>
+<h3 id="3-3-动画：Lottie"><a href="#3-3-动画：Lottie" class="headerlink" title="3.3 动画：Lottie"></a>3.3 动画：Lottie</h3><p>使用 After Effects 导出的 JSON 动画，替代复杂代码动画。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/lottie</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> lottie <span class="keyword">from</span> <span class="string">&#x27;@ohos/lottie&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">LottieDemo</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">animator</span>: <span class="built_in">object</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">XComponent</span>(&#123;</span><br><span class="line">        <span class="attr">id</span>: <span class="string">&#x27;lottie&#x27;</span>,</span><br><span class="line">        <span class="attr">type</span>: <span class="string">&#x27;surface&#x27;</span>,</span><br><span class="line">        <span class="attr">controller</span>: <span class="variable language_">this</span>.<span class="property">controller</span></span><br><span class="line">      &#125;)</span><br><span class="line">      .<span class="title function_">onLoad</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 加载动画 JSON</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">animator</span> = lottie.<span class="title function_">loadAnimation</span>(&#123;</span><br><span class="line">          <span class="attr">container</span>: <span class="string">&#x27;lottie&#x27;</span>,</span><br><span class="line">          <span class="attr">path</span>: <span class="string">&#x27;/common/animations/loading.json&#x27;</span>,</span><br><span class="line">          <span class="attr">loop</span>: <span class="literal">true</span>,</span><br><span class="line">          <span class="attr">autoplay</span>: <span class="literal">true</span></span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;暂停/继续&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">animator</span>?.<span class="property">isPaused</span>) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">animator</span>?.<span class="title function_">play</span>();</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">animator</span>?.<span class="title function_">pause</span>();</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、图片加载"><a href="#四、图片加载" class="headerlink" title="四、图片加载"></a>四、图片加载</h2><h3 id="4-1-ohos-image-imageglide"><a href="#4-1-ohos-image-imageglide" class="headerlink" title="4.1 @ohos&#x2F;image (imageglide)"></a>4.1 @ohos&#x2F;image (imageglide)</h3><p>鸿蒙版 Glide，支持三级缓存（内存→磁盘→网络）、占位图、圆角&#x2F;圆形变换、GIF 解码。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/imageglide</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Image</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ohos/imageglide&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">ImageDemo</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 基本用法 — 与 ArkUI Image 组件等价替换</span></span><br><span class="line">      <span class="title class_">Image</span>(&#123;</span><br><span class="line">        <span class="attr">src</span>: <span class="string">&#x27;https://example.com/photo.jpg&#x27;</span>,</span><br><span class="line">        <span class="attr">placeholder</span>: $r(<span class="string">&#x27;app.media.placeholder&#x27;</span>),</span><br><span class="line">        <span class="attr">error</span>: $r(<span class="string">&#x27;app.media.error&#x27;</span>),</span><br><span class="line">        <span class="attr">width</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">height</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">borderRadius</span>: <span class="number">12</span></span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 圆形头像</span></span><br><span class="line">      <span class="title class_">Image</span>(&#123;</span><br><span class="line">        <span class="attr">src</span>: <span class="string">&#x27;https://example.com/avatar.jpg&#x27;</span>,</span><br><span class="line">        <span class="attr">placeholder</span>: $r(<span class="string">&#x27;app.media.avatar_default&#x27;</span>),</span><br><span class="line">        <span class="attr">width</span>: <span class="number">80</span>,</span><br><span class="line">        <span class="attr">height</span>: <span class="number">80</span>,</span><br><span class="line">        <span class="attr">isCircle</span>: <span class="literal">true</span></span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// GIF 播放</span></span><br><span class="line">      <span class="title class_">Image</span>(&#123;</span><br><span class="line">        <span class="attr">src</span>: <span class="string">&#x27;/common/animations/sticker.gif&#x27;</span>,</span><br><span class="line">        <span class="attr">width</span>: <span class="number">120</span>,</span><br><span class="line">        <span class="attr">height</span>: <span class="number">120</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么需要 imageglide 而不是原生 Image？</strong></p>
+<p>原生 <code>Image</code> 组件没有内存缓存、没有磁盘缓存、没有占位图机制。在列表中有大量网络图片时，imageglide 可以<strong>显著减少重复网络请求</strong>并<strong>防止 OOM</strong>。</p>
+<hr>
+<h2 id="五、数据持久化"><a href="#五、数据持久化" class="headerlink" title="五、数据持久化"></a>五、数据持久化</h2><h3 id="5-1-Preferences-—-轻量用户首选项"><a href="#5-1-Preferences-—-轻量用户首选项" class="headerlink" title="5.1 Preferences — 轻量用户首选项"></a>5.1 Preferences — 轻量用户首选项</h3><p>API 12+ 推荐使用 <code>@ohos.data.preferences</code>，适用于<strong>小规模 KV 存储</strong>（用户设置、Token、状态标记）。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; preferences &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkData&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; common &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PreferenceManager</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="attr">instance</span>: <span class="title class_">PreferenceManager</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">pref</span>: preferences.<span class="property">Preferences</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="title function_">getInstance</span>(): <span class="title class_">PreferenceManager</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="variable language_">this</span>.<span class="property">instance</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">instance</span> = <span class="keyword">new</span> <span class="title class_">PreferenceManager</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">instance</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">init</span>(<span class="params"><span class="attr">context</span>: common.<span class="title class_">Context</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">pref</span> = <span class="keyword">await</span> preferences.<span class="title function_">getPreferences</span>(context, <span class="string">&#x27;my_app_pref&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">getString</span>(<span class="attr">key</span>: <span class="built_in">string</span>, <span class="attr">def</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>): <span class="title class_">Promise</span>&lt;<span class="built_in">string</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">pref</span>?.<span class="title function_">get</span>(key, def)) <span class="keyword">as</span> <span class="built_in">string</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">setString</span>(<span class="params"><span class="attr">key</span>: <span class="built_in">string</span>, <span class="attr">value</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">pref</span>?.<span class="title function_">put</span>(key, value);</span><br><span class="line">    <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">pref</span>?.<span class="title function_">flush</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">getBoolean</span>(<span class="attr">key</span>: <span class="built_in">string</span>, <span class="attr">def</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>): <span class="title class_">Promise</span>&lt;<span class="built_in">boolean</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">pref</span>?.<span class="title function_">get</span>(key, def)) <span class="keyword">as</span> <span class="built_in">boolean</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">delete</span>(<span class="params"><span class="attr">key</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">pref</span>?.<span class="title function_">delete</span>(key);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">PreferenceManager</span>.<span class="title function_">getInstance</span>();</span><br></pre></td></tr></table></figure>
+
+<p><strong>典型使用：</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 存储 Token</span></span><br><span class="line"><span class="keyword">await</span> <span class="title class_">PrefManager</span>.<span class="title function_">setString</span>(<span class="string">&#x27;access_token&#x27;</span>, token);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读取暗黑模式偏好</span></span><br><span class="line"><span class="keyword">const</span> isDark = <span class="keyword">await</span> <span class="title class_">PrefManager</span>.<span class="title function_">getBoolean</span>(<span class="string">&#x27;dark_mode&#x27;</span>, <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 清除登出</span></span><br><span class="line"><span class="keyword">await</span> <span class="title class_">PrefManager</span>.<span class="title function_">delete</span>(<span class="string">&#x27;access_token&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-tencent-mmkv-—-高性能-KV-存储"><a href="#5-2-tencent-mmkv-—-高性能-KV-存储" class="headerlink" title="5.2 @tencent&#x2F;mmkv — 高性能 KV 存储"></a>5.2 @tencent&#x2F;mmkv — 高性能 KV 存储</h3><p>腾讯 WeChat 团队出品，比 Preferences <strong>快 10-50 倍</strong>，支持多进程访问、加密存储。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @tencent/mmkv</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable constant_">MMKV</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@tencent/mmkv&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">MMKVDemo</span> &#123;</span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> kv = <span class="variable constant_">MMKV</span>.<span class="title function_">getInstance</span>(<span class="string">&#x27;default&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 基础读写</span></span><br><span class="line">    kv.<span class="title function_">encodeBool</span>(<span class="string">&#x27;is_login&#x27;</span>, <span class="literal">true</span>);</span><br><span class="line">    kv.<span class="title function_">encodeString</span>(<span class="string">&#x27;username&#x27;</span>, <span class="string">&#x27;张三&#x27;</span>);</span><br><span class="line">    kv.<span class="title function_">encodeInt32</span>(<span class="string">&#x27;age&#x27;</span>, <span class="number">28</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> username = kv.<span class="title function_">decodeString</span>(<span class="string">&#x27;username&#x27;</span>, <span class="string">&#x27;&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> age = kv.<span class="title function_">decodeInt32</span>(<span class="string">&#x27;age&#x27;</span>, <span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>与 Preferences 对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>Preferences</th>
+<th>MMKV</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>底层实现</td>
+<td>XML 解析</td>
+<td>mmap 内存映射</td>
+</tr>
+<tr>
+<td>读写速度</td>
+<td>一般（1000+ 条时明显变慢）</td>
+<td>极快（10W+ 无压力）</td>
+</tr>
+<tr>
+<td>多进程</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>加密存储</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>复杂对象</td>
+<td>不支持（仅基础类型）</td>
+<td>支持 Serializable</td>
+</tr>
+<tr>
+<td>包体积</td>
+<td>内置</td>
+<td>~200KB</td>
+</tr>
+</tbody></table>
+<p><strong>选型建议</strong>：纯基础配置 → Preferences；大量 KV 读写 &#x2F; 含敏感数据 &#x2F; 需要跨进程 → MMKV。</p>
+<h3 id="5-3-RelationalStore-—-关系型数据库"><a href="#5-3-RelationalStore-—-关系型数据库" class="headerlink" title="5.3 RelationalStore — 关系型数据库"></a>5.3 RelationalStore — 关系型数据库</h3><p>基于 SQLite，适合结构化数据（列表、关系型业务数据）。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; relationalStore &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkData&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; common &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DatabaseHelper</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">rdb</span>: relationalStore.<span class="property">RdbStore</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">init</span>(<span class="params"><span class="attr">context</span>: common.<span class="title class_">Context</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="attr">config</span>: relationalStore.<span class="property">StoreConfig</span> = &#123;</span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;notes.db&#x27;</span>,</span><br><span class="line">      <span class="attr">securityLevel</span>: relationalStore.<span class="property">SecurityLevel</span>.<span class="property">S1</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">rdb</span> = <span class="keyword">await</span> relationalStore.<span class="title function_">getRdbStore</span>(context, config);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建表</span></span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">CREATE_TABLE</span> = <span class="string">`</span></span><br><span class="line"><span class="string">      CREATE TABLE IF NOT EXISTS notes (</span></span><br><span class="line"><span class="string">        id INTEGER PRIMARY KEY AUTOINCREMENT,</span></span><br><span class="line"><span class="string">        title TEXT NOT NULL,</span></span><br><span class="line"><span class="string">        content TEXT,</span></span><br><span class="line"><span class="string">        created_at INTEGER NOT NULL</span></span><br><span class="line"><span class="string">      )`</span>;</span><br><span class="line">    <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">rdb</span>.<span class="title function_">executeSql</span>(<span class="variable constant_">CREATE_TABLE</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">insertNote</span>(<span class="params"><span class="attr">title</span>: <span class="built_in">string</span>, <span class="attr">content</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> now = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">    <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">rdb</span>!.<span class="title function_">insert</span>(<span class="string">&#x27;notes&#x27;</span>, &#123;</span><br><span class="line">      title,</span><br><span class="line">      content,</span><br><span class="line">      <span class="attr">created_at</span>: now</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">queryNotes</span>(<span class="params"><span class="attr">page</span>: <span class="built_in">number</span> = <span class="number">0</span>, <span class="attr">size</span>: <span class="built_in">number</span> = <span class="number">20</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> predicates = <span class="keyword">new</span> relationalStore.<span class="title class_">RdbPredicates</span>(<span class="string">&#x27;notes&#x27;</span>);</span><br><span class="line">    predicates.<span class="title function_">orderByDesc</span>(<span class="string">&#x27;created_at&#x27;</span>);</span><br><span class="line">    predicates.<span class="title function_">limit</span>(size, page * size);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">rdb</span>!.<span class="title function_">query</span>(predicates);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">deleteNote</span>(<span class="params"><span class="attr">id</span>: <span class="built_in">number</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> predicates = <span class="keyword">new</span> relationalStore.<span class="title class_">RdbPredicates</span>(<span class="string">&#x27;notes&#x27;</span>);</span><br><span class="line">    predicates.<span class="title function_">equalTo</span>(<span class="string">&#x27;id&#x27;</span>, id);</span><br><span class="line">    <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="property">rdb</span>!.<span class="title function_">delete</span>(predicates);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-补充：OCORM-—-轻量-ORM"><a href="#5-4-补充：OCORM-—-轻量-ORM" class="headerlink" title="5.4 补充：OCORM — 轻量 ORM"></a>5.4 补充：OCORM — 轻量 ORM</h3><p>如果觉得直接写 SQL 太麻烦，可以试试 OCORM——一个 Schema-First 的 ORM 框架。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/ocorm</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Model</span>, <span class="title class_">Column</span>, <span class="title class_">PrimaryKey</span>, <span class="title class_">Database</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ohos/ocorm&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Model</span>(<span class="string">&#x27;notes&#x27;</span>)       <span class="comment">// 映射 notes 表</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NoteModel</span> &#123;</span><br><span class="line">  <span class="meta">@PrimaryKey</span>()</span><br><span class="line">  <span class="attr">id</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Column</span>()</span><br><span class="line">  <span class="attr">title</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Column</span>()</span><br><span class="line">  <span class="attr">content</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Column</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;created_at&#x27;</span> &#125;)</span><br><span class="line">  <span class="attr">createdAt</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="keyword">const</span> db = <span class="keyword">await</span> <span class="title class_">Database</span>.<span class="title function_">build</span>(<span class="string">&#x27;notes.db&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> repo = db.<span class="title function_">getRepository</span>(<span class="title class_">NoteModel</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> notes = <span class="keyword">await</span> repo.<span class="title function_">find</span>(&#123;</span><br><span class="line">  <span class="attr">order</span>: &#123; <span class="attr">createdAt</span>: <span class="string">&#x27;DESC&#x27;</span> &#125;,</span><br><span class="line">  <span class="attr">skip</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">take</span>: <span class="number">20</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> note = <span class="keyword">await</span> repo.<span class="title function_">findOneBy</span>(&#123; <span class="attr">id</span>: <span class="number">1</span> &#125;);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、工具类库"><a href="#六、工具类库" class="headerlink" title="六、工具类库"></a>六、工具类库</h2><h3 id="6-1-ohos-util-aka-harmony-utils"><a href="#6-1-ohos-util-aka-harmony-utils" class="headerlink" title="6.1 @ohos&#x2F;util (aka harmony-utils)"></a>6.1 @ohos&#x2F;util (aka harmony-utils)</h3><p>社区最全的工具集合，涵盖 <strong>App&#x2F;设备&#x2F;屏幕&#x2F;网络&#x2F;文件&#x2F;加解密&#x2F;日期&#x2F;字符串&#x2F;集合</strong>等模块。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/util</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">DateUtil</span>, <span class="title class_">EncodeUtil</span>, <span class="title class_">NumberUtil</span>, <span class="title class_">AppUtil</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ohos/util&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 日期格式化</span></span><br><span class="line"><span class="keyword">const</span> now = <span class="title class_">DateUtil</span>.<span class="title function_">format</span>(<span class="keyword">new</span> <span class="title class_">Date</span>(), <span class="string">&#x27;yyyy-MM-dd HH:mm:ss&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// MD5 加密</span></span><br><span class="line"><span class="keyword">const</span> hash = <span class="title class_">EncodeUtil</span>.<span class="title function_">md5</span>(<span class="string">&#x27;password123&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 金额格式化</span></span><br><span class="line"><span class="keyword">const</span> price = <span class="title class_">NumberUtil</span>.<span class="title function_">formatMoney</span>(<span class="number">12345.678</span>, <span class="number">2</span>); <span class="comment">// &quot;12,345.68&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取 App 信息</span></span><br><span class="line"><span class="keyword">const</span> version = <span class="title class_">AppUtil</span>.<span class="title function_">getVersionName</span>();</span><br><span class="line"><span class="keyword">const</span> deviceId = <span class="title class_">AppUtil</span>.<span class="title function_">getDeviceId</span>();</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-加解密方案"><a href="#6-2-加解密方案" class="headerlink" title="6.2 加解密方案"></a>6.2 加解密方案</h3><p>鸿蒙提供了系统级加解密 API（<code>@kit.CryptoArchitectureKit</code>），推荐优先使用官方实现：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; cryptoFramework &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.CryptoArchitectureKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">aesEncrypt</span>(<span class="params"><span class="attr">data</span>: <span class="built_in">string</span>, <span class="attr">key</span>: <span class="built_in">string</span></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">string</span>&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> encoder = cryptoFramework.<span class="title function_">createCipher</span>(<span class="string">&#x27;AES128|GCM|PKCS7&#x27;</span>);</span><br><span class="line">  <span class="comment">// ... 加密逻辑</span></span><br><span class="line">  <span class="keyword">return</span> encryptedData;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">aesDecrypt</span>(<span class="params"><span class="attr">data</span>: <span class="built_in">string</span>, <span class="attr">key</span>: <span class="built_in">string</span></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">string</span>&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> decoder = cryptoFramework.<span class="title function_">createCipher</span>(<span class="string">&#x27;AES128|GCM|PKCS7&#x27;</span>);</span><br><span class="line">  <span class="comment">// ... 解密逻辑</span></span><br><span class="line">  <span class="keyword">return</span> plainText;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、扫码与多媒体"><a href="#七、扫码与多媒体" class="headerlink" title="七、扫码与多媒体"></a>七、扫码与多媒体</h2><h3 id="7-1-ohos-zxing-—-二维码扫码"><a href="#7-1-ohos-zxing-—-二维码扫码" class="headerlink" title="7.1 @ohos&#x2F;zxing — 二维码扫码"></a>7.1 @ohos&#x2F;zxing — 二维码扫码</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/zxing</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ZXing</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ohos/zxing&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line">struct <span class="title class_">ScanDemo</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">scanResult</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 相机预览区域</span></span><br><span class="line">      <span class="title class_">XComponent</span>(&#123; <span class="attr">id</span>: <span class="string">&#x27;camera&#x27;</span>, <span class="attr">type</span>: <span class="string">&#x27;surface&#x27;</span> &#125;)</span><br><span class="line">        .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">300</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`扫码结果: <span class="subst">$&#123;<span class="variable language_">this</span>.scanResult&#125;</span>`</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(<span class="number">12</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;开始扫码&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="title class_">ZXing</span>.<span class="title function_">startScan</span>(&#123;</span><br><span class="line">            <span class="attr">container</span>: <span class="string">&#x27;camera&#x27;</span>,</span><br><span class="line">            <span class="attr">onSuccess</span>: <span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">              <span class="variable language_">this</span>.<span class="property">scanResult</span> = result;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">onError</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">              <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;扫码失败:&#x27;</span>, err);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;生成二维码&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="title class_">ZXing</span>.<span class="title function_">createQRCode</span>(&#123;</span><br><span class="line">            <span class="attr">content</span>: <span class="string">&#x27;https://dpzxka.github.io&#x27;</span>,</span><br><span class="line">            <span class="attr">size</span>: <span class="number">200</span></span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、华为官方-SDK-服务"><a href="#八、华为官方-SDK-服务" class="headerlink" title="八、华为官方 SDK 服务"></a>八、华为官方 SDK 服务</h2><p>以下服务不需要 ohpm 安装，直接通过 <strong>AppGallery Connect</strong> 接入，在 <code>module.json5</code> 中声明依赖即可。</p>
+<table>
+<thead>
+<tr>
+<th>服务</th>
+<th>包名</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>推送服务</strong></td>
+<td><code>@kit.PushKit</code></td>
+<td>消息通知、营销触达</td>
+</tr>
+<tr>
+<td><strong>登录服务</strong></td>
+<td><code>@kit.AccountKit</code></td>
+<td>华为账号一键登录</td>
+</tr>
+<tr>
+<td><strong>支付服务</strong></td>
+<td><code>@kit.IAPKit</code></td>
+<td>应用内商品购买</td>
+</tr>
+<tr>
+<td><strong>地图服务</strong></td>
+<td><code>@kit.MapKit</code></td>
+<td>位置展示、POI 搜索</td>
+</tr>
+<tr>
+<td><strong>广告服务</strong></td>
+<td><code>@kit.AdsKit</code></td>
+<td>横幅&#x2F;插屏&#x2F;激励视频广告</td>
+</tr>
+<tr>
+<td><strong>机器学习</strong></td>
+<td><code>@kit.MLKit</code></td>
+<td>文本识别、图像分类</td>
+</tr>
+<tr>
+<td><strong>定位服务</strong></td>
+<td><code>@kit.LocationKit</code></td>
+<td>地理位置获取</td>
+</tr>
+</tbody></table>
+<p><strong>接入示例：推送服务</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; pushService &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.PushKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取推送 Token（在 Ability 初始化时调用）</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">initPush</span>(<span class="params"><span class="attr">context</span>: common.<span class="title class_">Context</span></span>) &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> token = <span class="keyword">await</span> pushService.<span class="title function_">getToken</span>(context);</span><br><span class="line">    <span class="comment">// 将 token 上报到自己的后端</span></span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">reportPushToken</span>(token);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;Push init failed:&#x27;</span>, err);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 接收通知（在 EntryAbility 中处理）</span></span><br><span class="line"><span class="title function_">onNewWant</span>(<span class="params"><span class="attr">want</span>: <span class="title class_">Want</span></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (want.<span class="property">parameters</span>?.<span class="property">pushMessage</span>) &#123;</span><br><span class="line">    <span class="comment">// 解析推送消息并导航</span></span><br><span class="line">    <span class="keyword">const</span> url = want.<span class="property">parameters</span>.<span class="property">url</span> <span class="keyword">as</span> <span class="built_in">string</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">router</span>.<span class="title function_">pushUrl</span>(&#123; url &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么推荐官方 SDK？</strong></p>
+<ul>
+<li>底层权限由系统直接管理，不需要额外配置</li>
+<li>与华为设备深度整合，推送到达率远高于三方通道</li>
+<li>支持 Kit 化按需接入，不会无端增大包体积</li>
+</ul>
+<hr>
+<h2 id="九、路由导航"><a href="#九、路由导航" class="headerlink" title="九、路由导航"></a>九、路由导航</h2><p>路由方案已在本系列的 <a href="/2026/06/02/%E9%B8%BF%E8%92%99HMRouter%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90%E4%B8%8E%E4%BA%8C%E6%AC%A1%E5%B0%81%E8%A3%85%E5%AE%9E%E6%88%98/">HMRouter 完全解析与二次封装实战</a> 中详细讲过，此处简要回顾。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @hadss/hmrouter</span><br></pre></td></tr></table></figure>
+
+<p>核心封装思路：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RoutePath — 集中管理路由路径</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title class_">RoutePath</span> = &#123;</span><br><span class="line">  <span class="attr">HOME</span>: <span class="string">&#x27;home&#x27;</span>,</span><br><span class="line">  <span class="attr">DETAIL</span>: <span class="string">&#x27;detail&#x27;</span>,</span><br><span class="line">  <span class="attr">LOGIN</span>: <span class="string">&#x27;login&#x27;</span>,</span><br><span class="line">  <span class="attr">SETTINGS</span>: <span class="string">&#x27;settings&#x27;</span>,</span><br><span class="line">&#125; <span class="keyword">as</span> <span class="keyword">const</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Navigator — 类型安全的跳转封装</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> <span class="title class_">Navigator</span> &#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="title function_">push</span>(<span class="params"><span class="attr">path</span>: <span class="built_in">string</span>, <span class="attr">param</span>?: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Object</span>&gt;</span>) &#123;</span><br><span class="line">    <span class="title class_">HMRouterMgr</span>.<span class="title function_">open</span>(&#123; path, param &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="title function_">pushWithResult</span>(<span class="params"><span class="attr">path</span>: <span class="built_in">string</span>, <span class="attr">param</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Object</span>&gt;</span>) &#123;</span><br><span class="line">    <span class="comment">// 带回调的跳转</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="title function_">back</span>(<span class="params"><span class="attr">result</span>?: <span class="title class_">Object</span></span>) &#123;</span><br><span class="line">    <span class="title class_">HMRouterMgr</span>.<span class="title function_">pop</span>(result);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>详情参考前文，此处不再重复。</p>
+<hr>
+<h2 id="十、完整选型矩阵"><a href="#十、完整选型矩阵" class="headerlink" title="十、完整选型矩阵"></a>十、完整选型矩阵</h2><p>下面这张表格总结了不同场景下的推荐方案：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>首选方案</th>
+<th>备选方案</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTP 请求</td>
+<td>@ohos&#x2F;axios</td>
+<td>RCP</td>
+<td>社区成熟 + 拦截器 + 低学习成本</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>@ohos&#x2F;websocket</td>
+<td>原生 socket</td>
+<td>断线重连 + 心跳封装开箱即用</td>
+</tr>
+<tr>
+<td>UI 组件</td>
+<td>TDesign</td>
+<td>TuniaoUI</td>
+<td>大厂维护 + 40+ 组件 + 持续迭代</td>
+</tr>
+<tr>
+<td>图片加载</td>
+<td>@ohos&#x2F;imageglide</td>
+<td>原生 Image</td>
+<td>三级缓存 + 防 OOM + 占位图</td>
+</tr>
+<tr>
+<td>轻量 KV 存储</td>
+<td>Preferences</td>
+<td>—</td>
+<td>API 12+ 内置，零依赖</td>
+</tr>
+<tr>
+<td>高性能 KV</td>
+<td>@tencent&#x2F;mmkv</td>
+<td>Preferences</td>
+<td>比 Preferences 快 10-50 倍</td>
+</tr>
+<tr>
+<td>关系型数据库</td>
+<td>RelationalStore</td>
+<td>OCORM</td>
+<td>SQLite 底层，稳定可靠</td>
+</tr>
+<tr>
+<td>动画</td>
+<td>Lottie &#x2F; 显式动画</td>
+<td>—</td>
+<td>JSON 动效替代手写代码</td>
+</tr>
+<tr>
+<td>扫码</td>
+<td>@ohos&#x2F;zxing</td>
+<td>—</td>
+<td>唯一成熟的扫码方案</td>
+</tr>
+<tr>
+<td>推送</td>
+<td>@kit.PushKit</td>
+<td>—</td>
+<td>华为官方通道，到达率有保障</td>
+</tr>
+<tr>
+<td>地图</td>
+<td>@kit.MapKit</td>
+<td>—</td>
+<td>原生体验，无需额外申请 Key</td>
+</tr>
+<tr>
+<td>工具函数</td>
+<td>@ohos&#x2F;util</td>
+<td>—</td>
+<td>300+ 工具函数一站式解决</td>
+</tr>
+<tr>
+<td>路由</td>
+<td>HMRouter</td>
+<td>Navigation（官方）</td>
+<td>类型安全 + 拦截器 + 支持 Dialog</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十一、ohpm-使用备忘"><a href="#十一、ohpm-使用备忘" class="headerlink" title="十一、ohpm 使用备忘"></a>十一、ohpm 使用备忘</h2><h3 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ohpm install @ohos/axios               <span class="comment"># 安装到 dependencies</span></span><br><span class="line">ohpm install @ohos/axios --save-dev     <span class="comment"># 安装到 devDependencies</span></span><br><span class="line">ohpm install @ohos/axios@1.3.0         <span class="comment"># 指定版本</span></span><br><span class="line">ohpm uninstall @ohos/axios             <span class="comment"># 卸载</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="网络问题"><a href="#网络问题" class="headerlink" title="网络问题"></a>网络问题</h3><p>如果 ohpm 安装超时，配置镜像：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 华为官方镜像</span></span><br><span class="line">ohpm config <span class="built_in">set</span> registry https://ohpm.openharmony.cn/registry</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者用国内 npm 镜像（部分包可用）</span></span><br><span class="line">ohpm config <span class="built_in">set</span> registry https://repo.huaweicloud.com/repository/ohpm/</span><br></pre></td></tr></table></figure>
+
+<h3 id="oh-package-json5-格式"><a href="#oh-package-json5-格式" class="headerlink" title="oh-package.json5 格式"></a>oh-package.json5 格式</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;name&quot;: &quot;com.example.app&quot;,</span><br><span class="line">  &quot;version&quot;: &quot;1.0.0&quot;,</span><br><span class="line">  &quot;dependencies&quot;: &#123;</span><br><span class="line">    &quot;@ohos/axios&quot;: &quot;^1.3.4&quot;,</span><br><span class="line">    &quot;@ohos/imageglide&quot;: &quot;^1.0.0&quot;,</span><br><span class="line">    &quot;@tdesign/arkui-harmonyos&quot;: &quot;^0.8.5&quot;,</span><br><span class="line">    &quot;@tencent/mmkv&quot;: &quot;^1.0.0&quot;,</span><br><span class="line">    &quot;@ohos/websocket&quot;: &quot;^2.1.0&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="权限配置"><a href="#权限配置" class="headerlink" title="权限配置"></a>权限配置</h3><p>使用网络类库必须在 <code>module.json5</code> 中声明：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;module&quot;: &#123;</span><br><span class="line">    &quot;requestPermissions&quot;: [</span><br><span class="line">      &#123; &quot;name&quot;: &quot;ohos.permission.INTERNET&quot; &#125;,</span><br><span class="line">      &#123; &quot;name&quot;: &quot;ohos.permission.GET_NETWORK_INFO&quot; &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十二、总结"><a href="#十二、总结" class="headerlink" title="十二、总结"></a>十二、总结</h2><p>学习路线建议：</p>
+<ol>
+<li><strong>刚入门</strong> → <code>@ohos/axios</code>(网络) + <code>Native ArkUI</code>(UI) + <code>Preferences</code>(存储) —— 三件套就能开发简单应用</li>
+<li><strong>中期项目</strong> → 引入 <code>TDesign</code>(UI 加速) + <code>@tencent/mmkv</code>(性能存储) + <code>@ohos/imageglide</code>(图片)</li>
+<li><strong>成熟产品</strong> → 补全 <code>Lottie</code>(动效) + <code>@ohos/zxing</code>(扫码) + <code>PushKit</code>(推送) + <code>MapKit</code>(地图) + <code>IAPKit</code>(支付)</li>
+</ol>
+<p>鸿蒙的三方库生态已经远不是两年前的”荒漠”状态。o h p m 仓中活跃维护的库超过 5000 个，头部库的月下载量接近百万次。选库时记住三个原则：</p>
+<ul>
+<li><strong>优先官方 SDK</strong>（Kit 化服务绑定系统能力，性能最优）</li>
+<li><strong>优先大厂维护</strong>（TDesign 腾讯、MMKV 微信团队）</li>
+<li><strong>优先社区活跃</strong>（Issue 响应快、Star 数有参考价值）</li>
+</ul>
+<p><strong>最后，不要一个库用到黑。</strong> 每个工程有自己的规模和技术背景，按需引入、控制包体积，才是成熟工程的选择。</p>
+<blockquote>
+<p>本文仅供参考，版本号以 o h p m 三方库中心仓最新版本为准。如有遗漏或更新，欢迎指正。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>HarmonyOS</category>
+      </categories>
+      <tags>
+        <tag>HarmonyOS</tag>
+        <tag>ArkTS</tag>
+        <tag>三方库</tag>
+        <tag>ohpm</tag>
+      </tags>
+  </entry>
 </search>
