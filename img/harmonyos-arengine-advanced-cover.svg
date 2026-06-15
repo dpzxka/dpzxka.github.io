@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e1a"/>
+      <stop offset="50%" style="stop-color:#141b2d"/>
+      <stop offset="100%" style="stop-color:#0a0e1a"/>
+    </linearGradient>
+    <linearGradient id="accent1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00c9ff"/>
+      <stop offset="100%" style="stop-color:#92fe9d"/>
+    </linearGradient>
+    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f539f5"/>
+      <stop offset="100%" style="stop-color:#00e5ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.06">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#4a9eff" stroke-width="0.3"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+
+  <!-- 3D corner frames -->
+  <g stroke="#00c9ff" stroke-width="1.5" fill="none" opacity="0.4">
+    <path d="M 40 80 L 40 40 L 80 40"/>
+    <path d="M 1120 40 L 1160 40 L 1160 80"/>
+    <path d="M 40 550 L 40 590 L 80 590"/>
+    <path d="M 1120 590 L 1160 590 L 1160 550"/>
+  </g>
+
+  <!-- Main viewpoint area - mesh wireframe visualization -->
+  <!-- Large triangulated mesh -->
+  <g transform="translate(680, 280)" filter="url(#shadow)">
+    <!-- Mesh triangles with gradient -->
+    <polygon points="0,-80 40,-60 20,-30" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.4"/>
+    <polygon points="40,-60 80,-40 50,-20" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.35"/>
+    <polygon points="20,-30 50,-20 30,10" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.3"/>
+    <polygon points="50,-20 90,0 60,20" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.3"/>
+    <polygon points="30,10 60,20 20,40" fill="none" stroke="#92fe9d" stroke-width="0.8" opacity="0.35"/>
+    <polygon points="60,20 80,50 10,60" fill="none" stroke="#92fe9d" stroke-width="0.8" opacity="0.3"/>
+    <polygon points="-20,-20 0,-80 -40,-50" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.35"/>
+    <polygon points="-40,-50 -20,-20 -60,-10" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.3"/>
+    <polygon points="-20,-20 20,-30 -10,5" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.3"/>
+    <polygon points="-60,-10 -40,10 -20,-20" fill="none" stroke="#00c9ff" stroke-width="0.8" opacity="0.25"/>
+    <polygon points="-40,10 -20,40 -10,5" fill="none" stroke="#92fe9d" stroke-width="0.8" opacity="0.25"/>
+    <polygon points="-20,40 20,40 -10,5" fill="none" stroke="#92fe9d" stroke-width="0.8" opacity="0.2"/>
+
+    <!-- Highlighted mesh region (semantic coloring area) -->
+    <polygon points="10,-50 35,-40 25,-15" fill="#00c9ff" opacity="0.15"/>
+    <polygon points="35,-40 60,-30 45,-10" fill="#00c9ff" opacity="0.12"/>
+    <polygon points="25,-15 45,-10 30,15" fill="#92fe9d" opacity="0.12"/>
+  </g>
+
+  <!-- Point cloud dots scattered around -->
+  <g filter="url(#glow)">
+    <!-- Dense cluster - point cloud area -->
+    <circle cx="720" cy="230" r="2" fill="#00e5ff" opacity="0.8"/>
+    <circle cx="740" cy="215" r="1.8" fill="#00e5ff" opacity="0.7"/>
+    <circle cx="700" cy="250" r="1.5" fill="#00c9ff" opacity="0.6"/>
+    <circle cx="760" cy="240" r="1.8" fill="#00e5ff" opacity="0.7"/>
+    <circle cx="730" cy="260" r="2" fill="#92fe9d" opacity="0.6"/>
+    <circle cx="690" cy="220" r="1.5" fill="#00c9ff" opacity="0.5"/>
+    <circle cx="780" cy="250" r="1.3" fill="#00e5ff" opacity="0.5"/>
+    <circle cx="750" cy="200" r="1.8" fill="#00c9ff" opacity="0.6"/>
+    <circle cx="710" cy="280" r="1.5" fill="#92fe9d" opacity="0.5"/>
+    <circle cx="770" cy="220" r="1.3" fill="#00e5ff" opacity="0.5"/>
+    <circle cx="795" cy="270" r="1" fill="#00c9ff" opacity="0.4"/>
+    <circle cx="685" cy="195" r="1.2" fill="#00e5ff" opacity="0.4"/>
+    <circle cx="815" cy="230" r="1.5" fill="#92fe9d" opacity="0.5"/>
+    <circle cx="665" cy="240" r="1.3" fill="#00c9ff" opacity="0.4"/>
+    <circle cx="630" cy="260" r="1" fill="#00e5ff" opacity="0.3"/>
+    <circle cx="800" cy="295" r="1.2" fill="#92fe9d" opacity="0.4"/>
+    <circle cx="840" cy="250" r="0.8" fill="#00c9ff" opacity="0.3"/>
+    <circle cx="650" cy="210" r="1" fill="#00c9ff" opacity="0.3"/>
+    <circle cx="600" cy="280" r="1.5" fill="#f539f5" opacity="0.5"/>
+    <circle cx="620" cy="300" r="1.2" fill="#f539f5" opacity="0.4"/>
+    <circle cx="640" cy="320" r="1" fill="#f539f5" opacity="0.3"/>
+    <circle cx="580" cy="250" r="0.8" fill="#f539f5" opacity="0.3"/>
+  </g>
+
+  <!-- Color legend bar -->
+  <g transform="translate(680, 430)">
+    <rect x="0" y="0" width="180" height="12" rx="2"
+          fill="url(#accent1)" opacity="0.8"/>
+    <text x="0" y="24" fill="#5a5a7a" font-size="10" font-family="monospace">低</text>
+    <text x="170" y="24" fill="#5a5a7a" font-size="10" font-family="monospace" text-anchor="end">高</text>
+    <text x="90" y="24" fill="#5a5a7a" font-size="10" font-family="monospace" text-anchor="middle">高度着色</text>
+  </g>
+
+  <!-- Color picker / mode indicator -->
+  <g transform="translate(880, 430)">
+    <rect x="0" y="0" width="180" height="12" rx="2"
+          fill="url(#accent2)" opacity="0.8"/>
+    <text x="90" y="24" fill="#5a5a7a" font-size="10" font-family="monospace" text-anchor="middle">法线着色</text>
+  </g>
+
+  <!-- Title -->
+  <g transform="translate(0, 0)">
+    <text x="80" y="200" fill="#fff" font-size="44" font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', sans-serif" font-weight="700" letter-spacing="1">
+      AR Engine
+    </text>
+    <text x="80" y="235" fill="url(#accent1)" font-size="40" font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', sans-serif" font-weight="600">
+      进阶完全指南
+    </text>
+    <text x="80" y="280" fill="#6a6a8a" font-size="16" font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', sans-serif" letter-spacing="1">
+      点云感知 · 场景网格重建 · 实时着色
+    </text>
+  </g>
+
+  <!-- Tags -->
+  <g transform="translate(80, 320)">
+    <rect x="0" y="-8" width="80" height="26" rx="13" fill="none" stroke="#00c9ff" stroke-width="1"/>
+    <text x="40" y="10" fill="#00c9ff" font-size="12" font-family="monospace" text-anchor="middle">点云</text>
+    
+    <rect x="92" y="-8" width="80" height="26" rx="13" fill="none" stroke="#92fe9d" stroke-width="1"/>
+    <text x="132" y="10" fill="#92fe9d" font-size="12" font-family="monospace" text-anchor="middle">网格</text>
+    
+    <rect x="184" y="-8" width="80" height="26" rx="13" fill="none" stroke="#f539f5" stroke-width="1"/>
+    <text x="224" y="10" fill="#f539f5" font-size="12" font-family="monospace" text-anchor="middle">着色</text>
+  </g>
+
+  <!-- Vertex count indicator -->
+  <g transform="translate(80, 380)">
+    <text x="0" y="0" fill="#4a4a6a" font-size="12" font-family="monospace">VERTICES: <tspan fill="#00c9ff">12,847</tspan></text>
+    <text x="0" y="20" fill="#4a4a6a" font-size="12" font-family="monospace">POINTS:   <tspan fill="#92fe9d">3,421</tspan></text>
+  </g>
+
+  <!-- Bottom info bar -->
+  <g transform="translate(0, 560)">
+    <rect width="1200" height="70" fill="#060a14" opacity="0.8"/>
+    <line x1="40" y1="0" x2="1160" y2="0" stroke="#141b2d" stroke-width="1"/>
+    
+    <!-- Tracking status -->
+    <circle cx="60" cy="35" r="4" fill="#4cd964"/>
+    <text x="72" y="39" fill="#4cd964" font-size="12" font-family="monospace">TRACKING</text>
+    
+    <!-- Scene mesh status -->
+    <circle cx="200" cy="35" r="4" fill="#5ac8fa"/>
+    <text x="212" y="39" fill="#5ac8fa" font-size="12" font-family="monospace">MESH: ACTIVE (SEMI-ANALYSIS)</text>
+    
+    <!-- Coloring mode -->
+    <text x="460" y="39" fill="#8e8e93" font-size="12" font-family="monospace">COLOR: HEIGHT</text>
+    
+    <!-- FPS -->
+    <text x="620" y="39" fill="#8e8e93" font-size="12" font-family="monospace">FPS: 30</text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="80" y="530" width="160" height="3" rx="1.5" fill="url(#accent1)"/>
+
+  <!-- Decorative grid dots -->
+  <g fill="#4a9eff" opacity="0.08">
+    <circle cx="200" cy="480" r="1.5"/>
+    <circle cx="350" cy="150" r="1"/>
+    <circle cx="500" cy="490" r="1.5"/>
+    <circle cx="150" cy="100" r="1.2"/>
+    <circle cx="250" cy="500" r="1"/>
+    <circle cx="400" cy="520" r="0.8"/>
+  </g>
+</svg>

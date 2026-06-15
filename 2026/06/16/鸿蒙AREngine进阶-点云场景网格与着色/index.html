@@ -1,0 +1,1015 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙 AR Engine 进阶：点云感知、场景网格重建与实时着色 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言在上一篇文章《鸿蒙 AR Engine 完全指南》中，我们系统性地学习了 AR Engine 的基础能力——会话管理、平面检测、命中检测与模型渲染。这些能力构成了任何 AR 应用的骨架。 但真实世界的丰富性远不止平面和特征点。当我们需要更精细地理解环境时——比如让虚拟物体能贴着凹凸不平的墙面、让 AR 角色能感知地面上的障碍物、或者实现真实的物理遮挡——就需要更高级的感知能力：  点云（Poi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙 AR Engine 进阶：点云感知、场景网格重建与实时着色">
+<meta property="og:url" content="https://dpzxka.github.io/2026/06/16/%E9%B8%BF%E8%92%99AREngine%E8%BF%9B%E9%98%B6-%E7%82%B9%E4%BA%91%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E4%B8%8E%E7%9D%80%E8%89%B2/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="前言在上一篇文章《鸿蒙 AR Engine 完全指南》中，我们系统性地学习了 AR Engine 的基础能力——会话管理、平面检测、命中检测与模型渲染。这些能力构成了任何 AR 应用的骨架。 但真实世界的丰富性远不止平面和特征点。当我们需要更精细地理解环境时——比如让虚拟物体能贴着凹凸不平的墙面、让 AR 角色能感知地面上的障碍物、或者实现真实的物理遮挡——就需要更高级的感知能力：  点云（Poi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-arengine-advanced-cover.svg">
+<meta property="article:published_time" content="2026-06-16T13:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-15T23:21:18.111Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="harmonyos">
+<meta property="article:tag" content="arengine">
+<meta property="article:tag" content="arkts">
+<meta property="article:tag" content="augmented reality">
+<meta property="article:tag" content="pointcloud">
+<meta property="article:tag" content="mesh">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-arengine-advanced-cover.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙 AR Engine 进阶：点云感知、场景网格重建与实时着色",
+  "url": "https://dpzxka.github.io/2026/06/16/%E9%B8%BF%E8%92%99AREngine%E8%BF%9B%E9%98%B6-%E7%82%B9%E4%BA%91%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E4%B8%8E%E7%9D%80%E8%89%B2/",
+  "image": "https://dpzxka.github.io/img/harmonyos-arengine-advanced-cover.svg",
+  "datePublished": "2026-06-16T13:00:00.000Z",
+  "dateModified": "2026-06-15T23:21:18.111Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/06/16/%E9%B8%BF%E8%92%99AREngine%E8%BF%9B%E9%98%B6-%E7%82%B9%E4%BA%91%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E4%B8%8E%E7%9D%80%E8%89%B2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙 AR Engine 进阶：点云感知、场景网格重建与实时着色',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-arengine-advanced-cover.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙 AR Engine 进阶：点云感知、场景网格重建与实时着色</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙 AR Engine 进阶：点云感知、场景网格重建与实时着色</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-06-16T13:00:00.000Z" title="发表于 2026-06-16 21:00:00">2026-06-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-15T23:21:18.111Z" title="更新于 2026-06-16 07:21:18">2026-06-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/harmonyos/">harmonyos</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>33分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-06-16 07:21:18&quot;}" hidden></div><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在上一篇文章《鸿蒙 AR Engine 完全指南》中，我们系统性地学习了 AR Engine 的基础能力——会话管理、平面检测、命中检测与模型渲染。这些能力构成了任何 AR 应用的骨架。</p>
+<p>但真实世界的丰富性远不止平面和特征点。当我们需要更精细地理解环境时——比如让虚拟物体能<strong>贴着凹凸不平的墙面</strong>、让 AR 角色能<strong>感知地面上的障碍物</strong>、或者实现<strong>真实的物理遮挡</strong>——就需要更高级的感知能力：</p>
+<ul>
+<li><strong>点云（Point Cloud）</strong>：环境中成千上万的特征点，构成空间的”骨架”</li>
+<li><strong>场景网格（Scene Mesh）</strong>：连续三角网格重建，让 AR 应用”触摸”到环境的几何形状</li>
+<li><strong>实时着色（Real-time Coloring）</strong>：为点云和网格赋予颜色，让抽象数据变得可读</li>
+</ul>
+<p>本文将是这些进阶技术的全面指南，代码全部遵循 HarmonyOS NEXT V2 装饰器规范。</p>
+<hr>
+<h2 id="一、能力总览"><a href="#一、能力总览" class="headerlink" title="一、能力总览"></a>一、能力总览</h2><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart TB
+    subgraph 环境感知层级
+        L1[第一层: 稀疏特征点&lt;br&gt;ARPoint &#x2F; 特征点云] --&gt; L2
+        L2[第二层: 语义平面&lt;br&gt;ARPlane + SemanticLabel] --&gt; L3
+        L3[第三层: 稠密场景网格&lt;br&gt;ARSceneMesh 高精&#x2F;半解析]
+    end
+    
+    subgraph 着色技术
+        C1[点云着色&lt;br&gt;相机图像映射]
+        C2[网格着色&lt;br&gt;语义&#x2F;距离&#x2F;法线]
+    end
+    
+    L1 --&gt; C1
+    L3 --&gt; C2
+    
+    style L1 fill:#4a90d9,color:#fff
+    style L2 fill:#f5a623,color:#fff
+    style L3 fill:#7ed321,color:#fff
+    style C1 fill:#b772e0,color:#fff
+    style C2 fill:#e87461,color:#fff
+  </pre></div>
+
+<h3 id="三种数据层级对比"><a href="#三种数据层级对比" class="headerlink" title="三种数据层级对比"></a>三种数据层级对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>ARPoint（特征点）</th>
+<th>ARPlane（平面）</th>
+<th>ARSceneMesh（场景网格）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据量</td>
+<td>数十~数百</td>
+<td>数个~数十</td>
+<td>数千~数十万顶点</td>
+</tr>
+<tr>
+<td>维度</td>
+<td>3D 位置</td>
+<td>2D 平面+边界</td>
+<td>3D 三角网格</td>
+</tr>
+<tr>
+<td>精度</td>
+<td>中等（特征点级别）</td>
+<td>高（平面拟合）</td>
+<td>极高（逐顶点）</td>
+</tr>
+<tr>
+<td>API 18+</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>特征跟踪、稀疏重建</td>
+<td>物体放置、导航</td>
+<td>物理遮挡、碰撞、测量</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>理解三个层级的关系</strong>：特征点云是最稀疏的”种子点”，平面检测在此基础上拟合出语义平面，而场景网格则利用深度数据进行最精细的几何重建。三者可以同时使用。</p>
+</blockquote>
+<hr>
+<h2 id="二、点云技术原理"><a href="#二、点云技术原理" class="headerlink" title="二、点云技术原理"></a>二、点云技术原理</h2><h3 id="2-1-什么是-AR-点云？"><a href="#2-1-什么是-AR-点云？" class="headerlink" title="2.1 什么是 AR 点云？"></a>2.1 什么是 AR 点云？</h3><p>AR Engine 中的点云由两部分组成：</p>
+<p><strong>特征点（Feature Points）</strong>：通过图像特征检测算法（如 ORB、SIFT 等）从相机帧中提取的显著纹理点。这些点构成稀疏点云，用于：</p>
+<ul>
+<li>运动跟踪（Visual-Inertial Odometry）</li>
+<li>平面拟合的输入数据</li>
+<li>命中检测的特征点模式</li>
+</ul>
+<p><strong>深度点云（Depth Point Cloud）</strong>：从 ToF 深度传感器或双目视觉计算得到的稠密深度数据。在支持 ToF 的设备上，每帧可获取数万个深度点。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart LR
+    A[相机帧] --&gt; B[特征提取&lt;br&gt;ORB&#x2F;FAST]
+    A --&gt; C[深度计算&lt;br&gt;ToF &#x2F; 双目]
+    
+    B --&gt; D[稀疏点云&lt;br&gt;ARPoint]
+    C --&gt; E[稠密深度点云]
+    
+    D --&gt; F[跟踪&#x2F;定位]
+    D --&gt; G[平面拟合]
+    E --&gt; H[场景网格重建]
+    
+    style A fill:#4a90d9,color:#fff
+    style D fill:#f5a623,color:#fff
+    style E fill:#7ed321,color:#fff
+  </pre></div>
+
+<h3 id="2-2-ArkTS-中的点云-API"><a href="#2-2-ArkTS-中的点云-API" class="headerlink" title="2.2 ArkTS 中的点云 API"></a>2.2 ArkTS 中的点云 API</h3><p>在 ArkTS 中，特征点通过 <code>getAllTrackables(ARTrackableType.POINT)</code> 获取：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; arEngine, <span class="title class_">ARView</span>, arViewController &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AREngine&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取所有特征点</span></span><br><span class="line"><span class="keyword">const</span> trackables = session.<span class="title function_">getAllTrackables</span>(arEngine.<span class="property">ARTrackableType</span>.<span class="property">POINT</span>);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> trackable <span class="keyword">of</span> trackables) &#123;</span><br><span class="line">  <span class="keyword">if</span> (trackable <span class="keyword">instanceof</span> arEngine.<span class="property">ARPoint</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> point = trackable <span class="keyword">as</span> arEngine.<span class="property">ARPoint</span>;</span><br><span class="line">    <span class="keyword">const</span> pose = point.<span class="title function_">getPose</span>();</span><br><span class="line">    <span class="comment">// 获取 3D 位置</span></span><br><span class="line">    <span class="keyword">const</span> matrix = pose.<span class="title function_">getMatrix</span>();</span><br><span class="line">    <span class="comment">// matrix[12], matrix[13], matrix[14] 对应 x, y, z</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-ARPoint-核心接口"><a href="#2-3-ARPoint-核心接口" class="headerlink" title="2.3 ARPoint 核心接口"></a>2.3 ARPoint 核心接口</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>返回类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>getPose()</code></td>
+<td><code>ARPose</code></td>
+<td>获取点的位姿信息</td>
+</tr>
+<tr>
+<td><code>getOrientationMode()</code></td>
+<td><code>ARPointOrientationMode</code></td>
+<td>点的朝向模式（ESTIMATED_SURFACE_NORMAL）</td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td><code>number</code></td>
+<td>点的置信度（API 19+）</td>
+</tr>
+</tbody></table>
+<h3 id="2-4-特征点跟踪示例"><a href="#2-4-特征点跟踪示例" class="headerlink" title="2.4 特征点跟踪示例"></a>2.4 特征点跟踪示例</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line"><span class="keyword">export</span> struct <span class="title class_">ARPointCloudView</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">arContext</span>?: arViewController.<span class="property">ARViewContext</span> = <span class="literal">undefined</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">pointCount</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">pointInfo</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">arContext</span>) &#123;</span><br><span class="line">          <span class="title class_">ARView</span>(&#123; <span class="attr">context</span>: <span class="variable language_">this</span>.<span class="property">arContext</span> &#125;)</span><br><span class="line">            .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">            .<span class="title function_">height</span>(<span class="string">&#x27;60%&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">`特征点数量: <span class="subst">$&#123;<span class="variable language_">this</span>.pointCount&#125;</span>`</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">          .<span class="title function_">margin</span>(<span class="number">8</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">pointInfo</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">12</span>)</span><br><span class="line">          .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">Gray</span>)</span><br><span class="line">          .<span class="title function_">padding</span>(<span class="number">8</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">initAR</span>())</span><br><span class="line">    .<span class="title function_">onHide</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">pause</span>())</span><br><span class="line">    .<span class="title function_">onShow</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">resume</span>())</span><br><span class="line">    .<span class="title function_">onDisappear</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">destroy</span>();</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span> = <span class="literal">undefined</span>;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">initAR</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span> = <span class="keyword">new</span> arViewController.<span class="title class_">ARViewContext</span>();</span><br><span class="line">      <span class="keyword">const</span> scene = <span class="keyword">new</span> <span class="title class_">Scene</span>();</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">        scene,</span><br><span class="line">        <span class="attr">callback</span>: <span class="keyword">new</span> <span class="keyword">class</span> <span class="title class_">extends</span> arViewController.<span class="property">ARViewCallback</span> &#123;</span><br><span class="line">          <span class="keyword">private</span> <span class="attr">owner</span>: <span class="title class_">ARPointCloudView</span>;</span><br><span class="line">          <span class="title function_">constructor</span>(<span class="params"><span class="attr">owner</span>: <span class="title class_">ARPointCloudView</span></span>) &#123;</span><br><span class="line">            <span class="variable language_">super</span>();</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">owner</span> = owner;</span><br><span class="line">          &#125;</span><br><span class="line">          </span><br><span class="line">          <span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!ctx.<span class="property">session</span>) <span class="keyword">return</span>;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">const</span> points = ctx.<span class="property">session</span>.<span class="title function_">getAllTrackables</span>(</span><br><span class="line">              arEngine.<span class="property">ARTrackableType</span>.<span class="property">POINT</span></span><br><span class="line">            );</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">let</span> count = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">let</span> sampleInfo = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">const</span> trackable <span class="keyword">of</span> points) &#123;</span><br><span class="line">              <span class="keyword">if</span> (trackable <span class="keyword">instanceof</span> arEngine.<span class="property">ARPoint</span>) &#123;</span><br><span class="line">                count++;</span><br><span class="line">                <span class="keyword">if</span> (count &lt;= <span class="number">3</span>) &#123;</span><br><span class="line">                  <span class="keyword">const</span> pose = trackable.<span class="title function_">getPose</span>();</span><br><span class="line">                  <span class="keyword">const</span> m = pose.<span class="title function_">getMatrix</span>();</span><br><span class="line">                  sampleInfo += <span class="string">`点<span class="subst">$&#123;count&#125;</span>: (<span class="subst">$&#123;m.getValue(<span class="number">12</span>).toFixed(<span class="number">2</span>)&#125;</span>, `</span> +</span><br><span class="line">                    <span class="string">`<span class="subst">$&#123;m.getValue(<span class="number">13</span>).toFixed(<span class="number">2</span>)&#125;</span>, <span class="subst">$&#123;m.getValue(<span class="number">14</span>).toFixed(<span class="number">2</span>)&#125;</span>)\n`</span>;</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">pointCount</span> = count;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">pointInfo</span> = sampleInfo;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span>.<span class="title function_">resume</span>();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      <span class="comment">// 错误处理</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、稀疏点云的可视化"><a href="#三、稀疏点云的可视化" class="headerlink" title="三、稀疏点云的可视化"></a>三、稀疏点云的可视化</h2><p>特征点本身是不可见的——它们存在于 AR Engine 的跟踪坐标系中。为了调试和可视化，我们可以通过 ArkGraphics3D 将它们渲染为 3D 空间中的小圆球。</p>
+<h3 id="3-1-点云渲染节点"><a href="#3-1-点云渲染节点" class="headerlink" title="3.1 点云渲染节点"></a>3.1 点云渲染节点</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PointCloudRenderer</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">scene</span>: <span class="title class_">Scene</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">pointNodes</span>: <span class="title class_">Node</span>[] = [];</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">maxPoints</span>: <span class="built_in">number</span> = <span class="number">200</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"><span class="attr">scene</span>: <span class="title class_">Scene</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">scene</span> = scene;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">update</span>(<span class="attr">points</span>: arEngine.<span class="property">ARPoint</span>[]): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 清空旧的点</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">clearPoints</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 只显示最近的 maxPoints 个点</span></span><br><span class="line">    <span class="keyword">const</span> count = <span class="title class_">Math</span>.<span class="title function_">min</span>(points.<span class="property">length</span>, <span class="variable language_">this</span>.<span class="property">maxPoints</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">      <span class="keyword">const</span> point = points[i];</span><br><span class="line">      <span class="keyword">const</span> pose = point.<span class="title function_">getPose</span>();</span><br><span class="line">      <span class="keyword">const</span> matrix = pose.<span class="title function_">getMatrix</span>();</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">const</span> node = <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">`point_<span class="subst">$&#123;i&#125;</span>`</span>);</span><br><span class="line">      node.<span class="property">transform</span> = matrix;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 创建一个小球体表示点</span></span><br><span class="line">      <span class="comment">// 在 AGP 中创建一个半径为 0.01 的球体 Mesh</span></span><br><span class="line">      node.<span class="title function_">addComponent</span>(<span class="string">&#x27;MeshRenderer&#x27;</span>, &#123;</span><br><span class="line">        <span class="attr">primitive</span>: <span class="string">&#x27;sphere&#x27;</span>,</span><br><span class="line">        <span class="attr">radius</span>: <span class="number">0.01</span>,</span><br><span class="line">        <span class="attr">material</span>: &#123;</span><br><span class="line">          <span class="attr">color</span>: <span class="variable language_">this</span>.<span class="title function_">getPointColor</span>(point.<span class="property">confidence</span>)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">scene</span>.<span class="title function_">addNode</span>(node);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">pointNodes</span>.<span class="title function_">push</span>(node);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">getPointColor</span>(<span class="attr">confidence</span>: <span class="built_in">number</span>): <span class="title class_">Color</span> &#123;</span><br><span class="line">    <span class="comment">// 根据置信度着色: 低→红, 中→黄, 高→绿</span></span><br><span class="line">    <span class="keyword">if</span> (confidence &lt; <span class="number">0.3</span>) <span class="keyword">return</span> <span class="title class_">Color</span>.<span class="property">Red</span>;</span><br><span class="line">    <span class="keyword">if</span> (confidence &lt; <span class="number">0.7</span>) <span class="keyword">return</span> <span class="title class_">Color</span>.<span class="property">Yellow</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Color</span>.<span class="property">Green</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">clearPoints</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> node <span class="keyword">of</span> <span class="variable language_">this</span>.<span class="property">pointNodes</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">scene</span>.<span class="title function_">removeNode</span>(node);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">pointNodes</span> = [];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-特征点的生命周期"><a href="#3-2-特征点的生命周期" class="headerlink" title="3.2 特征点的生命周期"></a>3.2 特征点的生命周期</h3><p>特征点不是永久存在的——AR Engine 会持续管理它们的生命周期：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 特征点状态管理</span></span><br><span class="line"><span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (!ctx.<span class="property">session</span>) <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> currentPoints = ctx.<span class="property">session</span>.<span class="title function_">getAllTrackables</span>(</span><br><span class="line">    arEngine.<span class="property">ARTrackableType</span>.<span class="property">POINT</span></span><br><span class="line">  );</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 对比上一帧，识别新增/消失的点</span></span><br><span class="line">  <span class="keyword">const</span> currentIds = <span class="keyword">new</span> <span class="title class_">Set</span>&lt;<span class="built_in">string</span>&gt;();</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> trackable <span class="keyword">of</span> currentPoints) &#123;</span><br><span class="line">    <span class="keyword">if</span> (trackable <span class="keyword">instanceof</span> arEngine.<span class="property">ARPoint</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> id = trackable.<span class="title function_">getTrackableId</span>();</span><br><span class="line">      currentIds.<span class="title function_">add</span>(id);</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">if</span> (!<span class="variable language_">this</span>.<span class="property">previousPointIds</span>.<span class="title function_">has</span>(id)) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`新特征点: <span class="subst">$&#123;id&#125;</span>`</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 找出消失的点</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> prevId <span class="keyword">of</span> <span class="variable language_">this</span>.<span class="property">previousPointIds</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!currentIds.<span class="title function_">has</span>(prevId)) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`特征点消失: <span class="subst">$&#123;prevId&#125;</span>`</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">previousPointIds</span> = currentIds;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、稠密点云与深度数据"><a href="#四、稠密点云与深度数据" class="headerlink" title="四、稠密点云与深度数据"></a>四、稠密点云与深度数据</h2><h3 id="4-1-获取深度点云"><a href="#4-1-获取深度点云" class="headerlink" title="4.1 获取深度点云"></a>4.1 获取深度点云</h3><p>在支持 ToF 传感器的设备上，AR Engine 可以通过 <code>ARFrame</code> 获取更密集的深度点云数据：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 从 ARFrame 获取深度点云</span></span><br><span class="line"><span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (!ctx.<span class="property">session</span>) <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> frame = ctx.<span class="property">session</span>.<span class="title function_">update</span>();</span><br><span class="line">  <span class="keyword">if</span> (!frame) <span class="keyword">return</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 获取深度点云数据</span></span><br><span class="line">  <span class="keyword">const</span> depthPoints = frame.<span class="title function_">acquireDepthPoints</span>(); <span class="comment">// API 19+</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (depthPoints) &#123;</span><br><span class="line">    <span class="comment">// depthPoints 包含 x, y, z 坐标数组</span></span><br><span class="line">    <span class="keyword">const</span> <span class="attr">coordinates</span>: <span class="title class_">Float32Array</span> = depthPoints.<span class="title function_">getCoordinates</span>();</span><br><span class="line">    <span class="comment">// 每三个 float 为一组 (x, y, z)</span></span><br><span class="line">    <span class="keyword">const</span> pointCount = coordinates.<span class="property">length</span> / <span class="number">3</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取对应的置信度</span></span><br><span class="line">    <span class="keyword">const</span> <span class="attr">confidences</span>: <span class="title class_">Float32Array</span> = depthPoints.<span class="title function_">getConfidences</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 遍历所有深度点</span></span><br><span class="line">    <span class="keyword">const</span> <span class="attr">positions</span>: <span class="built_in">number</span>[] = [];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; pointCount; i++) &#123;</span><br><span class="line">      <span class="keyword">if</span> (confidences[i] &gt; <span class="number">0.5</span>) &#123; <span class="comment">// 只保留高置信度点</span></span><br><span class="line">        <span class="keyword">const</span> idx = i * <span class="number">3</span>;</span><br><span class="line">        positions.<span class="title function_">push</span>(</span><br><span class="line">          coordinates[idx],</span><br><span class="line">          coordinates[idx + <span class="number">1</span>],</span><br><span class="line">          coordinates[idx + <span class="number">2</span>]</span><br><span class="line">        );</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 使用 positions 数据构建 AGP 点云渲染</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">updateDepthPointCloud</span>(positions);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>frame.acquireDepthPoints()</code> 返回的是<strong>世界坐标系</strong>中的 3D 点，可以直接用于网格重建或碰撞检测。API 19+ 可用。</p>
+</blockquote>
+<h3 id="4-2-坐标变换"><a href="#4-2-坐标变换" class="headerlink" title="4.2 坐标变换"></a>4.2 坐标变换</h3><p>深度点云的数据量可能非常大（数万点&#x2F;帧），在渲染前通常需要进行<strong>下采样</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">downsamplePointCloud</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">coordinates</span>: <span class="title class_">Float32Array</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">voxelSize</span>: <span class="built_in">number</span> = <span class="number">0.01</span></span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Float32Array</span> &#123;</span><br><span class="line">  <span class="comment">// 体素网格下采样</span></span><br><span class="line">  <span class="keyword">const</span> grid = <span class="keyword">new</span> <span class="title class_">Map</span>&lt;<span class="built_in">string</span>, <span class="built_in">number</span>[]&gt;();</span><br><span class="line">  <span class="keyword">const</span> pointCount = coordinates.<span class="property">length</span> / <span class="number">3</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; pointCount; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> idx = i * <span class="number">3</span>;</span><br><span class="line">    <span class="comment">// 计算体素网格坐标</span></span><br><span class="line">    <span class="keyword">const</span> gx = <span class="title class_">Math</span>.<span class="title function_">floor</span>(coordinates[idx] / voxelSize);</span><br><span class="line">    <span class="keyword">const</span> gy = <span class="title class_">Math</span>.<span class="title function_">floor</span>(coordinates[idx + <span class="number">1</span>] / voxelSize);</span><br><span class="line">    <span class="keyword">const</span> gz = <span class="title class_">Math</span>.<span class="title function_">floor</span>(coordinates[idx + <span class="number">2</span>] / voxelSize);</span><br><span class="line">    <span class="keyword">const</span> key = <span class="string">`<span class="subst">$&#123;gx&#125;</span>,<span class="subst">$&#123;gy&#125;</span>,<span class="subst">$&#123;gz&#125;</span>`</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!grid.<span class="title function_">has</span>(key)) &#123;</span><br><span class="line">      grid.<span class="title function_">set</span>(key, [</span><br><span class="line">        coordinates[idx],</span><br><span class="line">        coordinates[idx + <span class="number">1</span>],</span><br><span class="line">        coordinates[idx + <span class="number">2</span>]</span><br><span class="line">      ]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">new</span> <span class="title class_">Float32Array</span>(grid.<span class="property">size</span> * <span class="number">3</span>);</span><br><span class="line">  <span class="keyword">let</span> i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> pos <span class="keyword">of</span> grid.<span class="title function_">values</span>()) &#123;</span><br><span class="line">    result[i] = pos[<span class="number">0</span>];</span><br><span class="line">    result[i + <span class="number">1</span>] = pos[<span class="number">1</span>];</span><br><span class="line">    result[i + <span class="number">2</span>] = pos[<span class="number">2</span>];</span><br><span class="line">    i += <span class="number">3</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、点云着色（Point-Cloud-Coloring）"><a href="#五、点云着色（Point-Cloud-Coloring）" class="headerlink" title="五、点云着色（Point Cloud Coloring）"></a>五、点云着色（Point Cloud Coloring）</h2><h3 id="5-1-着色原理"><a href="#5-1-着色原理" class="headerlink" title="5.1 着色原理"></a>5.1 着色原理</h3><p>原始点云只有位置信息，没有颜色。点云着色的核心思路是<strong>将相机图像的颜色映射到 3D 点</strong>：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart LR
+    A[相机帧] --&gt; B[RGB 图像]
+    C[深度点云&lt;br&gt;3D 坐标] --&gt; D[投影到 2D&lt;br&gt;相机内参投影矩阵]
+    B --&gt; E[采样像素颜色]
+    D --&gt; E
+    E --&gt; F[着色后的点云]
+    
+    style A fill:#4a90d9,color:#fff
+    style C fill:#f5a623,color:#fff
+    style F fill:#7ed321,color:#fff
+  </pre></div>
+
+<h3 id="5-2-相机投影矩阵"><a href="#5-2-相机投影矩阵" class="headerlink" title="5.2 相机投影矩阵"></a>5.2 相机投影矩阵</h3><p>从 3D 世界坐标到 2D 图像坐标的映射需要相机的内参矩阵和投影矩阵：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">project3DTo2D</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">worldX</span>: <span class="built_in">number</span>, <span class="attr">worldY</span>: <span class="built_in">number</span>, <span class="attr">worldZ</span>: <span class="built_in">number</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">viewMatrix</span>: <span class="title class_">Matrix4</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">projMatrix</span>: <span class="title class_">Matrix4</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">imageWidth</span>: <span class="built_in">number</span>, <span class="attr">imageHeight</span>: <span class="built_in">number</span></span></span><br><span class="line"><span class="params"></span>): &#123; <span class="attr">u</span>: <span class="built_in">number</span>; <span class="attr">v</span>: <span class="built_in">number</span> &#125; | <span class="literal">null</span> &#123;</span><br><span class="line">  <span class="comment">// 将 3D 点转换到相机坐标系</span></span><br><span class="line">  <span class="keyword">const</span> camX = viewMatrix.<span class="title function_">getValue</span>(<span class="number">0</span>) * worldX + viewMatrix.<span class="title function_">getValue</span>(<span class="number">4</span>) * worldY +</span><br><span class="line">               viewMatrix.<span class="title function_">getValue</span>(<span class="number">8</span>) * worldZ + viewMatrix.<span class="title function_">getValue</span>(<span class="number">12</span>);</span><br><span class="line">  <span class="keyword">const</span> camY = viewMatrix.<span class="title function_">getValue</span>(<span class="number">1</span>) * worldX + viewMatrix.<span class="title function_">getValue</span>(<span class="number">5</span>) * worldY +</span><br><span class="line">               viewMatrix.<span class="title function_">getValue</span>(<span class="number">9</span>) * worldZ + viewMatrix.<span class="title function_">getValue</span>(<span class="number">13</span>);</span><br><span class="line">  <span class="keyword">const</span> camZ = viewMatrix.<span class="title function_">getValue</span>(<span class="number">2</span>) * worldX + viewMatrix.<span class="title function_">getValue</span>(<span class="number">6</span>) * worldY +</span><br><span class="line">               viewMatrix.<span class="title function_">getValue</span>(<span class="number">10</span>) * worldZ + viewMatrix.<span class="title function_">getValue</span>(<span class="number">14</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (camZ &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="literal">null</span>; <span class="comment">// 在相机后方</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 投影到归一化设备坐标</span></span><br><span class="line">  <span class="keyword">const</span> ndcX = (projMatrix.<span class="title function_">getValue</span>(<span class="number">0</span>) * camX + projMatrix.<span class="title function_">getValue</span>(<span class="number">8</span>)) / camZ;</span><br><span class="line">  <span class="keyword">const</span> ndcY = (projMatrix.<span class="title function_">getValue</span>(<span class="number">5</span>) * camY + projMatrix.<span class="title function_">getValue</span>(<span class="number">9</span>)) / camZ;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 转换为像素坐标</span></span><br><span class="line">  <span class="keyword">const</span> u = (ndcX * <span class="number">0.5</span> + <span class="number">0.5</span>) * imageWidth;</span><br><span class="line">  <span class="keyword">const</span> v = (<span class="number">1.0</span> - (ndcY * <span class="number">0.5</span> + <span class="number">0.5</span>)) * imageHeight;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (u &lt; <span class="number">0</span> || u &gt;= imageWidth || v &lt; <span class="number">0</span> || v &gt;= imageHeight) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>; <span class="comment">// 不在图像范围内</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> &#123; <span class="attr">u</span>: <span class="title class_">Math</span>.<span class="title function_">round</span>(u), <span class="attr">v</span>: <span class="title class_">Math</span>.<span class="title function_">round</span>(v) &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-点云着色完整实现"><a href="#5-3-点云着色完整实现" class="headerlink" title="5.3 点云着色完整实现"></a>5.3 点云着色完整实现</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PointCloudColoring</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">lastColorImage</span>: <span class="title class_">PixelMap</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">viewMatrix</span>: <span class="title class_">Matrix4</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">projMatrix</span>: <span class="title class_">Matrix4</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!ctx.<span class="property">session</span>) <span class="keyword">return</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> frame = ctx.<span class="property">session</span>.<span class="title function_">update</span>();</span><br><span class="line">    <span class="keyword">if</span> (!frame) <span class="keyword">return</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取相机图像（RGB）</span></span><br><span class="line">    <span class="keyword">const</span> <span class="attr">camera</span>: arEngine.<span class="property">ARCamera</span> = frame.<span class="title function_">getCamera</span>();</span><br><span class="line">    <span class="keyword">const</span> <span class="attr">image</span>: <span class="title class_">PixelMap</span> | <span class="literal">null</span> = frame.<span class="title function_">acquireCameraImage</span>();</span><br><span class="line">    <span class="keyword">if</span> (image) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">lastColorImage</span> = image;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取相机位姿（用于视图矩阵）</span></span><br><span class="line">    <span class="keyword">const</span> cameraPose = camera.<span class="title function_">getPose</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">viewMatrix</span> = cameraPose.<span class="title function_">getMatrix</span>().<span class="title function_">invert</span>(); <span class="comment">// 视图矩阵 = 位姿的逆</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">projMatrix</span> = camera.<span class="title function_">getProjectionMatrix</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取深度点云</span></span><br><span class="line">    <span class="keyword">const</span> depthPoints = frame.<span class="title function_">acquireDepthPoints</span>();</span><br><span class="line">    <span class="keyword">if</span> (depthPoints &amp;&amp; <span class="variable language_">this</span>.<span class="property">lastColorImage</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">viewMatrix</span> &amp;&amp; <span class="variable language_">this</span>.<span class="property">projMatrix</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> coloredPoints = <span class="variable language_">this</span>.<span class="title function_">colorizePointCloud</span>(</span><br><span class="line">        depthPoints,</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">lastColorImage</span>,</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">viewMatrix</span>,</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">projMatrix</span></span><br><span class="line">      );</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 渲染着色后的点云</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">renderColoredPointCloud</span>(coloredPoints);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">colorizePointCloud</span>(</span><br><span class="line">    <span class="attr">depthPoints</span>: <span class="title class_">ARDepthPoints</span>,</span><br><span class="line">    <span class="attr">image</span>: <span class="title class_">PixelMap</span>,</span><br><span class="line">    <span class="attr">viewMatrix</span>: <span class="title class_">Matrix4</span>,</span><br><span class="line">    <span class="attr">projMatrix</span>: <span class="title class_">Matrix4</span></span><br><span class="line">  ): <span class="title class_">ColoredPoint</span>[] &#123;</span><br><span class="line">    <span class="keyword">const</span> coords = depthPoints.<span class="title function_">getCoordinates</span>();</span><br><span class="line">    <span class="keyword">const</span> confidences = depthPoints.<span class="title function_">getConfidences</span>();</span><br><span class="line">    <span class="keyword">const</span> width = image.<span class="property">width</span>;</span><br><span class="line">    <span class="keyword">const</span> height = image.<span class="property">height</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> <span class="attr">result</span>: <span class="title class_">ColoredPoint</span>[] = [];</span><br><span class="line">    <span class="keyword">const</span> pointCount = coords.<span class="property">length</span> / <span class="number">3</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; pointCount; i++) &#123;</span><br><span class="line">      <span class="keyword">if</span> (confidences[i] &lt; <span class="number">0.5</span>) <span class="keyword">continue</span>; <span class="comment">// 跳过低置信度点</span></span><br><span class="line">      </span><br><span class="line">      <span class="keyword">const</span> idx = i * <span class="number">3</span>;</span><br><span class="line">      <span class="keyword">const</span> wx = coords[idx];</span><br><span class="line">      <span class="keyword">const</span> wy = coords[idx + <span class="number">1</span>];</span><br><span class="line">      <span class="keyword">const</span> wz = coords[idx + <span class="number">2</span>];</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 投影到 2D</span></span><br><span class="line">      <span class="keyword">const</span> pixel = <span class="title function_">project3DTo2D</span>(wx, wy, wz, viewMatrix, projMatrix, width, height);</span><br><span class="line">      <span class="keyword">if</span> (!pixel) <span class="keyword">continue</span>;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 采样图像颜色</span></span><br><span class="line">      <span class="keyword">const</span> color = image.<span class="title function_">getPixel</span>(pixel.<span class="property">u</span>, pixel.<span class="property">v</span>);</span><br><span class="line">      </span><br><span class="line">      result.<span class="title function_">push</span>(&#123;</span><br><span class="line">        <span class="attr">x</span>: wx, <span class="attr">y</span>: wy, <span class="attr">z</span>: wz,</span><br><span class="line">        <span class="attr">r</span>: (color &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xFF</span>,</span><br><span class="line">        <span class="attr">g</span>: (color &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0xFF</span>,</span><br><span class="line">        <span class="attr">b</span>: color &amp; <span class="number">0xFF</span>,</span><br><span class="line">        <span class="attr">confidence</span>: confidences[i]</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">renderColoredPointCloud</span>(<span class="attr">points</span>: <span class="title class_">ColoredPoint</span>[]): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 将着色后的点云数据提交给 AGP 渲染</span></span><br><span class="line">    <span class="comment">// 每个点包含 position (xyz) + color (rgb)</span></span><br><span class="line">    <span class="comment">// 使用 AGP 的 ParticleSystem 或自定义几何体</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">ColoredPoint</span> &#123;</span><br><span class="line">  <span class="attr">x</span>: <span class="built_in">number</span>; <span class="attr">y</span>: <span class="built_in">number</span>; <span class="attr">z</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">r</span>: <span class="built_in">number</span>; <span class="attr">g</span>: <span class="built_in">number</span>; <span class="attr">b</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">confidence</span>: <span class="built_in">number</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-着色效果与性能"><a href="#5-4-着色效果与性能" class="headerlink" title="5.4 着色效果与性能"></a>5.4 着色效果与性能</h3><table>
+<thead>
+<tr>
+<th>影响因素</th>
+<th>说明</th>
+<th>优化建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>点云密度</td>
+<td>ToF 设备每帧可产万级点</td>
+<td>下采样至 3000~5000 点</td>
+</tr>
+<tr>
+<td>颜色采样频率</td>
+<td>逐像素采样开销大</td>
+<td>可间隔采样（每 2x2 区域采 1 点）</td>
+</tr>
+<tr>
+<td>投影计算</td>
+<td>逐点矩阵乘法</td>
+<td>使用 GPU 计算（Shader）</td>
+</tr>
+<tr>
+<td>置信度阈值</td>
+<td>过低的阈值引入噪点</td>
+<td>建议 0.3~0.5</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、场景网格重建（Scene-Mesh）"><a href="#六、场景网格重建（Scene-Mesh）" class="headerlink" title="六、场景网格重建（Scene Mesh）"></a>六、场景网格重建（Scene Mesh）</h2><h3 id="6-1-什么是场景网格？"><a href="#6-1-什么是场景网格？" class="headerlink" title="6.1 什么是场景网格？"></a>6.1 什么是场景网格？</h3><p>场景网格（Scene Mesh）是 AR Engine 通过融合深度数据（ToF、双目）和图像特征，对环境进行<strong>三角网格重建</strong>的结果。与稀疏点云不同，场景网格提供了<strong>连续的几何表面</strong>。</p>
+<h3 id="6-2-两种重建模式"><a href="#6-2-两种重建模式" class="headerlink" title="6.2 两种重建模式"></a>6.2 两种重建模式</h3><p>从 API 18 开始，AR Engine 支持两种场景网格模式：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart TD
+    subgraph 高精几何重建
+        A1[高精度顶点] --&gt; A2[精细三角面]
+        A2 --&gt; A3[适合: 测量&#x2F;建模]
+    end
+    
+    subgraph 半解析模式
+        B1[优化顶点] --&gt; B2[平面+曲面混合]
+        B2 --&gt; B3[适合: 碰撞&#x2F;遮挡]
+    end
+    
+    A1 --&gt;|性能消耗大| C1[~10FPS]
+    B1 --&gt;|性能消耗小| C2[~30FPS]
+    
+    style A3 fill:#4a90d9,color:#fff
+    style B3 fill:#7ed321,color:#fff
+  </pre></div>
+
+<h3 id="6-3-启用场景网格"><a href="#6-3-启用场景网格" class="headerlink" title="6.3 启用场景网格"></a>6.3 启用场景网格</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在初始化 ARViewContext 时启用场景网格</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">arContext</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">  scene,</span><br><span class="line">  <span class="attr">config</span>: &#123;</span><br><span class="line">    <span class="attr">sceneMeshEnable</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">sceneMeshMode</span>: arEngine.<span class="property">ARSceneMeshMode</span>.<span class="property">SEMI_ANALYSIS</span>,</span><br><span class="line">    <span class="comment">// SEMI_ANALYSIS - 半解析模式（推荐，性能好）</span></span><br><span class="line">    <span class="comment">// HIGH_PRECISION - 高精几何重建模式</span></span><br><span class="line">    <span class="attr">sceneMeshRange</span>: <span class="number">2.5</span> <span class="comment">// 网格重建范围（米），默认 2.5m</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>半解析模式下，网格范围默认 2.5 米，超出范围的区域不会生成网格。相机移动后新区域会逐步重建。</p>
+</blockquote>
+<h3 id="6-4-ARSceneMesh-核心-API"><a href="#6-4-ARSceneMesh-核心-API" class="headerlink" title="6.4 ARSceneMesh 核心 API"></a>6.4 ARSceneMesh 核心 API</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>返回类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>getVertices()</code></td>
+<td><code>Float32Array</code></td>
+<td>顶点坐标数组（每 3 个为一组 xyz）</td>
+</tr>
+<tr>
+<td><code>getIndices()</code></td>
+<td><code>Int32Array</code></td>
+<td>三角形索引数组（每 3 个为一组）</td>
+</tr>
+<tr>
+<td><code>getNormals()</code></td>
+<td><code>Float32Array</code></td>
+<td>法线数组（每 3 个为一组 nxnynz）</td>
+</tr>
+<tr>
+<td><code>getVertexCount()</code></td>
+<td><code>number</code></td>
+<td>顶点数量</td>
+</tr>
+<tr>
+<td><code>getIndexCount()</code></td>
+<td><code>number</code></td>
+<td>索引数量</td>
+</tr>
+<tr>
+<td><code>getTimestamp()</code></td>
+<td><code>number</code></td>
+<td>网格数据的时间戳</td>
+</tr>
+<tr>
+<td><code>getMeshQuality()</code></td>
+<td><code>number</code></td>
+<td>网格质量评分</td>
+</tr>
+</tbody></table>
+<h3 id="6-5-在帧回调中获取网格"><a href="#6-5-在帧回调中获取网格" class="headerlink" title="6.5 在帧回调中获取网格"></a>6.5 在帧回调中获取网格</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SceneMeshCallback</span> <span class="keyword">extends</span> <span class="title class_ inherited__">arViewController.ARViewCallback</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">previousVertexCount</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!ctx.<span class="property">session</span>) <span class="keyword">return</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取场景网格</span></span><br><span class="line">    <span class="keyword">const</span> <span class="attr">sceneMesh</span>: arEngine.<span class="property">ARSceneMesh</span> | <span class="literal">null</span> = ctx.<span class="property">session</span>.<span class="title function_">getSceneMesh</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (!sceneMesh) &#123;</span><br><span class="line">      <span class="comment">// 网格尚未就绪（通常在初始化后 1-2 秒）</span></span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> vertices = sceneMesh.<span class="title function_">getVertices</span>();</span><br><span class="line">    <span class="keyword">const</span> indices = sceneMesh.<span class="title function_">getIndices</span>();</span><br><span class="line">    <span class="keyword">const</span> normals = sceneMesh.<span class="title function_">getNormals</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> vertexCount = sceneMesh.<span class="title function_">getVertexCount</span>();</span><br><span class="line">    <span class="keyword">const</span> indexCount = sceneMesh.<span class="title function_">getIndexCount</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 检测网格是否更新</span></span><br><span class="line">    <span class="keyword">if</span> (vertexCount !== <span class="variable language_">this</span>.<span class="property">previousVertexCount</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`网格更新: <span class="subst">$&#123;vertexCount&#125;</span> 顶点, <span class="subst">$&#123;indexCount&#125;</span> 索引`</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">previousVertexCount</span> = vertexCount;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 处理网格数据...</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">processMesh</span>(vertices, indices, normals, vertexCount, indexCount);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">processMesh</span>(</span><br><span class="line">    <span class="attr">vertices</span>: <span class="title class_">Float32Array</span>,</span><br><span class="line">    <span class="attr">indices</span>: <span class="title class_">Int32Array</span>,</span><br><span class="line">    <span class="attr">normals</span>: <span class="title class_">Float32Array</span>,</span><br><span class="line">    <span class="attr">vertexCount</span>: <span class="built_in">number</span>,</span><br><span class="line">    <span class="attr">indexCount</span>: <span class="built_in">number</span></span><br><span class="line">  ): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 下面是一个简单的网格统计示例</span></span><br><span class="line">    <span class="keyword">let</span> minY = <span class="title class_">Infinity</span>, maxY = -<span class="title class_">Infinity</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; vertexCount * <span class="number">3</span>; i += <span class="number">3</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (vertices[i] &lt; minY) minY = vertices[i];</span><br><span class="line">      <span class="keyword">if</span> (vertices[i] &gt; maxY) maxY = vertices[i];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`地面高度范围: <span class="subst">$&#123;minY.toFixed(<span class="number">2</span>)&#125;</span> ~ <span class="subst">$&#123;maxY.toFixed(<span class="number">2</span>)&#125;</span>`</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 三角形数量</span></span><br><span class="line">    <span class="keyword">const</span> triangleCount = indexCount / <span class="number">3</span>;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`三角形面数: <span class="subst">$&#123;triangleCount&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、网格数据处理与分析"><a href="#七、网格数据处理与分析" class="headerlink" title="七、网格数据处理与分析"></a>七、网格数据处理与分析</h2><h3 id="7-1-解析网格拓扑"><a href="#7-1-解析网格拓扑" class="headerlink" title="7.1 解析网格拓扑"></a>7.1 解析网格拓扑</h3><p>网格数据以 <strong>顶点缓冲区</strong> + <strong>索引缓冲区</strong> 的形式存储：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">MeshData</span> &#123;</span><br><span class="line">  <span class="attr">vertices</span>: <span class="title class_">Float32Array</span>;  <span class="comment">// [v0x, v0y, v0z, v1x, v1y, v1z, ...]</span></span><br><span class="line">  <span class="attr">indices</span>: <span class="title class_">Int32Array</span>;     <span class="comment">// [i0, i1, i2, i3, i4, i5, ...] 每 3 个构成一个三角形</span></span><br><span class="line">  <span class="attr">normals</span>: <span class="title class_">Float32Array</span>;   <span class="comment">// [n0x, n0y, n0z, ...]</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 遍历所有三角形</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">iterateTriangles</span>(<span class="params"><span class="attr">mesh</span>: <span class="title class_">MeshData</span></span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> vertexArray = mesh.<span class="property">vertices</span>;</span><br><span class="line">  <span class="keyword">const</span> indexArray = mesh.<span class="property">indices</span>;</span><br><span class="line">  <span class="keyword">const</span> triangleCount = indexArray.<span class="property">length</span> / <span class="number">3</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> t = <span class="number">0</span>; t &lt; triangleCount; t++) &#123;</span><br><span class="line">    <span class="keyword">const</span> idx = t * <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">const</span> i0 = indexArray[idx];</span><br><span class="line">    <span class="keyword">const</span> i1 = indexArray[idx + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">const</span> i2 = indexArray[idx + <span class="number">2</span>];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 三角形三个顶点的位置</span></span><br><span class="line">    <span class="keyword">const</span> v0 = &#123;</span><br><span class="line">      <span class="attr">x</span>: vertexArray[i0 * <span class="number">3</span>],</span><br><span class="line">      <span class="attr">y</span>: vertexArray[i0 * <span class="number">3</span> + <span class="number">1</span>],</span><br><span class="line">      <span class="attr">z</span>: vertexArray[i0 * <span class="number">3</span> + <span class="number">2</span>]</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">const</span> v1 = &#123;</span><br><span class="line">      <span class="attr">x</span>: vertexArray[i1 * <span class="number">3</span>],</span><br><span class="line">      <span class="attr">y</span>: vertexArray[i1 * <span class="number">3</span> + <span class="number">1</span>],</span><br><span class="line">      <span class="attr">z</span>: vertexArray[i1 * <span class="number">3</span> + <span class="number">2</span>]</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">const</span> v2 = &#123;</span><br><span class="line">      <span class="attr">x</span>: vertexArray[i2 * <span class="number">3</span>],</span><br><span class="line">      <span class="attr">y</span>: vertexArray[i2 * <span class="number">3</span> + <span class="number">1</span>],</span><br><span class="line">      <span class="attr">z</span>: vertexArray[i2 * <span class="number">3</span> + <span class="number">2</span>]</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算三角形中心</span></span><br><span class="line">    <span class="keyword">const</span> center = &#123;</span><br><span class="line">      <span class="attr">x</span>: (v0.<span class="property">x</span> + v1.<span class="property">x</span> + v2.<span class="property">x</span>) / <span class="number">3</span>,</span><br><span class="line">      <span class="attr">y</span>: (v0.<span class="property">y</span> + v1.<span class="property">y</span> + v2.<span class="property">y</span>) / <span class="number">3</span>,</span><br><span class="line">      <span class="attr">z</span>: (v0.<span class="property">z</span> + v1.<span class="property">z</span> + v2.<span class="property">z</span>) / <span class="number">3</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算三角形面积（叉积）</span></span><br><span class="line">    <span class="keyword">const</span> e1 = &#123; <span class="attr">x</span>: v1.<span class="property">x</span> - v0.<span class="property">x</span>, <span class="attr">y</span>: v1.<span class="property">y</span> - v0.<span class="property">y</span>, <span class="attr">z</span>: v1.<span class="property">z</span> - v0.<span class="property">z</span> &#125;;</span><br><span class="line">    <span class="keyword">const</span> e2 = &#123; <span class="attr">x</span>: v2.<span class="property">x</span> - v0.<span class="property">x</span>, <span class="attr">y</span>: v2.<span class="property">y</span> - v0.<span class="property">y</span>, <span class="attr">z</span>: v2.<span class="property">z</span> - v0.<span class="property">z</span> &#125;;</span><br><span class="line">    <span class="keyword">const</span> area = <span class="number">0.5</span> * <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(</span><br><span class="line">      <span class="title class_">Math</span>.<span class="title function_">pow</span>(e1.<span class="property">y</span> * e2.<span class="property">z</span> - e1.<span class="property">z</span> * e2.<span class="property">y</span>, <span class="number">2</span>) +</span><br><span class="line">      <span class="title class_">Math</span>.<span class="title function_">pow</span>(e1.<span class="property">z</span> * e2.<span class="property">x</span> - e1.<span class="property">x</span> * e2.<span class="property">z</span>, <span class="number">2</span>) +</span><br><span class="line">      <span class="title class_">Math</span>.<span class="title function_">pow</span>(e1.<span class="property">x</span> * e2.<span class="property">y</span> - e1.<span class="property">y</span> * e2.<span class="property">x</span>, <span class="number">2</span>)</span><br><span class="line">    );</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 根据三角形面积过滤噪点</span></span><br><span class="line">    <span class="keyword">if</span> (area &gt; <span class="number">0.001</span>) &#123;</span><br><span class="line">      <span class="comment">// 有效三角形</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-网格地面检测"><a href="#7-2-网格地面检测" class="headerlink" title="7.2 网格地面检测"></a>7.2 网格地面检测</h3><p>通过分析网格顶点的高度分布，可以自动检测地面：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">detectFloor</span>(<span class="params"><span class="attr">mesh</span>: <span class="title class_">MeshData</span></span>): <span class="built_in">number</span> | <span class="literal">null</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> vertices = mesh.<span class="property">vertices</span>;</span><br><span class="line">  <span class="keyword">const</span> vertexCount = mesh.<span class="title function_">getVertexCount</span>();</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 收集所有顶点的 y 坐标</span></span><br><span class="line">  <span class="keyword">const</span> <span class="attr">yValues</span>: <span class="built_in">number</span>[] = [];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; vertexCount * <span class="number">3</span>; i += <span class="number">3</span>) &#123;</span><br><span class="line">    yValues.<span class="title function_">push</span>(vertices[i]);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (yValues.<span class="property">length</span> &lt; <span class="number">10</span>) <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 排序并取最低的 10% 作为候选地面</span></span><br><span class="line">  yValues.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a - b);</span><br><span class="line">  <span class="keyword">const</span> candidateCount = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">1</span>, <span class="title class_">Math</span>.<span class="title function_">floor</span>(yValues.<span class="property">length</span> * <span class="number">0.1</span>));</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">let</span> sumY = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; candidateCount; i++) &#123;</span><br><span class="line">    sumY += yValues[i];</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> sumY / candidateCount;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-网格碰撞检测"><a href="#7-3-网格碰撞检测" class="headerlink" title="7.3 网格碰撞检测"></a>7.3 网格碰撞检测</h3><p>场景网格最实用的功能之一是实现 AR 物体与真实环境的物理碰撞：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">isPointOnMeshSurface</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">pointX</span>: <span class="built_in">number</span>, <span class="attr">pointY</span>: <span class="built_in">number</span>, <span class="attr">pointZ</span>: <span class="built_in">number</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">mesh</span>: <span class="title class_">MeshData</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">threshold</span>: <span class="built_in">number</span> = <span class="number">0.05</span></span></span><br><span class="line"><span class="params"></span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> vertices = mesh.<span class="property">vertices</span>;</span><br><span class="line">  <span class="keyword">const</span> indices = mesh.<span class="property">indices</span>;</span><br><span class="line">  <span class="keyword">const</span> triangleCount = indices.<span class="property">length</span> / <span class="number">3</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> t = <span class="number">0</span>; t &lt; triangleCount; t++) &#123;</span><br><span class="line">    <span class="keyword">const</span> idx = t * <span class="number">3</span>;</span><br><span class="line">    <span class="keyword">const</span> i0 = indices[idx];</span><br><span class="line">    <span class="keyword">const</span> i1 = indices[idx + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">const</span> i2 = indices[idx + <span class="number">2</span>];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取三角形三个顶点</span></span><br><span class="line">    <span class="keyword">const</span> ax = vertices[i0 * <span class="number">3</span>], ay = vertices[i0 * <span class="number">3</span> + <span class="number">1</span>], az = vertices[i0 * <span class="number">3</span> + <span class="number">2</span>];</span><br><span class="line">    <span class="keyword">const</span> bx = vertices[i1 * <span class="number">3</span>], by = vertices[i1 * <span class="number">3</span> + <span class="number">1</span>], bz = vertices[i1 * <span class="number">3</span> + <span class="number">2</span>];</span><br><span class="line">    <span class="keyword">const</span> cx = vertices[i2 * <span class="number">3</span>], cy = vertices[i2 * <span class="number">3</span> + <span class="number">1</span>], cz = vertices[i2 * <span class="number">3</span> + <span class="number">2</span>];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算点到三角形平面的距离</span></span><br><span class="line">    <span class="keyword">const</span> nx = (by - ay) * (cz - az) - (bz - az) * (cy - ay);</span><br><span class="line">    <span class="keyword">const</span> ny = (bz - az) * (cx - ax) - (bx - ax) * (cz - az);</span><br><span class="line">    <span class="keyword">const</span> nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);</span><br><span class="line">    <span class="keyword">const</span> len = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(nx * nx + ny * ny + nz * nz);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">0.0001</span>) <span class="keyword">continue</span>; <span class="comment">// 退化三角形</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> d = <span class="title class_">Math</span>.<span class="title function_">abs</span>(</span><br><span class="line">      nx * (pointX - ax) + ny * (pointY - ay) + nz * (pointZ - az)</span><br><span class="line">    ) / len;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (d &lt; threshold) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、网格着色（Mesh-Coloring）"><a href="#八、网格着色（Mesh-Coloring）" class="headerlink" title="八、网格着色（Mesh Coloring）"></a>八、网格着色（Mesh Coloring）</h2><h3 id="8-1-语义着色"><a href="#8-1-语义着色" class="headerlink" title="8.1 语义着色"></a>8.1 语义着色</h3><p>根据网格顶点的语义标签赋予不同颜色：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">MeshSemanticLabel</span> &#123;</span><br><span class="line">  <span class="variable constant_">UNKNOWN</span> = <span class="number">0</span>,</span><br><span class="line">  <span class="variable constant_">FLOOR</span> = <span class="number">1</span>,</span><br><span class="line">  <span class="variable constant_">WALL</span> = <span class="number">2</span>,</span><br><span class="line">  <span class="variable constant_">CEILING</span> = <span class="number">3</span>,</span><br><span class="line">  <span class="variable constant_">OBJECT</span> = <span class="number">4</span>,</span><br><span class="line">  <span class="variable constant_">WINDOW</span> = <span class="number">5</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="attr">SEMANTIC_COLORS</span>: <span class="title class_">Record</span>&lt;<span class="built_in">number</span>, &#123; <span class="attr">r</span>: <span class="built_in">number</span>; <span class="attr">g</span>: <span class="built_in">number</span>; <span class="attr">b</span>: <span class="built_in">number</span> &#125;&gt; = &#123;</span><br><span class="line">  [<span class="title class_">MeshSemanticLabel</span>.<span class="property">UNKNOWN</span>]: &#123; <span class="attr">r</span>: <span class="number">128</span>, <span class="attr">g</span>: <span class="number">128</span>, <span class="attr">b</span>: <span class="number">128</span> &#125;,  <span class="comment">// 灰色</span></span><br><span class="line">  [<span class="title class_">MeshSemanticLabel</span>.<span class="property">FLOOR</span>]:   &#123; <span class="attr">r</span>: <span class="number">100</span>, <span class="attr">g</span>: <span class="number">200</span>, <span class="attr">b</span>: <span class="number">100</span> &#125;,  <span class="comment">// 绿色</span></span><br><span class="line">  [<span class="title class_">MeshSemanticLabel</span>.<span class="property">WALL</span>]:    &#123; <span class="attr">r</span>: <span class="number">100</span>, <span class="attr">g</span>: <span class="number">150</span>, <span class="attr">b</span>: <span class="number">255</span> &#125;,  <span class="comment">// 蓝色</span></span><br><span class="line">  [<span class="title class_">MeshSemanticLabel</span>.<span class="property">CEILING</span>]: &#123; <span class="attr">r</span>: <span class="number">200</span>, <span class="attr">g</span>: <span class="number">200</span>, <span class="attr">b</span>: <span class="number">100</span> &#125;,  <span class="comment">// 黄色</span></span><br><span class="line">  [<span class="title class_">MeshSemanticLabel</span>.<span class="property">OBJECT</span>]:  &#123; <span class="attr">r</span>: <span class="number">255</span>, <span class="attr">g</span>: <span class="number">150</span>, <span class="attr">b</span>: <span class="number">100</span> &#125;,  <span class="comment">// 橙色</span></span><br><span class="line">  [<span class="title class_">MeshSemanticLabel</span>.<span class="property">WINDOW</span>]:  &#123; <span class="attr">r</span>: <span class="number">150</span>, <span class="attr">g</span>: <span class="number">200</span>, <span class="attr">b</span>: <span class="number">255</span> &#125;,  <span class="comment">// 天蓝</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">applySemanticColoring</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">mesh</span>: <span class="title class_">MeshData</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">semanticLabels</span>: <span class="title class_">Float32Array</span> <span class="comment">// 每个顶点的语义标签</span></span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Float32Array</span> &#123;</span><br><span class="line">  <span class="comment">// 输出: 每个顶点 RGB 颜色数组</span></span><br><span class="line">  <span class="keyword">const</span> colors = <span class="keyword">new</span> <span class="title class_">Float32Array</span>(mesh.<span class="property">vertices</span>.<span class="property">length</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; mesh.<span class="title function_">getVertexCount</span>(); i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> label = <span class="title class_">Math</span>.<span class="title function_">round</span>(semanticLabels[i]);</span><br><span class="line">    <span class="keyword">const</span> color = <span class="variable constant_">SEMANTIC_COLORS</span>[label] || <span class="variable constant_">SEMANTIC_COLORS</span>[<span class="title class_">MeshSemanticLabel</span>.<span class="property">UNKNOWN</span>];</span><br><span class="line">    </span><br><span class="line">    colors[i * <span class="number">3</span>] = color.<span class="property">r</span> / <span class="number">255</span>;</span><br><span class="line">    colors[i * <span class="number">3</span> + <span class="number">1</span>] = color.<span class="property">g</span> / <span class="number">255</span>;</span><br><span class="line">    colors[i * <span class="number">3</span> + <span class="number">2</span>] = color.<span class="property">b</span> / <span class="number">255</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> colors;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-高度着色（地形图效果）"><a href="#8-2-高度着色（地形图效果）" class="headerlink" title="8.2 高度着色（地形图效果）"></a>8.2 高度着色（地形图效果）</h3><p>根据顶点高度（Y 值）从低到高渐变着色：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">applyHeightColoring</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">vertices</span>: <span class="title class_">Float32Array</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">vertexCount</span>: <span class="built_in">number</span></span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Float32Array</span> &#123;</span><br><span class="line">  <span class="comment">// 找到高度范围</span></span><br><span class="line">  <span class="keyword">let</span> minY = <span class="title class_">Infinity</span>, maxY = -<span class="title class_">Infinity</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt; vertexCount * <span class="number">3</span>; i += <span class="number">3</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (vertices[i] &lt; minY) minY = vertices[i];</span><br><span class="line">    <span class="keyword">if</span> (vertices[i] &gt; maxY) maxY = vertices[i];</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">const</span> range = maxY - minY;</span><br><span class="line">  <span class="keyword">const</span> colors = <span class="keyword">new</span> <span class="title class_">Float32Array</span>(vertexCount * <span class="number">3</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; vertexCount; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> y = vertices[i * <span class="number">3</span> + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">const</span> t = range &gt; <span class="number">0</span> ? (y - minY) / range : <span class="number">0.5</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 从蓝(低) → 青 → 绿 → 黄 → 红(高) 渐变</span></span><br><span class="line">    <span class="keyword">if</span> (t &lt; <span class="number">0.25</span>) &#123;</span><br><span class="line">      <span class="comment">// 蓝 → 青</span></span><br><span class="line">      colors[i * <span class="number">3</span>] = <span class="number">0</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">1</span>] = t * <span class="number">4</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">2</span>] = <span class="number">1</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (t &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">      <span class="comment">// 青 → 绿</span></span><br><span class="line">      colors[i * <span class="number">3</span>] = <span class="number">0</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">1</span>] = <span class="number">1</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">2</span>] = <span class="number">1</span> - (t - <span class="number">0.25</span>) * <span class="number">4</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (t &lt; <span class="number">0.75</span>) &#123;</span><br><span class="line">      <span class="comment">// 绿 → 黄</span></span><br><span class="line">      colors[i * <span class="number">3</span>] = (t - <span class="number">0.5</span>) * <span class="number">4</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">1</span>] = <span class="number">1</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">2</span>] = <span class="number">0</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 黄 → 红</span></span><br><span class="line">      colors[i * <span class="number">3</span>] = <span class="number">1</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">1</span>] = <span class="number">1</span> - (t - <span class="number">0.75</span>) * <span class="number">4</span>;</span><br><span class="line">      colors[i * <span class="number">3</span> + <span class="number">2</span>] = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> colors;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-法线可视化着色"><a href="#8-3-法线可视化着色" class="headerlink" title="8.3 法线可视化着色"></a>8.3 法线可视化着色</h3><p>将法线向量映射到 RGB 颜色，便于观察网格朝向：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">applyNormalColoring</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">normals</span>: <span class="title class_">Float32Array</span>,</span></span><br><span class="line"><span class="params">  <span class="attr">vertexCount</span>: <span class="built_in">number</span></span></span><br><span class="line"><span class="params"></span>): <span class="title class_">Float32Array</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> colors = <span class="keyword">new</span> <span class="title class_">Float32Array</span>(vertexCount * <span class="number">3</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; vertexCount; i++) &#123;</span><br><span class="line">    <span class="keyword">const</span> nx = normals[i * <span class="number">3</span>];</span><br><span class="line">    <span class="keyword">const</span> ny = normals[i * <span class="number">3</span> + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">const</span> nz = normals[i * <span class="number">3</span> + <span class="number">2</span>];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 将法线从 [-1, 1] 映射到 [0, 1]</span></span><br><span class="line">    colors[i * <span class="number">3</span>] = (nx + <span class="number">1</span>) * <span class="number">0.5</span>;      <span class="comment">// R → X 方向</span></span><br><span class="line">    colors[i * <span class="number">3</span> + <span class="number">1</span>] = (ny + <span class="number">1</span>) * <span class="number">0.5</span>;  <span class="comment">// G → Y 方向（向上）</span></span><br><span class="line">    colors[i * <span class="number">3</span> + <span class="number">2</span>] = (nz + <span class="number">1</span>) * <span class="number">0.5</span>;  <span class="comment">// B → Z 方向</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> colors;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-着色效果对比"><a href="#8-4-着色效果对比" class="headerlink" title="8.4 着色效果对比"></a>8.4 着色效果对比</h3><table>
+<thead>
+<tr>
+<th>着色模式</th>
+<th>效果</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>语义着色</strong></td>
+<td>地面绿、墙面蓝、物体橙</td>
+<td>环境理解可视化</td>
+</tr>
+<tr>
+<td><strong>高度着色</strong></td>
+<td>低→蓝、高→红的地形图</td>
+<td>地形分析、测量</td>
+</tr>
+<tr>
+<td><strong>法线着色</strong></td>
+<td>不同朝向不同颜色</td>
+<td>网格质量检查</td>
+</tr>
+<tr>
+<td><strong>相机投影</strong></td>
+<td>真实环境纹理映射</td>
+<td>高保真 AR 体验</td>
+</tr>
+<tr>
+<td><strong>置信度着色</strong></td>
+<td>高置信度绿、低置信度红</td>
+<td>数据质量评估</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="九、综合示例：AR-环境扫描器"><a href="#九、综合示例：AR-环境扫描器" class="headerlink" title="九、综合示例：AR 环境扫描器"></a>九、综合示例：AR 环境扫描器</h2><p>下面将点云、场景网格和着色技术整合到一个综合示例中，实现一个<strong>实时的 AR 环境扫描器</strong>。</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart TD
+    A[AR 页面启动] --&gt; B[初始化 ARViewContext]
+    B --&gt; C[启用场景网格 + 点云跟踪]
+    C --&gt; D[帧回调 onFrameUpdate]
+    
+    D --&gt; E{帧数据就绪?}
+    E --&gt;|是| F[同时获取: 点云 + 场景网格]
+    F --&gt; G[点云着色&lt;br&gt;图像映射]
+    F --&gt; H[网格顶点着色&lt;br&gt;高度渐变]
+    
+    G --&gt; I[渲染着色点云]
+    H --&gt; J[渲染着色网格]
+    
+    I --&gt; K[用户切换视角]
+    J --&gt; K
+    K --&gt; D
+    
+    style A fill:#4a90d9,color:#fff
+    style F fill:#f5a623,color:#fff
+    style G fill:#7ed321,color:#fff
+    style H fill:#50c8c8,color:#fff
+  </pre></div>
+
+<h3 id="9-1-完整组件代码"><a href="#9-1-完整组件代码" class="headerlink" title="9.1 完整组件代码"></a>9.1 完整组件代码</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// AREnvironmentScanner.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; arEngine, <span class="title class_">ARView</span>, arViewController &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AREngine&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Node</span>, <span class="title class_">Scene</span>, <span class="title class_">MeshRenderer</span>, <span class="title class_">Material</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkGraphics3D&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">BusinessError</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.BasicServicesKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Matrix4</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ComponentV2</span></span><br><span class="line"><span class="keyword">export</span> struct <span class="title class_">AREnvironmentScanner</span> &#123;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">arContext</span>?: arViewController.<span class="property">ARViewContext</span> = <span class="literal">undefined</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">isScanning</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">statusText</span>: <span class="built_in">string</span> = <span class="string">&#x27;准备就绪&#x27;</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">vertexCount</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">pointCount</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">coloringMode</span>: <span class="built_in">string</span> = <span class="string">&#x27;height&#x27;</span>; <span class="comment">// height | normal | semantic</span></span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">showPointCloud</span>: <span class="built_in">boolean</span> = <span class="literal">true</span>;</span><br><span class="line">  <span class="meta">@Local</span> <span class="attr">showMesh</span>: <span class="built_in">boolean</span> = <span class="literal">true</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="attr">meshRenderer</span>: <span class="title class_">SceneMeshRenderer</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">pointCloudRenderer</span>: <span class="title class_">PointCloudRenderer</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">NavDestination</span>() &#123;</span><br><span class="line">      <span class="title class_">Stack</span>() &#123;</span><br><span class="line">        <span class="comment">// AR 预览</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">arContext</span>) &#123;</span><br><span class="line">          <span class="title class_">ARView</span>(&#123; <span class="attr">context</span>: <span class="variable language_">this</span>.<span class="property">arContext</span> &#125;)</span><br><span class="line">            .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">            .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 顶部状态</span></span><br><span class="line">        <span class="title class_">Column</span>() &#123;</span><br><span class="line">          <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">statusText</span>)</span><br><span class="line">            .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">            .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">            .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#80000000&#x27;</span>)</span><br><span class="line">            .<span class="title function_">padding</span>(&#123; <span class="attr">left</span>: <span class="number">16</span>, <span class="attr">right</span>: <span class="number">16</span>, <span class="attr">top</span>: <span class="number">6</span>, <span class="attr">bottom</span>: <span class="number">6</span> &#125;)</span><br><span class="line">            .<span class="title function_">borderRadius</span>(<span class="number">16</span>)</span><br><span class="line">            .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">48</span> &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">        .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">        .<span class="title function_">alignItems</span>(<span class="title class_">HorizontalAlign</span>.<span class="property">Center</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 数据统计</span></span><br><span class="line">        <span class="title class_">Column</span>() &#123;</span><br><span class="line">          <span class="title class_">Row</span>() &#123;</span><br><span class="line">            <span class="title class_">Text</span>(<span class="string">`顶点: <span class="subst">$&#123;<span class="variable language_">this</span>.vertexCount&#125;</span>`</span>)</span><br><span class="line">            <span class="title class_">Text</span>(<span class="string">`特征点: <span class="subst">$&#123;<span class="variable language_">this</span>.pointCount&#125;</span>`</span>)</span><br><span class="line">          &#125;</span><br><span class="line">          .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">          .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">SpaceEvenly</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">12</span>)</span><br><span class="line">          .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#80000000&#x27;</span>)</span><br><span class="line">        .<span class="title function_">padding</span>(<span class="number">8</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">88</span> &#125;)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 底部控制面板</span></span><br><span class="line">        <span class="title class_">Column</span>() &#123;</span><br><span class="line">          <span class="comment">// 着色模式切换</span></span><br><span class="line">          <span class="title class_">Row</span>() &#123;</span><br><span class="line">            <span class="title class_">Text</span>(<span class="string">&#x27;着色模式:&#x27;</span>)</span><br><span class="line">              .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">              .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">            </span><br><span class="line">            <span class="title class_">Text</span> <span class="title function_">picker</span>(<span class="variable language_">this</span>.<span class="property">coloringMode</span>)</span><br><span class="line">              .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">cycleColoringMode</span>())</span><br><span class="line">          &#125;</span><br><span class="line">          .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">          .<span class="title function_">padding</span>(<span class="number">8</span>)</span><br><span class="line">          </span><br><span class="line">          <span class="comment">// 显示开关</span></span><br><span class="line">          <span class="title class_">Row</span>() &#123;</span><br><span class="line">            <span class="title class_">Toggle</span>(&#123; <span class="attr">isOn</span>: <span class="variable language_">this</span>.<span class="property">showPointCloud</span> &#125;)</span><br><span class="line">              .<span class="title function_">onChange</span>(<span class="function">(<span class="params">v</span>) =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">showPointCloud</span> = v; &#125;)</span><br><span class="line">            <span class="title class_">Text</span>(<span class="string">&#x27;点云&#x27;</span>)</span><br><span class="line">              .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">              .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">            </span><br><span class="line">            <span class="title class_">Toggle</span>(&#123; <span class="attr">isOn</span>: <span class="variable language_">this</span>.<span class="property">showMesh</span> &#125;)</span><br><span class="line">              .<span class="title function_">onChange</span>(<span class="function">(<span class="params">v</span>) =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">showMesh</span> = v; &#125;)</span><br><span class="line">            <span class="title class_">Text</span>(<span class="string">&#x27;网格&#x27;</span>)</span><br><span class="line">              .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">              .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">          &#125;</span><br><span class="line">          .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">          .<span class="title function_">padding</span>(<span class="number">8</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">        .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#c0000000&#x27;</span>)</span><br><span class="line">        .<span class="title function_">padding</span>(<span class="number">8</span>)</span><br><span class="line">        .<span class="title function_">align</span>(<span class="title class_">Alignment</span>.<span class="property">Bottom</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">initAR</span>())</span><br><span class="line">    .<span class="title function_">onHide</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">pause</span>())</span><br><span class="line">    .<span class="title function_">onShow</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">resume</span>())</span><br><span class="line">    .<span class="title function_">onDisappear</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">destroy</span>();</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span> = <span class="literal">undefined</span>;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">initAR</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span> = <span class="keyword">new</span> arViewController.<span class="title class_">ARViewContext</span>();</span><br><span class="line">      <span class="keyword">const</span> scene = <span class="keyword">new</span> <span class="title class_">Scene</span>();</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 初始化渲染器</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">meshRenderer</span> = <span class="keyword">new</span> <span class="title class_">SceneMeshRenderer</span>(scene);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">pointCloudRenderer</span> = <span class="keyword">new</span> <span class="title class_">PointCloudRenderer</span>(scene);</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">        scene,</span><br><span class="line">        <span class="attr">config</span>: &#123;</span><br><span class="line">          <span class="attr">sceneMeshEnable</span>: <span class="literal">true</span>,</span><br><span class="line">          <span class="attr">sceneMeshMode</span>: arEngine.<span class="property">ARSceneMeshMode</span>.<span class="property">SEMI_ANALYSIS</span>,</span><br><span class="line">          <span class="attr">focusMode</span>: arEngine.<span class="property">ARConfigFocusMode</span>.<span class="property">AUTO_FOCUS</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">callback</span>: <span class="keyword">new</span> <span class="keyword">class</span> <span class="title class_">extends</span> arViewController.<span class="property">ARViewCallback</span> &#123;</span><br><span class="line">          <span class="keyword">private</span> <span class="attr">owner</span>: <span class="title class_">AREnvironmentScanner</span>;</span><br><span class="line">          </span><br><span class="line">          <span class="title function_">constructor</span>(<span class="params"><span class="attr">owner</span>: <span class="title class_">AREnvironmentScanner</span></span>) &#123;</span><br><span class="line">            <span class="variable language_">super</span>();</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">owner</span> = owner;</span><br><span class="line">          &#125;</span><br><span class="line">          </span><br><span class="line">          <span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!ctx.<span class="property">session</span>) <span class="keyword">return</span>;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 获取点云</span></span><br><span class="line">            <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">showPointCloud</span>) &#123;</span><br><span class="line">              <span class="keyword">const</span> points = ctx.<span class="property">session</span>.<span class="title function_">getAllTrackables</span>(</span><br><span class="line">                arEngine.<span class="property">ARTrackableType</span>.<span class="property">POINT</span></span><br><span class="line">              );</span><br><span class="line">              <span class="keyword">let</span> pc = <span class="number">0</span>;</span><br><span class="line">              <span class="keyword">const</span> <span class="attr">arPoints</span>: arEngine.<span class="property">ARPoint</span>[] = [];</span><br><span class="line">              <span class="keyword">for</span> (<span class="keyword">const</span> t <span class="keyword">of</span> points) &#123;</span><br><span class="line">                <span class="keyword">if</span> (t <span class="keyword">instanceof</span> arEngine.<span class="property">ARPoint</span>) &#123;</span><br><span class="line">                  pc++;</span><br><span class="line">                  arPoints.<span class="title function_">push</span>(t <span class="keyword">as</span> arEngine.<span class="property">ARPoint</span>);</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;</span><br><span class="line">              <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">pointCount</span> = pc;</span><br><span class="line">              <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">pointCloudRenderer</span>?.<span class="title function_">update</span>(arPoints);</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 获取场景网格</span></span><br><span class="line">            <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">showMesh</span>) &#123;</span><br><span class="line">              <span class="keyword">const</span> sceneMesh = ctx.<span class="property">session</span>.<span class="title function_">getSceneMesh</span>();</span><br><span class="line">              <span class="keyword">if</span> (sceneMesh) &#123;</span><br><span class="line">                <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">vertexCount</span> = sceneMesh.<span class="title function_">getVertexCount</span>();</span><br><span class="line">                <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">meshRenderer</span>?.<span class="title function_">update</span>(</span><br><span class="line">                  sceneMesh,</span><br><span class="line">                  <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">coloringMode</span></span><br><span class="line">                );</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">owner</span>.<span class="property">statusText</span> = <span class="string">&#x27;扫描中...&#x27;</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;(<span class="variable language_">this</span>)</span><br><span class="line">      &#125;);</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">arContext</span>.<span class="title function_">resume</span>();</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">isScanning</span> = <span class="literal">true</span>;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">statusText</span> = <span class="string">&#x27;ARKit 扫描中&#x27;</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">statusText</span> = <span class="string">`初始化失败: <span class="subst">$&#123;(err <span class="keyword">as</span> BusinessError).message&#125;</span>`</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">cycleColoringMode</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> modes = [<span class="string">&#x27;height&#x27;</span>, <span class="string">&#x27;normal&#x27;</span>, <span class="string">&#x27;semantic&#x27;</span>];</span><br><span class="line">    <span class="keyword">const</span> idx = modes.<span class="title function_">indexOf</span>(<span class="variable language_">this</span>.<span class="property">coloringMode</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">coloringMode</span> = modes[(idx + <span class="number">1</span>) % modes.<span class="property">length</span>];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 场景网格渲染器</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SceneMeshRenderer</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">scene</span>: <span class="title class_">Scene</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">meshNode</span>: <span class="title class_">Node</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"><span class="attr">scene</span>: <span class="title class_">Scene</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">scene</span> = scene;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">update</span>(<span class="attr">mesh</span>: arEngine.<span class="property">ARSceneMesh</span>, <span class="attr">coloringMode</span>: <span class="built_in">string</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> vertices = mesh.<span class="title function_">getVertices</span>();</span><br><span class="line">    <span class="keyword">const</span> indices = mesh.<span class="title function_">getIndices</span>();</span><br><span class="line">    <span class="keyword">const</span> normals = mesh.<span class="title function_">getNormals</span>();</span><br><span class="line">    <span class="keyword">const</span> vertexCount = mesh.<span class="title function_">getVertexCount</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (vertexCount === <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 根据着色模式计算顶点颜色</span></span><br><span class="line">    <span class="keyword">let</span> <span class="attr">colors</span>: <span class="title class_">Float32Array</span>;</span><br><span class="line">    <span class="keyword">switch</span> (coloringMode) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;height&#x27;</span>:</span><br><span class="line">        colors = <span class="title function_">applyHeightColoring</span>(vertices, vertexCount);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;normal&#x27;</span>:</span><br><span class="line">        colors = <span class="title function_">applyNormalColoring</span>(normals, vertexCount);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">&#x27;semantic&#x27;</span>:</span><br><span class="line">        <span class="comment">// 假设语义标签数据</span></span><br><span class="line">        colors = <span class="title function_">applyHeightColoring</span>(vertices, vertexCount); <span class="comment">// fallback</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="attr">default</span>:</span><br><span class="line">        colors = <span class="title function_">applyHeightColoring</span>(vertices, vertexCount);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 更新或创建网格节点</span></span><br><span class="line">    <span class="keyword">if</span> (!<span class="variable language_">this</span>.<span class="property">meshNode</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">meshNode</span> = <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">&#x27;scene_mesh&#x27;</span>);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">scene</span>.<span class="title function_">addNode</span>(<span class="variable language_">this</span>.<span class="property">meshNode</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 更新网格几何体</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">meshNode</span>.<span class="title function_">updateMesh</span>(&#123;</span><br><span class="line">      <span class="attr">vertices</span>: vertices,</span><br><span class="line">      <span class="attr">indices</span>: indices,</span><br><span class="line">      <span class="attr">normals</span>: normals,</span><br><span class="line">      <span class="attr">colors</span>: colors</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 点云渲染器</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PointCloudRenderer</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">scene</span>: <span class="title class_">Scene</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">points</span>: <span class="title class_">Node</span>[] = [];</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">maxPoints</span>: <span class="built_in">number</span> = <span class="number">300</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"><span class="attr">scene</span>: <span class="title class_">Scene</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">scene</span> = scene;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">update</span>(<span class="attr">points</span>: arEngine.<span class="property">ARPoint</span>[]): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 清理旧点</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">clear</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> count = <span class="title class_">Math</span>.<span class="title function_">min</span>(points.<span class="property">length</span>, <span class="variable language_">this</span>.<span class="property">maxPoints</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">      <span class="keyword">const</span> pose = points[i].<span class="title function_">getPose</span>();</span><br><span class="line">      <span class="keyword">const</span> matrix = pose.<span class="title function_">getMatrix</span>();</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">const</span> node = <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">`pc_<span class="subst">$&#123;i&#125;</span>`</span>);</span><br><span class="line">      node.<span class="property">transform</span> = matrix;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 添加小立方体或球体表示点</span></span><br><span class="line">      node.<span class="title function_">addComponent</span>(<span class="string">&#x27;MeshRenderer&#x27;</span>, &#123;</span><br><span class="line">        <span class="attr">primitive</span>: <span class="string">&#x27;sphere&#x27;</span>,</span><br><span class="line">        <span class="attr">radius</span>: <span class="number">0.008</span>,</span><br><span class="line">        <span class="attr">material</span>: &#123; <span class="attr">color</span>: <span class="string">&#x27;#00e5ff&#x27;</span> &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">scene</span>.<span class="title function_">addNode</span>(node);</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">points</span>.<span class="title function_">push</span>(node);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">clear</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> node <span class="keyword">of</span> <span class="variable language_">this</span>.<span class="property">points</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">scene</span>.<span class="title function_">removeNode</span>(node);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">points</span> = [];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-性能参考"><a href="#9-2-性能参考" class="headerlink" title="9.2 性能参考"></a>9.2 性能参考</h3><table>
+<thead>
+<tr>
+<th>设备</th>
+<th>点云数量</th>
+<th>网格顶点数</th>
+<th>帧率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mate 60 Pro（ToF）</td>
+<td>300~800 特征点</td>
+<td>2000~8000</td>
+<td>30 FPS</td>
+</tr>
+<tr>
+<td>P70 Pro（ToF）</td>
+<td>400~1000 特征点</td>
+<td>3000~12000</td>
+<td>30 FPS</td>
+</tr>
+<tr>
+<td>无 ToF 设备</td>
+<td>50~200 特征点</td>
+<td>500~2000</td>
+<td>30 FPS</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十、性能优化与最佳实践"><a href="#十、性能优化与最佳实践" class="headerlink" title="十、性能优化与最佳实践"></a>十、性能优化与最佳实践</h2><h3 id="10-1-网格数据处理策略"><a href="#10-1-网格数据处理策略" class="headerlink" title="10.1 网格数据处理策略"></a>10.1 网格数据处理策略</h3><p>场景网格的顶点数可能快速增加，建议采用以下策略：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 网格降采样 - 控制顶点数量</span></span><br><span class="line"><span class="keyword">private</span> <span class="title function_">shouldUpdateMesh</span>(<span class="attr">newVertexCount</span>: <span class="built_in">number</span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="variable constant_">MAX_VERTICES</span> = <span class="number">10000</span>;</span><br><span class="line">  <span class="keyword">if</span> (newVertexCount &gt; <span class="variable constant_">MAX_VERTICES</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>; <span class="comment">// 顶点过多时跳过更新</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 更新频率控制 - 不要每帧都重建网格几何体</span></span><br><span class="line"><span class="keyword">private</span> <span class="attr">lastMeshUpdate</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="attr">meshUpdateInterval</span>: <span class="built_in">number</span> = <span class="number">200</span>; <span class="comment">// 200ms</span></span><br><span class="line">  </span><br><span class="line"><span class="title function_">onFrameUpdate</span>(<span class="attr">ctx</span>: arViewController.<span class="property">ARViewContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> now = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">  <span class="keyword">if</span> (now - <span class="variable language_">this</span>.<span class="property">lastMeshUpdate</span> &lt; <span class="variable language_">this</span>.<span class="property">meshUpdateInterval</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>; <span class="comment">// 控制更新频率</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">lastMeshUpdate</span> = now;</span><br><span class="line">  <span class="comment">// ...更新网格</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 在页面暂停时释放网格资源</span></span><br><span class="line"><span class="title function_">onHide</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">arContext</span>?.<span class="title function_">pause</span>();</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">meshRenderer</span>?.<span class="title function_">release</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-内存管理"><a href="#10-2-内存管理" class="headerlink" title="10.2 内存管理"></a>10.2 内存管理</h3><p>点云和网格数据会占用大量内存，务必做好资源管理：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 点云内存释放</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">releasePointCloud</span>(<span class="params"><span class="attr">points</span>: <span class="title class_">Node</span>[]</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> point <span class="keyword">of</span> points) &#123;</span><br><span class="line">    point.<span class="title function_">destroy</span>(); <span class="comment">// 释放节点及其子组件</span></span><br><span class="line">  &#125;</span><br><span class="line">  points.<span class="property">length</span> = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 网格资源释放</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">releaseSceneMesh</span>(<span class="params"><span class="attr">meshNode</span>: <span class="title class_">Node</span> | <span class="literal">null</span></span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (meshNode) &#123;</span><br><span class="line">    meshNode.<span class="title function_">removeComponent</span>(<span class="string">&#x27;MeshRenderer&#x27;</span>);</span><br><span class="line">    meshNode.<span class="title function_">destroy</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-3-最佳实践清单"><a href="#10-3-最佳实践清单" class="headerlink" title="10.3 最佳实践清单"></a>10.3 最佳实践清单</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">✅ 启用场景网格前先检查设备能力</span><br><span class="line">✅ 优先使用半解析模式（SEMI_ANALYSIS）</span><br><span class="line">✅ 设置合理的网格更新间隔（150~300ms）</span><br><span class="line">✅ 控制最大顶点数（建议 5000~10000）</span><br><span class="line">✅ 对深度点云进行下采样（体素网格法）</span><br><span class="line">✅ 置信度过滤（&lt; 0.3 的点直接丢弃）</span><br><span class="line">✅ 在页面不可见时暂停 AR</span><br><span class="line">✅ 页面销毁时释放所有网格和点云资源</span><br><span class="line">✅ 使用 AGP 的 GPU Instancing 渲染大量点云</span><br><span class="line">✅ 着色计算放在 Shader 层而非 CPU 层</span><br><span class="line"></span><br><span class="line">❌ 不要在 onFrameUpdate 中每帧重建 Mesh</span><br><span class="line">❌ 不要保留超过 5000 个特征点节点</span><br><span class="line">❌ 不要对每一帧的相机图像做全分辨率采样</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十一、常见问题与排查"><a href="#十一、常见问题与排查" class="headerlink" title="十一、常见问题与排查"></a>十一、常见问题与排查</h2><h3 id="11-1-场景网格不生成"><a href="#11-1-场景网格不生成" class="headerlink" title="11.1 场景网格不生成"></a>11.1 场景网格不生成</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">✅ 检查: sceneMeshEnable 是否设置为 true</span><br><span class="line">✅ 检查: 设备是否支持 AR Engine（API 18+ / ToF 优选）</span><br><span class="line">✅ 检查: 是否在光照充足、有纹理的环境中</span><br><span class="line">✅ 检查: 相机是否在缓慢移动（静止不动网格不会生成）</span><br><span class="line">✅ 检查: 网格范围内（2.5m）是否有物体表面</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-点云数据为空"><a href="#11-2-点云数据为空" class="headerlink" title="11.2 点云数据为空"></a>11.2 点云数据为空</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">✅ 检查: 是否使用了 getAllTrackables(ARTrackableType.POINT)</span><br><span class="line">✅ 检查: 初始化后是否等待了 2-3 秒让特征点稳定</span><br><span class="line">✅ 检查: 环境是否有足够纹理特征（白墙效果差）</span><br><span class="line">✅ 检查: 是否正确处理了 onFrameUpdate 回调中的异步</span><br><span class="line">✅ 尝试: 开启更多特征点检测（config 中 adjustment）</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-3-着色效果不对"><a href="#11-3-着色效果不对" class="headerlink" title="11.3 着色效果不对"></a>11.3 着色效果不对</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">✅ 检查: 颜色映射范围是否正确（[0, 1] vs [0, 255]）</span><br><span class="line">✅ 检查: 法线数据是否进行了范围归一化</span><br><span class="line">✅ 检查: 顶点颜色数据长度是否与顶点数匹配</span><br><span class="line">✅ 检查: 着色器是否接收了正确的属性绑定</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-4-性能问题"><a href="#11-4-性能问题" class="headerlink" title="11.4 性能问题"></a>11.4 性能问题</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">✅ 降低网格更新频率（建议 200ms 以上）</span><br><span class="line">✅ 限制网格最大顶点数（建议 8000）</span><br><span class="line">✅ 下采样深度点云（体素大小 0.02m）</span><br><span class="line">✅ 减少点云渲染节点（最多 300 个特征点）</span><br><span class="line">✅ 使用 GPU 计算投影和着色</span><br><span class="line">✅ 关闭不必要的 Debug 日志</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十二、总结"><a href="#十二、总结" class="headerlink" title="十二、总结"></a>十二、总结</h2><p>本文是 AR Engine 进阶能力的全面指南，我们从点云和场景网格两个维度深入探讨了环境感知的高级技术：</p>
+<h3 id="核心收获"><a href="#核心收获" class="headerlink" title="核心收获"></a>核心收获</h3><p><strong>点云方面</strong>：</p>
+<ul>
+<li>区分了<strong>稀疏特征点</strong>（ARPoint，用于跟踪）和<strong>稠密深度点云</strong>（ARDepthPoints，用于重建）</li>
+<li>掌握了点云获取、可视化、下采样和生命周期管理</li>
+<li>实现了基于相机图像的<strong>点云着色</strong>技术</li>
+</ul>
+<p><strong>场景网格方面</strong>：</p>
+<ul>
+<li>理解了<strong>高精几何重建</strong>和<strong>半解析</strong>两种模式的区别与选型</li>
+<li>掌握了网格数据的顶点、索引、法线解析</li>
+<li>实现了三种着色模式：高度着色、法线着色、语义着色</li>
+</ul>
+<p><strong>综合实践</strong>：</p>
+<ul>
+<li>构建了完整的 AR 环境扫描器，集成点云和网格的双重视觉化</li>
+</ul>
+<h3 id="从入门到进阶的路线图"><a href="#从入门到进阶的路线图" class="headerlink" title="从入门到进阶的路线图"></a>从入门到进阶的路线图</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    flowchart LR
+    A[入门] --&gt; B[基础&lt;br&gt;平面 + 命中检测]
+    B --&gt; C[进阶&lt;br&gt;点云 + 网格重建]
+    C --&gt; D[高级&lt;br&gt;物理碰撞 + 遮挡]
+    D --&gt; E[专业&lt;br&gt;多人共享空间]
+    
+    A --&gt;|本文内容| C
+    C --- F[点云着色]
+    C --- G[网格着色]
+    C --- H[数据分析]
+    
+    style C fill:#f5a623,color:#fff
+    style F fill:#4a90d9,color:#fff
+    style G fill:#7ed321,color:#fff
+  </pre></div>
+
+<p>点云和场景网格是 AR 应用从”平面级”走向”空间级”的关键技术。掌握了这些能力，你就能构建出真正理解三维环境的智能 AR 应用——无论是室内导航、虚拟装修还是工业辅助，都不再是难题。</p>
+<p>Happy Coding! 🚀</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/06/16/%E9%B8%BF%E8%92%99AREngine%E8%BF%9B%E9%98%B6-%E7%82%B9%E4%BA%91%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E4%B8%8E%E7%9D%80%E8%89%B2/">https://dpzxka.github.io/2026/06/16/%E9%B8%BF%E8%92%99AREngine%E8%BF%9B%E9%98%B6-%E7%82%B9%E4%BA%91%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E4%B8%8E%E7%9D%80%E8%89%B2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/harmonyos/">harmonyos</a><a class="post-meta__tags" href="/tags/arengine/">arengine</a><a class="post-meta__tags" href="/tags/arkts/">arkts</a><a class="post-meta__tags" href="/tags/augmented-reality/">augmented reality</a><a class="post-meta__tags" href="/tags/pointcloud/">pointcloud</a><a class="post-meta__tags" href="/tags/mesh/">mesh</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-arengine-advanced-cover.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/06/15/%E9%B8%BF%E8%92%99AREngine%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/" title="鸿蒙 AR Engine 完全指南：从会话管理到平面检测再到模型渲染"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-arengine-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙 AR Engine 完全指南：从会话管理到平面检测再到模型渲染</div></div><div class="info-2"><div class="info-item-1">前言增强现实（Augmented Reality, AR）技术正在深刻改变人与数字世界的交互方式。从家居预览到教育演示，从工业巡检到社交娱乐，AR 的应用场景正以惊人的速度扩展。 在鸿蒙生态中，AR Engine 是华为提供的底层 AR 能力引擎，它通过相机捕捉真实环境画面，结合传感器数据进行实时分析，让应用能够理解环境中的平面、场景、运动轨迹，并实现虚拟物体与真实世界的融合。 本文将从零开始，逐步深入讲解 AR Engine 在 HarmonyOS NEXT 上的 ArkTS 开发，涵盖：  AREngine 核心架构与模块导入 AR 会话的创建与管理（ARViewContext） 环境平面检测与语义识别 命中检测（Hit Test）与锚点系统 3D 模型加载与渲染 运动跟踪与光照估计 场景网格（Scene Mesh）与半解析  文中所有代码均遵循 V2 装饰器规范（@ComponentV2、@Local、@Param 等），确保与最新 HarmonyOS NEXT 最佳实践对齐。  前置条件：开始前请确认你的设备支持 AR Engine（API 18+，HarmonyOS 5...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/06/15/%E9%B8%BF%E8%92%99AREngine%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/" title="鸿蒙 AR Engine 完全指南：从会话管理到平面检测再到模型渲染"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-arengine-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-15</div><div class="info-item-2">鸿蒙 AR Engine 完全指南：从会话管理到平面检测再到模型渲染</div></div><div class="info-2"><div class="info-item-1">前言增强现实（Augmented Reality, AR）技术正在深刻改变人与数字世界的交互方式。从家居预览到教育演示，从工业巡检到社交娱乐，AR 的应用场景正以惊人的速度扩展。 在鸿蒙生态中，AR Engine 是华为提供的底层 AR 能力引擎，它通过相机捕捉真实环境画面，结合传感器数据进行实时分析，让应用能够理解环境中的平面、场景、运动轨迹，并实现虚拟物体与真实世界的融合。 本文将从零开始，逐步深入讲解 AR Engine 在 HarmonyOS NEXT 上的 ArkTS 开发，涵盖：  AREngine 核心架构与模块导入 AR 会话的创建与管理（ARViewContext） 环境平面检测与语义识别 命中检测（Hit Test）与锚点系统 3D 模型加载与渲染 运动跟踪与光照估计 场景网格（Scene Mesh）与半解析  文中所有代码均遵循 V2 装饰器规范（@ComponentV2、@Local、@Param 等），确保与最新 HarmonyOS NEXT 最佳实践对齐。  前置条件：开始前请确认你的设备支持 AR Engine（API 18+，HarmonyOS 5...</div></div></div></a><a class="pagination-related" href="/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider&#x2F;@Consumer 的完整状态体系"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-state-management.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-31</div><div class="info-item-2">鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider&#x2F;@Consumer 的完整状态体系</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI V2 的五大状态装饰器——@Local、@Param、@Track、@Provider、@Consumer，对比 V1 的 @State/@Prop/@Link/@Provide/@Consume，用源码级理解掌握状态管理</div></div></div></a><a class="pagination-related" href="/2026/06/06/%E9%B8%BF%E8%92%99%E6%96%B0%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E6%A8%A1%E5%9D%97%E6%8B%86%E5%88%86/" title="鸿蒙新项目架构设计与模块拆分：从零搭建企业级工程"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-module-architecture.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-06</div><div class="info-item-2">鸿蒙新项目架构设计与模块拆分：从零搭建企业级工程</div></div><div class="info-2"><div class="info-item-1">从零开始设计鸿蒙项目的模块架构——四种模块拆分策略、模块间依赖规则、接口下沉与事件通信模式、完整项目目录模板，一套可复用的多模块工程搭建指南</div></div></div></a><a class="pagination-related" href="/2026/06/02/%E9%B8%BF%E8%92%99V2%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" title="鸿蒙 V2 项目架构设计：从模块划分到 MVVM 分层再到工程落地"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-architecture.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-02</div><div class="info-item-2">鸿蒙 V2 项目架构设计：从模块划分到 MVVM 分层再到工程落地</div></div><div class="info-2"><div class="info-item-1">基于 ArkUI V2 的完整项目架构方案——多模块划分、MVVM 分层、路由封装、网络层、主题管理、目录模板，一套可直接落地的企业级架构设计</div></div></div></a><a class="pagination-related" href="/2026/05/31/%E9%B8%BF%E8%92%99%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-31</div><div class="info-item-2">鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI V2 的自定义组件体系，完整覆盖 @ComponentV2、@Builder、@BuilderParam、@Track、@Reusable 等核心装饰器，用实战理解组件化设计</div></div></div></a><a class="pagination-related" href="/2026/06/02/%E9%B8%BF%E8%92%99%E5%B8%B8%E7%94%A8%E4%B8%89%E6%96%B9%E5%BA%93%E5%AE%8C%E5%85%A8%E6%80%BB%E7%BB%93/" title="鸿蒙常用三方库完全总结"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-thirdparty.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-06-02</div><div class="info-item-2">鸿蒙常用三方库完全总结</div></div><div class="info-2"><div class="info-item-1">盘点鸿蒙生态 5000+ 三方库中真正高频稳定的选择——@ohos/axios 网络请求、TDesign UI 组件、MMKV/RelationalStore 存储、imageglide 图片加载、@ohos/zxing 扫码、PushKit/MapKit 推送地图，附安装命令、核心 API 和 13 场景选型矩阵</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%83%BD%E5%8A%9B%E6%80%BB%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">一、能力总览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E6%95%B0%E6%8D%AE%E5%B1%82%E7%BA%A7%E5%AF%B9%E6%AF%94"><span class="toc-number">2.1.</span> <span class="toc-text">三种数据层级对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%82%B9%E4%BA%91%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">二、点云技术原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BB%80%E4%B9%88%E6%98%AF-AR-%E7%82%B9%E4%BA%91%EF%BC%9F"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 什么是 AR 点云？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ArkTS-%E4%B8%AD%E7%9A%84%E7%82%B9%E4%BA%91-API"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 ArkTS 中的点云 API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-ARPoint-%E6%A0%B8%E5%BF%83%E6%8E%A5%E5%8F%A3"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 ARPoint 核心接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%89%B9%E5%BE%81%E7%82%B9%E8%B7%9F%E8%B8%AA%E7%A4%BA%E4%BE%8B"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 特征点跟踪示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%A8%80%E7%96%8F%E7%82%B9%E4%BA%91%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">三、稀疏点云的可视化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%82%B9%E4%BA%91%E6%B8%B2%E6%9F%93%E8%8A%82%E7%82%B9"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 点云渲染节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%89%B9%E5%BE%81%E7%82%B9%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 特征点的生命周期</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%A8%A0%E5%AF%86%E7%82%B9%E4%BA%91%E4%B8%8E%E6%B7%B1%E5%BA%A6%E6%95%B0%E6%8D%AE"><span class="toc-number">5.</span> <span class="toc-text">四、稠密点云与深度数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E8%8E%B7%E5%8F%96%E6%B7%B1%E5%BA%A6%E7%82%B9%E4%BA%91"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 获取深度点云</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 坐标变换</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%82%B9%E4%BA%91%E7%9D%80%E8%89%B2%EF%BC%88Point-Cloud-Coloring%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">五、点云着色（Point Cloud Coloring）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%9D%80%E8%89%B2%E5%8E%9F%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 着色原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%9B%B8%E6%9C%BA%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 相机投影矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%82%B9%E4%BA%91%E7%9D%80%E8%89%B2%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 点云着色完整实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E7%9D%80%E8%89%B2%E6%95%88%E6%9E%9C%E4%B8%8E%E6%80%A7%E8%83%BD"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 着色效果与性能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E9%87%8D%E5%BB%BA%EF%BC%88Scene-Mesh%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">六、场景网格重建（Scene Mesh）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%EF%BC%9F"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 什么是场景网格？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%B8%A4%E7%A7%8D%E9%87%8D%E5%BB%BA%E6%A8%A1%E5%BC%8F"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 两种重建模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%90%AF%E7%94%A8%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 启用场景网格</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-ARSceneMesh-%E6%A0%B8%E5%BF%83-API"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 ARSceneMesh 核心 API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E5%9C%A8%E5%B8%A7%E5%9B%9E%E8%B0%83%E4%B8%AD%E8%8E%B7%E5%8F%96%E7%BD%91%E6%A0%BC"><span class="toc-number">7.5.</span> <span class="toc-text">6.5 在帧回调中获取网格</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%BD%91%E6%A0%BC%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E4%B8%8E%E5%88%86%E6%9E%90"><span class="toc-number">8.</span> <span class="toc-text">七、网格数据处理与分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E8%A7%A3%E6%9E%90%E7%BD%91%E6%A0%BC%E6%8B%93%E6%89%91"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 解析网格拓扑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E7%BD%91%E6%A0%BC%E5%9C%B0%E9%9D%A2%E6%A3%80%E6%B5%8B"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 网格地面检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E7%BD%91%E6%A0%BC%E7%A2%B0%E6%92%9E%E6%A3%80%E6%B5%8B"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 网格碰撞检测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%BD%91%E6%A0%BC%E7%9D%80%E8%89%B2%EF%BC%88Mesh-Coloring%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">八、网格着色（Mesh Coloring）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%AF%AD%E4%B9%89%E7%9D%80%E8%89%B2"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 语义着色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E9%AB%98%E5%BA%A6%E7%9D%80%E8%89%B2%EF%BC%88%E5%9C%B0%E5%BD%A2%E5%9B%BE%E6%95%88%E6%9E%9C%EF%BC%89"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 高度着色（地形图效果）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%B3%95%E7%BA%BF%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9D%80%E8%89%B2"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 法线可视化着色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E7%9D%80%E8%89%B2%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 着色效果对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%BB%BC%E5%90%88%E7%A4%BA%E4%BE%8B%EF%BC%9AAR-%E7%8E%AF%E5%A2%83%E6%89%AB%E6%8F%8F%E5%99%A8"><span class="toc-number">10.</span> <span class="toc-text">九、综合示例：AR 环境扫描器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%AE%8C%E6%95%B4%E7%BB%84%E4%BB%B6%E4%BB%A3%E7%A0%81"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 完整组件代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%80%A7%E8%83%BD%E5%8F%82%E8%80%83"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 性能参考</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">11.</span> <span class="toc-text">十、性能优化与最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E7%BD%91%E6%A0%BC%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E7%AD%96%E7%95%A5"><span class="toc-number">11.1.</span> <span class="toc-text">10.1 网格数据处理策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">11.2.</span> <span class="toc-text">10.2 内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%B8%85%E5%8D%95"><span class="toc-number">11.3.</span> <span class="toc-text">10.3 最佳实践清单</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%8E%92%E6%9F%A5"><span class="toc-number">12.</span> <span class="toc-text">十一、常见问题与排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%9C%BA%E6%99%AF%E7%BD%91%E6%A0%BC%E4%B8%8D%E7%94%9F%E6%88%90"><span class="toc-number">12.1.</span> <span class="toc-text">11.1 场景网格不生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E7%82%B9%E4%BA%91%E6%95%B0%E6%8D%AE%E4%B8%BA%E7%A9%BA"><span class="toc-number">12.2.</span> <span class="toc-text">11.2 点云数据为空</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E7%9D%80%E8%89%B2%E6%95%88%E6%9E%9C%E4%B8%8D%E5%AF%B9"><span class="toc-number">12.3.</span> <span class="toc-text">11.3 着色效果不对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98"><span class="toc-number">12.4.</span> <span class="toc-text">11.4 性能问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">十二、总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%94%B6%E8%8E%B7"><span class="toc-number">13.1.</span> <span class="toc-text">核心收获</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6%E7%9A%84%E8%B7%AF%E7%BA%BF%E5%9B%BE"><span class="toc-number">13.2.</span> <span class="toc-text">从入门到进阶的路线图</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
