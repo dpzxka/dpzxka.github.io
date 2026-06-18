@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e1a"/>
+      <stop offset="50%" style="stop-color:#0d1b2a"/>
+      <stop offset="100%" style="stop-color:#0a0e1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00c9ff"/>
+      <stop offset="100%" style="stop-color:#92fe9d"/>
+    </linearGradient>
+    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f539f5"/>
+      <stop offset="100%" style="stop-color:#00e5ff"/>
+    </linearGradient>
+    <linearGradient id="voxel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00c9ff;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#92fe9d;stop-opacity:0.1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.05">
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#00c9ff" stroke-width="0.3"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+
+  <!-- Decorative elements -->
+  <circle cx="150" cy="500" r="200" fill="none" stroke="#f539f5" stroke-width="0.5" opacity="0.06"/>
+  <circle cx="1050" cy="130" r="150" fill="none" stroke="#00c9ff" stroke-width="0.5" opacity="0.06"/>
+
+  <!-- Left: Dense reconstruction visualization -->
+  <g transform="translate(250, 315)" filter="url(#shadow)">
+    <!-- Phone frame -->
+    <rect x="-130" y="-180" width="260" height="360" rx="25" fill="#0d1b2a" stroke="#1e3a5f" stroke-width="1.5"/>
+    <rect x="-115" y="-165" width="230" height="300" rx="10" fill="#0a0e1a"/>
+
+    <!-- Camera view with voxel grid -->
+    <g clip-path="url(#phoneClip2)">
+      <clipPath id="phoneClip2">
+        <rect x="-115" y="-165" width="230" height="300" rx="10"/>
+      </clipPath>
+
+      <rect x="-115" y="-165" width="230" height="300" fill="#0a0e1a"/>
+
+      <!-- Voxel grid 3D visualization -->
+      <g transform="translate(0, -20)" opacity="0.15">
+        <!-- Grid lines -->
+        <g stroke="#00c9ff" stroke-width="0.4">
+          <line x1="-60" y1="-40" x2="60" y2="-60"/>
+          <line x1="-60" y1="20" x2="60" y2="0"/>
+          <line x1="-60" y1="-40" x2="-60" y2="20"/>
+          <line x1="60" y1="-60" x2="60" y2="0"/>
+          <line x1="-60" y1="20" x2="60" y2="0"/>
+          <line x1="-60" y1="-40" x2="60" y2="0"/>
+          <line x1="-60" y1="-10" x2="60" y2="-30"/>
+          <line x1="-60" y1="-10" x2="-60" y2="20"/>
+          <line x1="60" y1="-30" x2="60" y2="0"/>
+          <line x1="-60" y1="-10" x2="60" y2="-30"/>
+        </g>
+      </g>
+
+      <!-- Colored voxel cubes (semantic labels) -->
+      <g>
+        <!-- Floor plane voxels -->
+        <rect x="-50" y="50" width="14" height="14" fill="#00c9ff" opacity="0.6" rx="1"/>
+        <rect x="-34" y="45" width="14" height="14" fill="#00c9ff" opacity="0.5" rx="1"/>
+        <rect x="-18" y="52" width="14" height="14" fill="#92fe9d" opacity="0.5" rx="1"/>
+        <rect x="-2" y="48" width="14" height="14" fill="#00c9ff" opacity="0.6" rx="1"/>
+        <rect x="14" y="44" width="14" height="14" fill="#92fe9d" opacity="0.4" rx="1"/>
+        <rect x="30" y="50" width="14" height="14" fill="#00c9ff" opacity="0.5" rx="1"/>
+
+        <!-- Wall voxels -->
+        <rect x="-50" y="25" width="14" height="14" fill="#f539f5" opacity="0.5" rx="1"/>
+        <rect x="-50" y="9" width="14" height="14" fill="#f539f5" opacity="0.4" rx="1"/>
+        <rect x="-50" y="-7" width="14" height="14" fill="#f539f5" opacity="0.3" rx="1"/>
+        <rect x="-34" y="30" width="14" height="14" fill="#f539f5" opacity="0.4" rx="1"/>
+
+        <!-- Object voxels (chair/table) -->
+        <rect x="20" y="18" width="12" height="12" fill="#ff6b6b" opacity="0.6" rx="1"/>
+        <rect x="34" y="15" width="12" height="12" fill="#ff6b6b" opacity="0.5" rx="1"/>
+        <rect x="20" y="4" width="12" height="12" fill="#ff6b6b" opacity="0.4" rx="1"/>
+        <rect x="34" y="1" width="12" height="12" fill="#ff6b6b" opacity="0.4" rx="1"/>
+      </g>
+
+      <!-- Label legend overlay -->
+      <text x="-100" y="-140" fill="#00c9ff" font-family="monospace" font-size="8">CUBE_VOLUME</text>
+      <rect x="-100" y="-130" width="8" height="8" fill="#00c9ff" opacity="0.6" rx="1"/>
+      <text x="-88" y="-122" fill="#888" font-family="monospace" font-size="7">Floor</text>
+      <rect x="-100" y="-118" width="8" height="8" fill="#f539f5" opacity="0.5" rx="1"/>
+      <text x="-88" y="-110" fill="#888" font-family="monospace" font-size="7">Wall</text>
+      <rect x="-100" y="-106" width="8" height="8" fill="#ff6b6b" opacity="0.5" rx="1"/>
+      <text x="-88" y="-98" fill="#888" font-family="monospace" font-size="7">Object</text>
+
+      <!-- Measurement overlay -->
+      <g transform="translate(-30, 70)">
+        <line x1="0" y1="0" x2="60" y2="0" stroke="#92fe9d" stroke-width="1.5"/>
+        <line x1="0" y1="-5" x2="0" y2="5" stroke="#92fe9d" stroke-width="1"/>
+        <line x1="60" y1="-5" x2="60" y2="5" stroke="#92fe9d" stroke-width="1"/>
+        <text x="30" y="-3" text-anchor="middle" fill="#92fe9d" font-family="monospace" font-size="7">1.24m</text>
+      </g>
+    </g>
+
+    <!-- Phone notch -->
+    <rect x="-25" y="-170" width="50" height="6" rx="3" fill="#0a0e1a"/>
+  </g>
+
+  <!-- Right side: Cube data visualization -->
+  <g transform="translate(800, 315)" filter="url(#shadow)">
+    <rect x="-130" y="-150" width="260" height="300" rx="12" fill="#0d1b2a" stroke="#1e3a5f" stroke-width="1"/>
+
+    <text x="0" y="-125" text-anchor="middle" fill="#00c9ff" font-family="sans-serif" font-size="12" font-weight="bold">ARSemanticDenseCubeData</text>
+
+    <!-- Vertex data display -->
+    <g transform="translate(0, -85)">
+      <text x="-110" y="0" fill="#888" font-family="monospace" font-size="8">vertexData:</text>
+      <text x="-110" y="14" fill="#666" font-family="monospace" font-size="7">x0:-0.23 y0: 0.05 z0: 0.45</text>
+      <text x="-110" y="26" fill="#666" font-family="monospace" font-size="7">x1: 0.18 y1: 0.05 z1: 0.45</text>
+      <text x="-110" y="38" fill="#666" font-family="monospace" font-size="7">x2:-0.23 y2: 0.35 z2: 0.45</text>
+      <text x="-110" y="50" fill="#666" font-family="monospace" font-size="7">x3: 0.18 y3: 0.35 z3: 0.45</text>
+    </g>
+
+    <!-- Cube visualization -->
+    <g transform="translate(50, 10)">
+      <rect x="-30" y="-30" width="60" height="60" rx="2" fill="url(#voxel)" stroke="#00c9ff" stroke-width="1"/>
+      <rect x="-20" y="-40" width="60" height="60" rx="2" fill="none" stroke="#00c9ff" stroke-width="0.5" opacity="0.4"/>
+      <line x1="-30" y1="-30" x2="-20" y2="-40" stroke="#00c9ff" stroke-width="0.5" opacity="0.3"/>
+      <line x1="30" y1="-30" x2="40" y2="-40" stroke="#00c9ff" stroke-width="0.5" opacity="0.3"/>
+      <line x1="-30" y1="30" x2="-20" y2="20" stroke="#00c9ff" stroke-width="0.5" opacity="0.3"/>
+      <line x1="30" y1="30" x2="40" y2="20" stroke="#00c9ff" stroke-width="0.5" opacity="0.3"/>
+      <text x="0" y="5" text-anchor="middle" fill="#00c9ff" font-family="monospace" font-size="8" opacity="0.8">cube</text>
+    </g>
+
+    <!-- Confidence and Label -->
+    <g transform="translate(0, 100)">
+      <rect x="-110" y="-15" width="220" height="30" rx="4" fill="#0a0e1a" stroke="#1e3a5f" stroke-width="0.5"/>
+      <text x="-100" y="1" fill="#888" font-family="monospace" font-size="8">confidence: [0.95, 0.92, 0.03, 0.01]</text>
+      <text x="-100" y="15" fill="#888" font-family="monospace" font-size="8">label: FLOOR (置信度 95%)</text>
+    </g>
+  </g>
+
+  <!-- Middle title area -->
+  <text x="600" y="75" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="36" font-weight="bold">高精几何重建</text>
+  <text x="600" y="110" text-anchor="middle" fill="#888" font-family="sans-serif" font-size="14">Dense Geometry Reconstruction</text>
+
+  <!-- Subtitle -->
+  <rect x="250" y="530" width="700" height="60" rx="30" fill="#0d1b2a" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="600" y="555" text-anchor="middle" fill="#ccc" font-family="sans-serif" font-size="13">语义体素 · 顶点数据 · 置信度 · 体积测量</text>
+  <text x="600" y="575" text-anchor="middle" fill="#666" font-family="sans-serif" font-size="11">semanticDenseMode · Cube Volume · Real-time Geometry</text>
+
+  <!-- Badges -->
+  <g transform="translate(440, 130)">
+    <rect x="0" y="0" width="100" height="20" rx="10" fill="#00c9ff" opacity="0.15"/>
+    <text x="50" y="14" text-anchor="middle" fill="#00c9ff" font-family="monospace" font-size="9">API 18+</text>
+  </g>
+  <g transform="translate(560, 130)">
+    <rect x="0" y="0" width="150" height="20" rx="10" fill="#f539f5" opacity="0.15"/>
+    <text x="75" y="14" text-anchor="middle" fill="#f539f5" font-family="monospace" font-size="9">CUBE_VOLUME</text>
+  </g>
+  <g transform="translate(720, 130)">
+    <rect x="0" y="0" width="40" height="20" rx="10" fill="#92fe9d" opacity="0.15"/>
+    <text x="20" y="14" text-anchor="middle" fill="#92fe9d" font-family="monospace" font-size="9">6.0</text>
+  </g>
+</svg>

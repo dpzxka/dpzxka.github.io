@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e1a"/>
+      <stop offset="50%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0a0e1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b6b"/>
+      <stop offset="50%" style="stop-color:#feca57"/>
+      <stop offset="100%" style="stop-color:#ff6b6b"/>
+    </linearGradient>
+    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#48dbfb"/>
+      <stop offset="100%" style="stop-color:#0abde3"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e2a3a;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#141b2d;stop-opacity:0.6"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.06">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#48dbfb" stroke-width="0.5"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="550" r="180" fill="none" stroke="#ff6b6b" stroke-width="0.5" opacity="0.08"/>
+  <circle cx="1100" cy="80" r="120" fill="none" stroke="#48dbfb" stroke-width="0.5" opacity="0.08"/>
+  <circle cx="950" cy="500" r="80" fill="none" stroke="#feca57" stroke-width="0.5" opacity="0.06"/>
+
+  <!-- Left: Image tracking visualization -->
+  <!-- Target image being tracked -->
+  <g transform="translate(180, 315)" filter="url(#shadow)">
+    <!-- Phone screen frame -->
+    <rect x="-120" y="-160" width="240" height="320" rx="20" fill="url(#card)" stroke="#2a3a4a" stroke-width="1.5"/>
+    
+    <!-- Camera view content -->
+    <g clip-path="url(#phoneClip)">
+      <clipPath id="phoneClip">
+        <rect x="-110" y="-150" width="220" height="300" rx="10"/>
+      </clipPath>
+      
+      <!-- Camera feed background -->
+      <rect x="-110" y="-150" width="220" height="300" fill="#1a1a2e"/>
+      
+      <!-- Grid overlay (like AR camera view) -->
+      <g opacity="0.12">
+        <line x1="-110" y1="-75" x2="110" y2="-75" stroke="#48dbfb" stroke-width="0.3"/>
+        <line x1="-110" y1="0" x2="110" y2="0" stroke="#48dbfb" stroke-width="0.3"/>
+        <line x1="-110" y1="75" x2="110" y2="75" stroke="#48dbfb" stroke-width="0.3"/>
+        <line x1="0" y1="-150" x2="0" y2="150" stroke="#48dbfb" stroke-width="0.3"/>
+        <line x1="-55" y1="-150" x2="-55" y2="150" stroke="#48dbfb" stroke-width="0.3"/>
+        <line x1="55" y1="-150" x2="55" y2="150" stroke="#48dbfb" stroke-width="0.3"/>
+      </g>
+
+      <!-- Detected image in camera -->
+      <g transform="translate(0, -20)">
+        <rect x="-45" y="-30" width="90" height="60" rx="4" fill="none" stroke="#ff6b6b" stroke-width="2" filter="url(#glow)"/>
+        <rect x="-40" y="-25" width="80" height="50" rx="2" fill="#2a1a1a" opacity="0.5"/>
+        
+        <!-- Image content indicators -->
+        <line x1="-30" y1="-15" x2="-10" y2="-15" stroke="#ff6b6b" stroke-width="1" opacity="0.6"/>
+        <line x1="-30" y1="-5" x2="30" y2="-5" stroke="#feca57" stroke-width="1" opacity="0.6"/>
+        <line x1="-30" y1="5" x2="-5" y2="5" stroke="#ff6b6b" stroke-width="1" opacity="0.6"/>
+        <line x1="-30" y1="15" x2="20" y2="15" stroke="#feca57" stroke-width="1" opacity="0.6"/>
+        
+        <!-- Corner markers -->
+        <path d="M-45,-30 L-35,-30 M-45,-30 L-45,-20" stroke="#ff6b6b" stroke-width="2" fill="none"/>
+        <path d="M45,-30 L35,-30 M45,-30 L45,-20" stroke="#ff6b6b" stroke-width="2" fill="none"/>
+        <path d="M-45,30 L-35,30 M-45,30 L-45,20" stroke="#ff6b6b" stroke-width="2" fill="none"/>
+        <path d="M45,30 L35,30 M45,30 L45,20" stroke="#ff6b6b" stroke-width="2" fill="none"/>
+      </g>
+
+      <!-- AR label near detected image -->
+      <text x="0" y="-55" text-anchor="middle" fill="#48dbfb" font-family="monospace" font-size="10" opacity="0.9">AUGMENTED_IMAGE</text>
+      
+      <!-- Pose axis indicator -->
+      <g transform="translate(-80, 80)">
+        <line x1="0" y1="0" x2="20" y2="0" stroke="#ff6b6b" stroke-width="1.5"/>
+        <line x1="0" y1="0" x2="0" y2="-20" stroke="#48dbfb" stroke-width="1.5"/>
+        <line x1="0" y1="0" x2="10" y2="10" stroke="#feca57" stroke-width="1.5"/>
+        <text x="12" y="-4" fill="#48dbfb" font-family="monospace" font-size="6">pose</text>
+      </g>
+    </g>
+
+    <!-- Phone frame top notch -->
+    <rect x="-20" y="-150" width="40" height="5" rx="2.5" fill="#1a1a2e"/>
+  </g>
+
+  <!-- Connection line from phone to database -->
+  <line x1="310" y1="315" x2="460" y2="250" stroke="#feca57" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
+  <circle cx="385" cy="282" r="3" fill="#feca57" opacity="0.8"/>
+  <circle cx="420" cy="266" r="2" fill="#feca57" opacity="0.6"/>
+
+  <!-- Center: Image Database -->
+  <g transform="translate(520, 240)" filter="url(#shadow)">
+    <rect x="-65" y="-40" width="130" height="80" rx="8" fill="url(#card)" stroke="#feca57" stroke-width="1"/>
+    <text x="0" y="-18" text-anchor="middle" fill="#feca57" font-family="sans-serif" font-size="9" font-weight="bold">AugmentedImage</text>
+    <text x="0" y="-6" text-anchor="middle" fill="#feca57" font-family="sans-serif" font-size="9" font-weight="bold">Database</text>
+    <!-- Database icon -->
+    <ellipse cx="0" cy="10" rx="30" ry="8" fill="none" stroke="#feca57" stroke-width="1.5"/>
+    <line x1="-30" y1="10" x2="-30" y2="20" stroke="#feca57" stroke-width="1.5"/>
+    <line x1="30" y1="10" x2="30" y2="20" stroke="#feca57" stroke-width="1.5"/>
+    <ellipse cx="0" cy="20" rx="30" ry="8" fill="none" stroke="#feca57" stroke-width="1.5"/>
+    <line x1="-30" y1="20" x2="-30" y2="30" stroke="#feca57" stroke-width="1.5"/>
+    <line x1="30" y1="20" x2="30" y2="30" stroke="#feca57" stroke-width="1.5"/>
+    <ellipse cx="0" cy="30" rx="30" ry="8" fill="none" stroke="#feca57" stroke-width="1.5"/>
+  </g>
+
+  <!-- Connection from database to right -->
+  <line x1="585" y1="270" x2="700" y2="350" stroke="#48dbfb" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
+
+  <!-- Right side: Multiple tracked images -->
+  <g transform="translate(900, 315)" filter="url(#shadow)">
+    <rect x="-130" y="-150" width="260" height="300" rx="15" fill="url(#card)" stroke="#2a3a4a" stroke-width="1"/>
+    
+    <text x="0" y="-125" text-anchor="middle" fill="#48dbfb" font-family="sans-serif" font-size="11" font-weight="bold">图像跟踪结果</text>
+    
+    <!-- Tracked image 1 -->
+    <g transform="translate(0, -75)">
+      <rect x="-80" y="-15" width="160" height="30" rx="4" fill="#1a2a3a" stroke="#ff6b6b" stroke-width="0.8"/>
+      <rect x="5" y="-10" width="30" height="20" rx="2" fill="#2a1a1a" stroke="#ff6b6b" stroke-width="0.5"/>
+      <text x="40" y="2" fill="#ff6b6b" font-family="monospace" font-size="8">tracking_img_01</text>
+    </g>
+
+    <!-- Tracked image 2 -->
+    <g transform="translate(0, -25)">
+      <rect x="-80" y="-15" width="160" height="30" rx="4" fill="#1a2a3a" stroke="#feca57" stroke-width="0.8"/>
+      <rect x="5" y="-10" width="30" height="20" rx="2" fill="#2a1a1a" stroke="#feca57" stroke-width="0.5"/>
+      <text x="40" y="2" fill="#feca57" font-family="monospace" font-size="8">poster_movie_x</text>
+    </g>
+
+    <!-- Tracked image 3 -->
+    <g transform="translate(0, 25)">
+      <rect x="-80" y="-15" width="160" height="30" rx="4" fill="#1a2a3a" stroke="#48dbfb" stroke-width="0.8"/>
+      <rect x="5" y="-10" width="30" height="20" rx="2" fill="#1a2a3a" stroke="#48dbfb" stroke-width="0.5"/>
+      <text x="40" y="2" fill="#48dbfb" font-family="monospace" font-size="8">product_logo_v3</text>
+    </g>
+
+    <!-- Pose info display -->
+    <g transform="translate(0, 80)">
+      <rect x="-90" y="-20" width="180" height="40" rx="4" fill="#0d1b2a" stroke="#2a3a4a" stroke-width="0.5"/>
+      <text x="-75" y="-5" fill="#777" font-family="monospace" font-size="7">pose:  x☰0.12  y☰0.05  z☰0.45</text>
+      <text x="-75" y="8" fill="#777" font-family="monospace" font-size="7">state: TRACKING    dist: 1.2m</text>
+    </g>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="80" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="36" font-weight="bold">图像跟踪</text>
+  <text x="600" y="115" text-anchor="middle" fill="#888" font-family="sans-serif" font-size="14">Image Tracking</text>
+
+  <!-- Subtitle area -->
+  <rect x="300" y="510" width="600" height="70" rx="35" fill="url(#card)" stroke="#2a3a4a" stroke-width="1"/>
+  <text x="600" y="540" text-anchor="middle" fill="#ccc" font-family="sans-serif" font-size="13">ARAugmentedImage · ARAugmentedImageDatabase</text>
+  <text x="600" y="562" text-anchor="middle" fill="#666" font-family="sans-serif" font-size="11">图片识别 · 姿态追踪 · 虚拟内容叠加 · 数据库序列化</text>
+
+  <!-- Tech badges -->
+  <g transform="translate(440, 145)">
+    <rect x="0" y="0" width="70" height="18" rx="9" fill="#ff6b6b" opacity="0.15"/>
+    <text x="35" y="13" text-anchor="middle" fill="#ff6b6b" font-family="monospace" font-size="8">ARType.IMAGE</text>
+  </g>
+  <g transform="translate(630, 145)">
+    <rect x="0" y="0" width="90" height="18" rx="9" fill="#48dbfb" opacity="0.15"/>
+    <text x="45" y="13" text-anchor="middle" fill="#48dbfb" font-family="monospace" font-size="8">HarmonyOS NEXT</text>
+  </g>
+
+
+  <!-- Bottom line -->
+  <line x1="200" y1="605" x2="1000" y2="605" stroke="#2a3a4a" stroke-width="0.5"/>
+</svg>
