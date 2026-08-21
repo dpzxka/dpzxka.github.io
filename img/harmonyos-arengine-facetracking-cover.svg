@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#0a0e1a"/>
@@ -170,9 +170,9 @@
       <text x="-110" y="68" fill="#feca57" font-size="8">🤨 眉毛 (4)</text>
       <text x="-110" y="80" fill="#888">BROW_DOWN_L · BROW_DOWN_R · BROW_INNER_UP_L · BROW_INNER_UP_R</text>
 
-      <!-- Mouth & Jaw -->
+      <!-- Mouth &amp; Jaw -->
       <rect x="-120" y="95" width="240" height="55" rx="4" fill="none" stroke="#1dd1a1" stroke-width="0.3" opacity="0.3"/>
-      <text x="-110" y="108" fill="#1dd1a1" font-size="8">👄 口部 & 下颌 (38)</text>
+      <text x="-110" y="108" fill="#1dd1a1" font-size="8">👄 口部 &amp; 下颌 (38)</text>
       <text x="-110" y="120" fill="#888">JAW_OPEN · JAW_LEFT · JAW_RIGHT · MOUTH_OPEN</text>
       <text x="-110" y="132" fill="#888">MOUTH_SMILE_L/R · MOUTH_FROWN_L/R · MOUTH_PUCKER</text>
       <text x="-110" y="144" fill="#888">LIP_UPPER_UP/DOWN · LIP_LOWER_DOWN/UP … etc.</text>
@@ -190,7 +190,7 @@
 
   <!-- Title -->
   <text x="600" y="80" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="36" font-weight="bold">人脸跟踪与微表情</text>
-  <text x="600" y="115" text-anchor="middle" fill="#888" font-family="sans-serif" font-size="14">Face Tracking & Blend Shapes</text>
+  <text x="600" y="115" text-anchor="middle" fill="#888" font-family="sans-serif" font-size="14">Face Tracking &amp; Blend Shapes</text>
 
   <!-- Subtitle area -->
   <rect x="250" y="525" width="700" height="60" rx="30" fill="url(#card)" stroke="#2a3a4a" stroke-width="1"/>
