@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
+  <!-- 深色科技背景 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0c29;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#302b63;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#24243e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d2ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a7bd5;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#11998e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38ef7d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="800" height="450" fill="url(#bgGradient)"/>
+  
+  <!-- 网格线 -->
+  <g opacity="0.1">
+    <line x1="0" y1="100" x2="800" y2="100" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="200" x2="800" y2="200" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="300" x2="800" y2="300" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="400" x2="800" y2="400" stroke="#fff" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="450" stroke="#fff" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="450" stroke="#fff" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="450" stroke="#fff" stroke-width="1"/>
+  </g>
+  
+  <!-- 帧率柱状图 -->
+  <g transform="translate(50, 80)">
+    <text x="75" y="20" font-family="Arial" font-size="14" fill="#aaa" text-anchor="middle">帧率分析</text>
+    
+    <!-- 正常帧（绿色） -->
+    <rect x="10" y="60" width="20" height="80" fill="url(#successGradient)" rx="2"/>
+    <rect x="40" y="50" width="20" height="90" fill="url(#successGradient)" rx="2"/>
+    <rect x="70" y="55" width="20" height="85" fill="url(#successGradient)" rx="2"/>
+    <rect x="100" y="45" width="20" height="95" fill="url(#successGradient)" rx="2"/>
+    <rect x="130" y="60" width="20" height="80" fill="url(#successGradient)" rx="2"/>
+    
+    <!-- 卡顿帧（红色） -->
+    <rect x="160" y="20" width="20" height="120" fill="url(#warningGradient)" rx="2"/>
+    <rect x="190" y="60" width="20" height="80" fill="url(#successGradient)" rx="2"/>
+    
+    <!-- 正常帧继续 -->
+    <rect x="220" y="50" width="20" height="90" fill="url(#successGradient)" rx="2"/>
+    <rect x="250" y="55" width="20" height="85" fill="url(#successGradient)" rx="2"/>
+    <rect x="280" y="48" width="20" height="92" fill="url(#successGradient)" rx="2"/>
+    
+    <!-- FPS标注 -->
+    <text x="75" y="160" font-family="Arial" font-size="12" fill="#38ef7d" text-anchor="middle">58 FPS</text>
+  </g>
+  
+  <!-- 组件复用示意图 -->
+  <g transform="translate(350, 80)">
+    <text x="100" y="20" font-family="Arial" font-size="14" fill="#aaa" text-anchor="middle">组件复用</text>
+    
+    <!-- 回收池 -->
+    <rect x="10" y="40" width="180" height="60" fill="none" stroke="#00d2ff" stroke-width="2" stroke-dasharray="5,5" rx="4"/>
+    <text x="100" y="55" font-family="Arial" font-size="11" fill="#00d2ff" text-anchor="middle">回收缓存池</text>
+    
+    <!-- 组件方块 -->
+    <rect x="20" y="70" width="30" height="20" fill="#3a7bd5" rx="2"/>
+    <rect x="55" y="70" width="30" height="20" fill="#3a7bd5" rx="2"/>
+    <rect x="90" y="70" width="30" height="20" fill="#3a7bd5" rx="2"/>
+    <rect x="125" y="70" width="30" height="20" fill="#3a7bd5" rx="2"/>
+    
+    <!-- 复用箭头 -->
+    <text x="100" y="115" font-family="Arial" font-size="11" fill="#fff" text-anchor="middle">♻️ 复用</text>
+    
+    <!-- 新组件 -->
+    <rect x="20" y="130" width="30" height="20" fill="#38ef7d" rx="2"/>
+    <rect x="55" y="130" width="30" height="20" fill="#38ef7d" rx="2"/>
+    <rect x="90" y="130" width="30" height="20" fill="#38ef7d" rx="2"/>
+    
+    <text x="100" y="165" font-family="Arial" font-size="11" fill="#38ef7d" text-anchor="middle">新建组件</text>
+  </g>
+  
+  <!-- 布局层级对比 -->
+  <g transform="translate(50, 280)">
+    <text x="150" y="20" font-family="Arial" font-size="14" fill="#aaa" text-anchor="middle">布局优化</text>
+    
+    <!-- 嵌套过深 -->
+    <g transform="translate(10, 40)">
+      <text x="50" y="0" font-family="Arial" font-size="11" fill="#f5576c" text-anchor="middle">❌ 嵌套过深</text>
+      <rect x="20" y="10" width="60" height="100" fill="none" stroke="#f5576c" stroke-width="1" rx="2"/>
+      <rect x="28" y="18" width="44" height="84" fill="none" stroke="#f5576c" stroke-width="1" rx="2"/>
+      <rect x="36" y="26" width="28" height="68" fill="none" stroke="#f5576c" stroke-width="1" rx="2"/>
+      <rect x="42" y="34" width="16" height="52" fill="#f5576c" opacity="0.3" rx="2"/>
+    </g>
+    
+    <!-- 扁平化 -->
+    <g transform="translate(150, 40)">
+      <text x="50" y="0" font-family="Arial" font-size="11" fill="#38ef7d" text-anchor="middle">✅ 扁平化</text>
+      <rect x="10" y="10" width="30" height="100" fill="#38ef7d" opacity="0.3" rx="2"/>
+      <rect x="45" y="10" width="30" height="100" fill="#38ef7d" opacity="0.3" rx="2"/>
+      <rect x="80" y="10" width="30" height="100" fill="#38ef7d" opacity="0.3" rx="2"/>
+    </g>
+    
+    <!-- 耗时对比 -->
+    <text x="280" y="70" font-family="Arial" font-size="11" fill="#f5576c">100层: +200% 耗时</text>
+    <text x="280" y="90" font-family="Arial" font-size="11" fill="#38ef7d">5-8层: 最优性能</text>
+  </g>
+  
+  <!-- 右侧指标面板 -->
+  <g transform="translate(550, 280)">
+    <text x="100" y="20" font-family="Arial" font-size="14" fill="#aaa" text-anchor="middle">优化指标</text>
+    
+    <!-- 指标卡片 -->
+    <rect x="10" y="40" width="180" height="110" fill="#fff" opacity="0.1" rx="8"/>
+    
+    <text x="25" y="65" font-family="Arial" font-size="12" fill="#aaa">BuildLazyItem</text>
+    <text x="175" y="65" font-family="Arial" font-size="14" fill="#38ef7d" text-anchor="end">0.749ms</text>
+    <text x="25" y="85" font-family="Arial" font-size="12" fill="#aaa">组件创建耗时</text>
+    <text x="175" y="85" font-family="Arial" font-size="14" fill="#38ef7d" text-anchor="end">↓93%</text>
+    
+    <text x="25" y="110" font-family="Arial" font-size="12" fill="#aaa">帧率</text>
+    <text x="175" y="110" font-family="Arial" font-size="14" fill="#38ef7d" text-anchor="end">58 FPS</text>
+    <text x="25" y="130" font-family="Arial" font-size="12" fill="#aaa">丢帧率</text>
+    <text x="175" y="130" font-family="Arial" font-size="14" fill="#38ef7d" text-anchor="end">0%</text>
+  </g>
+  
+  <!-- 标题 -->
+  <text x="400" y="420" font-family="Arial" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold">ArkUI 渲染性能优化</text>
+</svg>
