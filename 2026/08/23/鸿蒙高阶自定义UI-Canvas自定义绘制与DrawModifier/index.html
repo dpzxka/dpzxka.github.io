@@ -1,0 +1,904 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文是「鸿蒙高阶自定义UI」系列的第二篇。上一篇我们讲清了组件封装和Builder模式，这一篇进入自定义绘制——Canvas画布和DrawModifier绘制修改器，这两个机制让你能画出任何ArkUI内置组件无法实现的视觉效果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier">
+<meta property="og:url" content="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="本文是「鸿蒙高阶自定义UI」系列的第二篇。上一篇我们讲清了组件封装和Builder模式，这一篇进入自定义绘制——Canvas画布和DrawModifier绘制修改器，这两个机制让你能画出任何ArkUI内置组件无法实现的视觉效果。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-canvas-drawmodifier-cover.svg">
+<meta property="article:published_time" content="2026-08-23T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-23T02:45:17.865Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="ArkTS">
+<meta property="article:tag" content="Canvas">
+<meta property="article:tag" content="DrawModifier">
+<meta property="article:tag" content="自定义绘制">
+<meta property="article:tag" content="UI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-canvas-drawmodifier-cover.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier",
+  "url": "https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/",
+  "image": "https://dpzxka.github.io/img/harmonyos-canvas-drawmodifier-cover.svg",
+  "datePublished": "2026-08-23T03:00:00.000Z",
+  "dateModified": "2026-08-23T02:45:17.865Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">44</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">51</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-canvas-drawmodifier-cover.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-23T03:00:00.000Z" title="发表于 2026-08-23 11:00:00">2026-08-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-23T02:45:17.865Z" title="更新于 2026-08-23 10:45:17">2026-08-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HarmonyOS/">HarmonyOS</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HarmonyOS/%E9%B8%BF%E8%92%99%E5%BC%80%E5%8F%91/">鸿蒙开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-08-23 10:45:17&quot;}" hidden></div><blockquote>
+<p>本文是「鸿蒙高阶自定义UI」系列的第二篇。上一篇我们讲清了组件封装和Builder模式，这一篇进入自定义绘制——Canvas画布和DrawModifier绘制修改器，这两个机制让你能画出任何ArkUI内置组件无法实现的视觉效果。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="📚-系列导航"><a href="#📚-系列导航" class="headerlink" title="📚 系列导航"></a>📚 系列导航</h2><table>
+<thead>
+<tr>
+<th>篇章</th>
+<th>主题</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一篇</td>
+<td>自定义组件与Builder模式完全解析</td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td><strong>第二篇</strong></td>
+<td><strong>本文：Canvas自定义绘制与DrawModifier</strong></td>
+<td>📝 当前</td>
+</tr>
+<tr>
+<td>第三篇</td>
+<td>FrameNode与NodeController高级操控</td>
+<td>🔜 待写</td>
+</tr>
+<tr>
+<td>第四篇</td>
+<td>动画系统进阶</td>
+<td>🔜 待写</td>
+</tr>
+<tr>
+<td>第五篇</td>
+<td>自定义手势与交互</td>
+<td>🔜 待写</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="一、Canvas-组件基础"><a href="#一、Canvas-组件基础" class="headerlink" title="一、Canvas 组件基础"></a>一、Canvas 组件基础</h2><h3 id="1-1-两种创建方式"><a href="#1-1-两种创建方式" class="headerlink" title="1.1 两种创建方式"></a>1.1 两种创建方式</h3><p>Canvas组件从API 8开始支持，提供两种创建方式：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方式一：使用CanvasRenderingContext2D（API 8+）</span></span><br><span class="line"><span class="keyword">private</span> <span class="attr">settings</span>: <span class="title class_">RenderingContextSettings</span> = <span class="keyword">new</span> <span class="title class_">RenderingContextSettings</span>(<span class="literal">true</span>)</span><br><span class="line"><span class="keyword">private</span> <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> = <span class="keyword">new</span> <span class="title class_">CanvasRenderingContext2D</span>(<span class="variable language_">this</span>.<span class="property">settings</span>)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Canvas</span>(<span class="variable language_">this</span>.<span class="property">context</span>)</span><br><span class="line">  .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 在这里绘制</span></span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式二：使用CanvasParams（API 23+，不缓存指令）</span></span><br><span class="line"><span class="title class_">Canvas</span>(&#123; <span class="attr">onReady</span>: <span class="function">(<span class="params"><span class="attr">ctx</span>: <span class="title class_">DrawingRenderingContext</span></span>) =&gt;</span> &#123;&#125; &#125;)</span><br><span class="line">  .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-canvas">Canvas组件文档</a></p>
+</blockquote>
+<h3 id="1-2-初始化绘制上下文"><a href="#1-2-初始化绘制上下文" class="headerlink" title="1.2 初始化绘制上下文"></a>1.2 初始化绘制上下文</h3><p><code>RenderingContextSettings</code> 构造参数控制抗锯齿：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 开启抗锯齿（推荐）</span></span><br><span class="line"><span class="keyword">private</span> <span class="attr">settings</span>: <span class="title class_">RenderingContextSettings</span> = <span class="keyword">new</span> <span class="title class_">RenderingContextSettings</span>(<span class="literal">true</span>)</span><br><span class="line"><span class="comment">// 关闭抗锯齿</span></span><br><span class="line"><span class="keyword">private</span> <span class="attr">settings</span>: <span class="title class_">RenderingContextSettings</span> = <span class="keyword">new</span> <span class="title class_">RenderingContextSettings</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<p>创建 <code>CanvasRenderingContext2D</code>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> = <span class="keyword">new</span> <span class="title class_">CanvasRenderingContext2D</span>(<span class="variable language_">this</span>.<span class="property">settings</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-common-property">RenderingContextSettings</a></p>
+</blockquote>
+<h3 id="1-3-onReady-回调"><a href="#1-3-onReady-回调" class="headerlink" title="1.3 onReady 回调"></a>1.3 onReady 回调</h3><p>Canvas组件必须在 <code>onReady</code> 回调中执行绘制逻辑。这是因为Canvas组件在挂载完成前不保证渲染上下文已就绪：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Canvas</span>(<span class="variable language_">this</span>.<span class="property">context</span>)</span><br><span class="line">  .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 渲染上下文已就绪，可以安全绘制</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">context</span>.<span class="property">fillStyle</span> = <span class="string">&#x27;#FF0000&#x27;</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">fillRect</span>(<span class="number">10</span>, <span class="number">10</span>, <span class="number">100</span>, <span class="number">50</span>)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、CanvasRenderingContext2D-API"><a href="#二、CanvasRenderingContext2D-API" class="headerlink" title="二、CanvasRenderingContext2D API"></a>二、CanvasRenderingContext2D API</h2><h3 id="2-1-基础图形绘制"><a href="#2-1-基础图形绘制" class="headerlink" title="2.1 基础图形绘制"></a>2.1 基础图形绘制</h3><p>Canvas渲染上下文提供了标准的2D绘制API：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 矩形</span></span><br><span class="line">  ctx.<span class="title function_">fillRect</span>(<span class="number">10</span>, <span class="number">10</span>, <span class="number">200</span>, <span class="number">100</span>)       <span class="comment">// 填充矩形</span></span><br><span class="line">  ctx.<span class="title function_">strokeRect</span>(<span class="number">10</span>, <span class="number">10</span>, <span class="number">200</span>, <span class="number">100</span>)     <span class="comment">// 描边矩形</span></span><br><span class="line">  ctx.<span class="title function_">clearRect</span>(<span class="number">50</span>, <span class="number">50</span>, <span class="number">100</span>, <span class="number">50</span>)       <span class="comment">// 清除矩形区域</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 路径</span></span><br><span class="line">  ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">  ctx.<span class="title function_">moveTo</span>(<span class="number">50</span>, <span class="number">50</span>)                   <span class="comment">// 移动画笔</span></span><br><span class="line">  ctx.<span class="title function_">lineTo</span>(<span class="number">200</span>, <span class="number">100</span>)                 <span class="comment">// 画直线</span></span><br><span class="line">  ctx.<span class="title function_">quadraticCurveTo</span>(<span class="number">250</span>, <span class="number">50</span>, <span class="number">300</span>, <span class="number">100</span>) <span class="comment">// 二次贝塞尔曲线</span></span><br><span class="line">  ctx.<span class="title function_">bezierCurveTo</span>(<span class="number">350</span>, <span class="number">150</span>, <span class="number">400</span>, <span class="number">50</span>, <span class="number">450</span>, <span class="number">100</span>) <span class="comment">// 三次贝塞尔曲线</span></span><br><span class="line">  ctx.<span class="title function_">arc</span>(<span class="number">200</span>, <span class="number">200</span>, <span class="number">80</span>, <span class="number">0</span>, <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>) <span class="comment">// 画圆</span></span><br><span class="line">  ctx.<span class="title function_">arcTo</span>(<span class="number">100</span>, <span class="number">100</span>, <span class="number">200</span>, <span class="number">200</span>, <span class="number">50</span>)    <span class="comment">// 切线弧</span></span><br><span class="line">  ctx.<span class="title function_">closePath</span>()                       <span class="comment">// 闭合路径</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">stroke</span>()                          <span class="comment">// 描边</span></span><br><span class="line">  ctx.<span class="title function_">fill</span>()                            <span class="comment">// 填充</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-样式设置"><a href="#2-2-样式设置" class="headerlink" title="2.2 样式设置"></a>2.2 样式设置</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 填充样式</span></span><br><span class="line">  ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#FF6B35&#x27;</span>             <span class="comment">// 颜色</span></span><br><span class="line">  ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;rgb(255, 107, 53)&#x27;</span>  <span class="comment">// RGB格式</span></span><br><span class="line">  ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;rgba(255, 107, 53, 0.5)&#x27;</span> <span class="comment">// 带透明度</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 描边样式</span></span><br><span class="line">  ctx.<span class="property">strokeStyle</span> = <span class="string">&#x27;#004E89&#x27;</span></span><br><span class="line">  ctx.<span class="property">lineWidth</span> = <span class="number">3</span>                     <span class="comment">// 线宽</span></span><br><span class="line">  ctx.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span>                 <span class="comment">// 线端样式：butt|round|square</span></span><br><span class="line">  ctx.<span class="property">lineJoin</span> = <span class="string">&#x27;round&#x27;</span>                <span class="comment">// 连接样式：bevel|round|miter</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 阴影</span></span><br><span class="line">  ctx.<span class="property">shadowColor</span> = <span class="string">&#x27;rgba(0, 0, 0, 0.3)&#x27;</span></span><br><span class="line">  ctx.<span class="property">shadowBlur</span> = <span class="number">10</span>                   <span class="comment">// 模糊半径</span></span><br><span class="line">  ctx.<span class="property">shadowOffsetX</span> = <span class="number">5</span>                 <span class="comment">// X偏移</span></span><br><span class="line">  ctx.<span class="property">shadowOffsetY</span> = <span class="number">5</span>                 <span class="comment">// Y偏移</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 文本</span></span><br><span class="line">  ctx.<span class="property">font</span> = <span class="string">&#x27;24px sans-serif&#x27;</span>          <span class="comment">// 字体</span></span><br><span class="line">  ctx.<span class="property">textAlign</span> = <span class="string">&#x27;center&#x27;</span>              <span class="comment">// 对齐：start|end|left|right|center</span></span><br><span class="line">  ctx.<span class="property">textBaseline</span> = <span class="string">&#x27;middle&#x27;</span>           <span class="comment">// 基线：top|middle|bottom|alphabetic</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-变换操作"><a href="#2-3-变换操作" class="headerlink" title="2.3 变换操作"></a>2.3 变换操作</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">save</span>()                            <span class="comment">// 保存当前状态</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">translate</span>(<span class="number">100</span>, <span class="number">100</span>)               <span class="comment">// 平移</span></span><br><span class="line">  ctx.<span class="title function_">rotate</span>(<span class="title class_">Math</span>.<span class="property">PI</span> / <span class="number">4</span>)              <span class="comment">// 旋转（弧度）</span></span><br><span class="line">  ctx.<span class="title function_">scale</span>(<span class="number">2</span>, <span class="number">2</span>)                       <span class="comment">// 缩放</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 自定义变换矩阵</span></span><br><span class="line">  <span class="comment">// ctx.transform(a, b, c, d, e, f)   // 2D变换矩阵</span></span><br><span class="line">  <span class="comment">// ctx.setTransform(a, b, c, d, e, f) // 重置并设置</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">fillRect</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">50</span>, <span class="number">50</span>)           <span class="comment">// 变换后绘制</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">restore</span>()                         <span class="comment">// 恢复之前保存的状态</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-文本绘制"><a href="#2-4-文本绘制" class="headerlink" title="2.4 文本绘制"></a>2.4 文本绘制</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="property">font</span> = <span class="string">&#x27;bold 30px sans-serif&#x27;</span></span><br><span class="line">  ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#333333&#x27;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 填充文本</span></span><br><span class="line">  ctx.<span class="title function_">fillText</span>(<span class="string">&#x27;Hello HarmonyOS&#x27;</span>, <span class="number">50</span>, <span class="number">50</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 描边文本</span></span><br><span class="line">  ctx.<span class="title function_">strokeText</span>(<span class="string">&#x27;Hello HarmonyOS&#x27;</span>, <span class="number">50</span>, <span class="number">100</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 测量文本宽度</span></span><br><span class="line">  <span class="keyword">const</span> metrics = ctx.<span class="title function_">measureText</span>(<span class="string">&#x27;Hello&#x27;</span>)</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`文本宽度: <span class="subst">$&#123;metrics.width&#125;</span>`</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-common-property">CanvasRenderingContext2D通用属性</a>、<a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-common-method">CanvasRenderingContext2D通用方法</a></p>
+</blockquote>
+<h3 id="2-5-绘制图片"><a href="#2-5-绘制图片" class="headerlink" title="2.5 绘制图片"></a>2.5 绘制图片</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从资源加载图片</span></span><br><span class="line">  <span class="comment">// 方式一：从PixelMap绘制</span></span><br><span class="line">  <span class="comment">// ctx.drawImage(pixelMap, dx, dy)</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 方式二：指定源区域和目标区域</span></span><br><span class="line">  <span class="comment">// ctx.drawImage(pixelMap, sx, sy, sw, sh, dx, dy, dw, dh)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、DrawingCanvas-高级绘制（API-12-）"><a href="#三、DrawingCanvas-高级绘制（API-12-）" class="headerlink" title="三、DrawingCanvas 高级绘制（API 12+）"></a>三、DrawingCanvas 高级绘制（API 12+）</h2><p>从API 12开始，ArkUI引入了基于 <code>@kit.ArkGraphics2D</code> 的 <code>DrawingCanvas</code>，提供更强大的绘制能力。</p>
+<h3 id="3-1-创建-DrawingRenderingContext"><a href="#3-1-创建-DrawingRenderingContext" class="headerlink" title="3.1 创建 DrawingRenderingContext"></a>3.1 创建 DrawingRenderingContext</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">DrawingRenderingContext</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">DrawingCanvasExample</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">drawingContext</span>?: <span class="title class_">DrawingRenderingContext</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Canvas</span>(&#123;</span><br><span class="line">      <span class="attr">onReady</span>: <span class="function">(<span class="params"><span class="attr">ctx</span>: <span class="title class_">DrawingRenderingContext</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">drawingContext</span> = ctx</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">drawWithPen</span>(ctx)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">drawWithPen</span>(<span class="params"><span class="attr">ctx</span>: <span class="title class_">DrawingRenderingContext</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> canvas = ctx.<span class="property">canvas</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用Pen设置描边</span></span><br><span class="line">    <span class="keyword">const</span> pen = <span class="keyword">new</span> drawing.<span class="title class_">Pen</span>()</span><br><span class="line">    pen.<span class="title function_">setStrokeWidth</span>(<span class="number">5</span>)</span><br><span class="line">    pen.<span class="title function_">setColor</span>(&#123; <span class="attr">alpha</span>: <span class="number">255</span>, <span class="attr">red</span>: <span class="number">255</span>, <span class="attr">green</span>: <span class="number">0</span>, <span class="attr">blue</span>: <span class="number">0</span> &#125;)</span><br><span class="line">    canvas.<span class="title function_">attachPen</span>(pen)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用Brush设置填充</span></span><br><span class="line">    <span class="keyword">const</span> brush = <span class="keyword">new</span> drawing.<span class="title class_">Brush</span>()</span><br><span class="line">    brush.<span class="title function_">setColor</span>(&#123; <span class="attr">alpha</span>: <span class="number">255</span>, <span class="attr">red</span>: <span class="number">0</span>, <span class="attr">green</span>: <span class="number">74</span>, <span class="attr">blue</span>: <span class="number">175</span> &#125;)</span><br><span class="line">    canvas.<span class="title function_">attachBrush</span>(brush)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制矩形</span></span><br><span class="line">    canvas.<span class="title function_">drawRect</span>(&#123; <span class="attr">left</span>: <span class="number">10</span>, <span class="attr">top</span>: <span class="number">10</span>, <span class="attr">right</span>: <span class="number">110</span>, <span class="attr">bottom</span>: <span class="number">60</span> &#125;)</span><br><span class="line"></span><br><span class="line">    canvas.<span class="title function_">detachPen</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-DrawingCanvas-vs-CanvasRenderingContext2D"><a href="#3-2-DrawingCanvas-vs-CanvasRenderingContext2D" class="headerlink" title="3.2 DrawingCanvas vs CanvasRenderingContext2D"></a>3.2 DrawingCanvas vs CanvasRenderingContext2D</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>CanvasRenderingContext2D</th>
+<th>DrawingCanvas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>引入版本</td>
+<td>API 8</td>
+<td>API 12</td>
+</tr>
+<tr>
+<td>底层实现</td>
+<td>标准2D Canvas</td>
+<td>@kit.ArkGraphics2D</td>
+</tr>
+<tr>
+<td>绘制API</td>
+<td>strokeRect&#x2F;fillRect&#x2F;arc等</td>
+<td>attachPen&#x2F;attachBrush&#x2F;drawRect等</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>一般</td>
+<td>更高（GPU加速）</td>
+</tr>
+<tr>
+<td>矩阵操作</td>
+<td>translate&#x2F;rotate&#x2F;scale</td>
+<td>drawing.Matrix + concatMatrix</td>
+</tr>
+<tr>
+<td>路径绘制</td>
+<td>Path2D</td>
+<td>drawing.Path</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>基础2D图形</td>
+<td>高性能绘制、复杂图形</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-drawingrenderingcontext">DrawingRenderingContext</a>、<a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/arkts-apis-graphics-drawing-canvas">DrawingCanvas</a></p>
+</blockquote>
+<h3 id="3-3-矩阵变换"><a href="#3-3-矩阵变换" class="headerlink" title="3.3 矩阵变换"></a>3.3 矩阵变换</h3><p>DrawingCanvas使用 <code>drawing.Matrix</code> 进行变换：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; drawing &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkGraphics2D&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">drawTransformed</span>(<span class="params"><span class="attr">canvas</span>: drawing.<span class="title class_">DrawingCanvas</span></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> matrix = <span class="keyword">new</span> drawing.<span class="title class_">Matrix</span>()</span><br><span class="line">  matrix.<span class="title function_">setTranslation</span>(<span class="number">100</span>, <span class="number">100</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注意：使用 concatMatrix 而非 setMatrix</span></span><br><span class="line">  <span class="comment">// setMatrix 会覆盖真实canvas上的变换矩阵</span></span><br><span class="line">  canvas.<span class="title function_">concatMatrix</span>(matrix)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> pen = <span class="keyword">new</span> drawing.<span class="title class_">Pen</span>()</span><br><span class="line">  pen.<span class="title function_">setStrokeWidth</span>(<span class="number">3</span>)</span><br><span class="line">  pen.<span class="title function_">setColor</span>(&#123; <span class="attr">alpha</span>: <span class="number">255</span>, <span class="attr">red</span>: <span class="number">0</span>, <span class="attr">green</span>: <span class="number">200</span>, <span class="attr">blue</span>: <span class="number">0</span> &#125;)</span><br><span class="line">  canvas.<span class="title function_">attachPen</span>(pen)</span><br><span class="line"></span><br><span class="line">  canvas.<span class="title function_">drawRect</span>(&#123; <span class="attr">left</span>: <span class="number">0</span>, <span class="attr">top</span>: <span class="number">0</span>, <span class="attr">right</span>: <span class="number">100</span>, <span class="attr">height</span>: <span class="number">100</span> &#125;)</span><br><span class="line">  canvas.<span class="title function_">detachPen</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>官方文档明确说明：<code>setMatrix</code> 会覆盖变换矩阵，推荐使用 <code>concatMatrix</code> 进行累加变换。</p>
+</blockquote>
+<h3 id="3-4-路径绘制"><a href="#3-4-路径绘制" class="headerlink" title="3.4 路径绘制"></a>3.4 路径绘制</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; drawing &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkGraphics2D&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">drawPath</span>(<span class="params"><span class="attr">canvas</span>: drawing.<span class="title class_">DrawingCanvas</span></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> path = <span class="keyword">new</span> drawing.<span class="title class_">Path</span>()</span><br><span class="line">  path.<span class="title function_">moveTo</span>(<span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">  path.<span class="title function_">lineTo</span>(<span class="number">100</span>, <span class="number">200</span>)</span><br><span class="line">  path.<span class="title function_">lineTo</span>(<span class="number">200</span>, <span class="number">0</span>)</span><br><span class="line">  path.<span class="title function_">close</span>()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> pen = <span class="keyword">new</span> drawing.<span class="title class_">Pen</span>()</span><br><span class="line">  pen.<span class="title function_">setStrokeWidth</span>(<span class="number">3</span>)</span><br><span class="line">  pen.<span class="title function_">setColor</span>(&#123; <span class="attr">alpha</span>: <span class="number">255</span>, <span class="attr">red</span>: <span class="number">255</span>, <span class="attr">green</span>: <span class="number">0</span>, <span class="attr">blue</span>: <span class="number">128</span> &#125;)</span><br><span class="line">  canvas.<span class="title function_">attachPen</span>(pen)</span><br><span class="line"></span><br><span class="line">  canvas.<span class="title function_">drawPath</span>(path)</span><br><span class="line">  canvas.<span class="title function_">detachPen</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/arkts-apis-graphics-drawing-path">drawing.Path</a></p>
+</blockquote>
+<hr>
+<h2 id="四、OffscreenCanvas-离屏绘制"><a href="#四、OffscreenCanvas-离屏绘制" class="headerlink" title="四、OffscreenCanvas 离屏绘制"></a>四、OffscreenCanvas 离屏绘制</h2><h3 id="4-1-基本用法"><a href="#4-1-基本用法" class="headerlink" title="4.1 基本用法"></a>4.1 基本用法</h3><p><code>OffscreenCanvas</code> 允许在离屏Canvas上绘制，然后将结果传输到主Canvas：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="attr">settings</span>: <span class="title class_">RenderingContextSettings</span> = <span class="keyword">new</span> <span class="title class_">RenderingContextSettings</span>(<span class="literal">true</span>)</span><br><span class="line"><span class="keyword">private</span> <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> = <span class="keyword">new</span> <span class="title class_">CanvasRenderingContext2D</span>(<span class="variable language_">this</span>.<span class="property">settings</span>)</span><br><span class="line"><span class="keyword">private</span> <span class="attr">offCanvas</span>: <span class="title class_">OffscreenCanvas</span> = <span class="keyword">new</span> <span class="title class_">OffscreenCanvas</span>(<span class="number">600</span>, <span class="number">600</span>)</span><br><span class="line"></span><br><span class="line"><span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title class_">Canvas</span>(<span class="variable language_">this</span>.<span class="property">context</span>)</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 在离屏Canvas上绘制</span></span><br><span class="line">      <span class="keyword">let</span> offContext = <span class="variable language_">this</span>.<span class="property">offCanvas</span>.<span class="title function_">getContext</span>(<span class="string">&#x27;2d&#x27;</span>, <span class="variable language_">this</span>.<span class="property">settings</span>)</span><br><span class="line">      offContext.<span class="property">fillStyle</span> = <span class="string">&#x27;#CDCDCD&#x27;</span></span><br><span class="line">      offContext.<span class="title function_">fillRect</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">600</span>, <span class="number">300</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 传输到主Canvas</span></span><br><span class="line">      <span class="keyword">let</span> image = <span class="variable language_">this</span>.<span class="property">offCanvas</span>.<span class="title function_">transferToImageBitmap</span>()</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">context</span>.<span class="title function_">transferFromImageBitmap</span>(image)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-适用场景"><a href="#4-2-适用场景" class="headerlink" title="4.2 适用场景"></a>4.2 适用场景</h3><ul>
+<li><strong>复杂图形预渲染</strong>：先在离屏Canvas绘制复杂图形，再一次性传输到主Canvas</li>
+<li><strong>多层合成</strong>：多个离屏Canvas分别绘制不同层，最后合并</li>
+<li><strong>性能优化</strong>：避免在主Canvas上频繁重绘静态内容</li>
+</ul>
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-offscreencanvas">OffscreenCanvas</a></p>
+</blockquote>
+<hr>
+<h2 id="五、DrawModifier-自定义绘制修改器"><a href="#五、DrawModifier-自定义绘制修改器" class="headerlink" title="五、DrawModifier 自定义绘制修改器"></a>五、DrawModifier 自定义绘制修改器</h2><h3 id="5-1-核心概念"><a href="#5-1-核心概念" class="headerlink" title="5.1 核心概念"></a>5.1 核心概念</h3><p><code>DrawModifier</code> 是ArkUI提供的自定义绘制修改器，允许你在组件的绘制流程中插入自定义绘制逻辑。与Canvas不同，DrawModifier直接绑定到组件上，不需要单独的Canvas组件。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyDrawModifier</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrawModifier</span> &#123;</span><br><span class="line">  <span class="comment">// 在组件内容之后、前景之前绘制</span></span><br><span class="line">  drawBehind?(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> canvas = drawContext.<span class="property">canvas</span></span><br><span class="line">    <span class="comment">// 自定义背景绘制</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 替换组件的默认绘制内容</span></span><br><span class="line">  drawContent?(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义内容绘制</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在组件内容之前绘制</span></span><br><span class="line">  drawFront?(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义前景绘制</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在前景之后绘制（API 20+）</span></span><br><span class="line">  drawForeground?(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义前景层绘制</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在遮罩层绘制（API 23+）</span></span><br><span class="line">  <span class="title function_">drawOverlay</span>(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义遮罩层绘制</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 主动触发重绘</span></span><br><span class="line">  <span class="title function_">invalidate</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 调用此方法触发组件重新绘制</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-user-defined-extension-drawmodifier">DrawModifier</a>、<a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-universal-attributes-draw-modifier">drawModifier属性</a></p>
+</blockquote>
+<h3 id="5-2-绘制层级"><a href="#5-2-绘制层级" class="headerlink" title="5.2 绘制层级"></a>5.2 绘制层级</h3><p>DrawModifier的五个绘制方法按以下顺序执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1. drawBehind    → 组件内容的背景层</span><br><span class="line">2. drawContent   → 组件的默认内容（可选覆盖）</span><br><span class="line">3. drawFront     → 组件内容的前景层</span><br><span class="line">4. drawForeground → 前景层（API 20+）</span><br><span class="line">5. drawOverlay   → 遮罩层（API 23+）</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-使用方式"><a href="#5-3-使用方式" class="headerlink" title="5.3 使用方式"></a>5.3 使用方式</h3><p>通过 <code>.drawModifier()</code> 属性绑定到组件：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">DrawModifierExample</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">myModifier</span>: <span class="title class_">MyDrawModifier</span> = <span class="keyword">new</span> <span class="title class_">MyDrawModifier</span>()</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;Hello DrawModifier&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">        .<span class="title function_">drawModifier</span>(<span class="variable language_">this</span>.<span class="property">myModifier</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>约束条件</strong>：</p>
+<ul>
+<li>每个DrawModifier实例只能设置到一个组件上，禁止重复设置</li>
+<li>DrawModifier只对当前绑定组件的FrameNode生效，对其子节点不生效</li>
+</ul>
+<h3 id="5-4-实战：自定义边框绘制"><a href="#5-4-实战：自定义边框绘制" class="headerlink" title="5.4 实战：自定义边框绘制"></a>5.4 实战：自定义边框绘制</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">BorderDrawModifier</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrawModifier</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">borderWidth</span>: <span class="built_in">number</span> = <span class="number">2</span></span><br><span class="line">  <span class="keyword">private</span> <span class="attr">borderColor</span>: <span class="built_in">string</span> = <span class="string">&#x27;#FF6B35&#x27;</span></span><br><span class="line"></span><br><span class="line">  drawBehind?(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> canvas = drawContext.<span class="property">canvas</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用DrawingCanvas绘制</span></span><br><span class="line">    <span class="keyword">const</span> pen = <span class="keyword">new</span> drawing.<span class="title class_">Pen</span>()</span><br><span class="line">    pen.<span class="title function_">setStrokeWidth</span>(<span class="variable language_">this</span>.<span class="property">borderWidth</span>)</span><br><span class="line">    pen.<span class="title function_">setColor</span>(&#123; <span class="attr">alpha</span>: <span class="number">255</span>, <span class="attr">red</span>: <span class="number">255</span>, <span class="attr">green</span>: <span class="number">107</span>, <span class="attr">blue</span>: <span class="number">53</span> &#125;)</span><br><span class="line">    canvas.<span class="title function_">attachPen</span>(pen)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取组件尺寸</span></span><br><span class="line">    <span class="keyword">const</span> bounds = drawContext.<span class="property">area</span></span><br><span class="line">    canvas.<span class="title function_">drawRect</span>(&#123;</span><br><span class="line">      <span class="attr">left</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">top</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">right</span>: bounds.<span class="property">width</span>,</span><br><span class="line">      <span class="attr">bottom</span>: bounds.<span class="property">height</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    canvas.<span class="title function_">detachPen</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">BorderedComponent</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">borderModifier</span>: <span class="title class_">BorderDrawModifier</span> = <span class="keyword">new</span> <span class="title class_">BorderDrawModifier</span>()</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;带自定义边框的组件&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">padding</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">drawModifier</span>(<span class="variable language_">this</span>.<span class="property">borderModifier</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-实战：水波纹效果"><a href="#5-5-实战：水波纹效果" class="headerlink" title="5.5 实战：水波纹效果"></a>5.5 实战：水波纹效果</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RippleDrawModifier</span> <span class="keyword">extends</span> <span class="title class_ inherited__">DrawModifier</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">radius</span>: <span class="built_in">number</span> = <span class="number">0</span></span><br><span class="line">  <span class="keyword">private</span> <span class="attr">centerX</span>: <span class="built_in">number</span> = <span class="number">0</span></span><br><span class="line">  <span class="keyword">private</span> <span class="attr">centerY</span>: <span class="built_in">number</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">startRipple</span>(<span class="params"><span class="attr">x</span>: <span class="built_in">number</span>, <span class="attr">y</span>: <span class="built_in">number</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">centerX</span> = x</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">centerY</span> = y</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">radius</span> = <span class="number">0</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">animate</span>()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">animate</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 使用定时器模拟动画效果</span></span><br><span class="line">    <span class="keyword">const</span> timer = <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">radius</span> += <span class="number">5</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">radius</span> &gt; <span class="number">200</span>) &#123;</span><br><span class="line">        <span class="built_in">clearInterval</span>(timer)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">radius</span> = <span class="number">0</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">invalidate</span>() <span class="comment">// 触发重绘</span></span><br><span class="line">    &#125;, <span class="number">16</span>) <span class="comment">// 约60fps</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  drawFront?(<span class="attr">drawContext</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">radius</span> === <span class="number">0</span>) <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> canvas = drawContext.<span class="property">canvas</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用Canvas API绘制水波纹</span></span><br><span class="line">    <span class="keyword">const</span> ctx = <span class="keyword">new</span> <span class="title class_">CanvasRenderingContext2D</span>(<span class="keyword">new</span> <span class="title class_">RenderingContextSettings</span>(<span class="literal">true</span>))</span><br><span class="line">    ctx.<span class="title function_">arc</span>(<span class="variable language_">this</span>.<span class="property">centerX</span>, <span class="variable language_">this</span>.<span class="property">centerY</span>, <span class="variable language_">this</span>.<span class="property">radius</span>, <span class="number">0</span>, <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>)</span><br><span class="line">    ctx.<span class="property">fillStyle</span> = <span class="string">`rgba(100, 149, 237, <span class="subst">$&#123;<span class="number">1</span> - <span class="variable language_">this</span>.radius / <span class="number">200</span>&#125;</span>)`</span></span><br><span class="line">    ctx.<span class="title function_">fill</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、RenderNode-与-DrawModifier-协作"><a href="#六、RenderNode-与-DrawModifier-协作" class="headerlink" title="六、RenderNode 与 DrawModifier 协作"></a>六、RenderNode 与 DrawModifier 协作</h2><h3 id="6-1-RenderNode-基础"><a href="#6-1-RenderNode-基础" class="headerlink" title="6.1 RenderNode 基础"></a>6.1 RenderNode 基础</h3><p><code>RenderNode</code>（来自 <code>@kit.ArkUI</code>）是更底层的渲染节点，可以通过 <code>draw</code> 方法自定义绘制：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">RenderNode</span>, <span class="title class_">DrawContext</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyRenderNode</span> <span class="keyword">extends</span> <span class="title class_ inherited__">RenderNode</span> &#123;</span><br><span class="line">  <span class="title function_">draw</span>(<span class="attr">context</span>: <span class="title class_">DrawContext</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> canvas = context.<span class="property">canvas</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用DrawingCanvas绘制</span></span><br><span class="line">    <span class="keyword">const</span> pen = <span class="keyword">new</span> drawing.<span class="title class_">Pen</span>()</span><br><span class="line">    pen.<span class="title function_">setStrokeWidth</span>(<span class="number">5</span>)</span><br><span class="line">    pen.<span class="title function_">setColor</span>(&#123; <span class="attr">alpha</span>: <span class="number">255</span>, <span class="attr">red</span>: <span class="number">255</span>, <span class="attr">green</span>: <span class="number">0</span>, <span class="attr">blue</span>: <span class="number">0</span> &#125;)</span><br><span class="line">    canvas.<span class="title function_">attachPen</span>(pen)</span><br><span class="line"></span><br><span class="line">    canvas.<span class="title function_">drawRect</span>(&#123; <span class="attr">left</span>: <span class="number">0</span>, <span class="attr">top</span>: <span class="number">0</span>, <span class="attr">right</span>: <span class="number">100</span>, <span class="attr">height</span>: <span class="number">100</span> &#125;)</span><br><span class="line">    canvas.<span class="title function_">detachPen</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-RenderNode-属性"><a href="#6-2-RenderNode-属性" class="headerlink" title="6.2 RenderNode 属性"></a>6.2 RenderNode 属性</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> renderNode = <span class="keyword">new</span> <span class="title class_">MyRenderNode</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置帧区域</span></span><br><span class="line">renderNode.<span class="property">frame</span> = &#123; <span class="attr">x</span>: <span class="number">10</span>, <span class="attr">y</span>: <span class="number">100</span>, <span class="attr">width</span>: <span class="number">200</span>, <span class="attr">height</span>: <span class="number">150</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 背景色（0xAARRGGBB格式）</span></span><br><span class="line">renderNode.<span class="property">backgroundColor</span> = <span class="number">0xFF2787D9</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 不透明度</span></span><br><span class="line">renderNode.<span class="property">opacity</span> = <span class="number">0.8</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 变换</span></span><br><span class="line">renderNode.<span class="title function_">translate</span>(&#123; <span class="attr">x</span>: <span class="number">50</span>, <span class="attr">y</span>: <span class="number">50</span> &#125;)</span><br><span class="line">renderNode.<span class="title function_">rotate</span>(&#123; <span class="attr">angle</span>: <span class="number">45</span> &#125;)</span><br><span class="line">renderNode.<span class="title function_">scale</span>(&#123; <span class="attr">x</span>: <span class="number">1.5</span>, <span class="attr">y</span>: <span class="number">1.5</span> &#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-在组件中使用"><a href="#6-3-在组件中使用" class="headerlink" title="6.3 在组件中使用"></a>6.3 在组件中使用</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">RenderNodeExample</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">myNodeController</span>: <span class="title class_">MyNodeController</span> = <span class="keyword">new</span> <span class="title class_">MyNodeController</span>()</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">NodeContainer</span>(<span class="variable language_">this</span>.<span class="property">myNodeController</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyNodeController</span> <span class="keyword">extends</span> <span class="title class_ inherited__">NodeController</span> &#123;</span><br><span class="line">  <span class="title function_">makeNode</span>(<span class="attr">uiContext</span>: <span class="title class_">UIContext</span>): <span class="title class_">FrameNode</span> | <span class="literal">null</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> rootNode = <span class="keyword">new</span> <span class="title class_">FrameNode</span>(uiContext)</span><br><span class="line">    rootNode.<span class="property">commonAttribute</span>.<span class="title function_">width</span>(<span class="number">300</span>).<span class="title function_">height</span>(<span class="number">300</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> renderNode = <span class="keyword">new</span> <span class="title class_">MyRenderNode</span>()</span><br><span class="line">    renderNode.<span class="property">frame</span> = &#123; <span class="attr">x</span>: <span class="number">10</span>, <span class="attr">y</span>: <span class="number">10</span>, <span class="attr">width</span>: <span class="number">280</span>, <span class="attr">height</span>: <span class="number">280</span> &#125;</span><br><span class="line">    renderNode.<span class="property">backgroundColor</span> = <span class="number">0xFF2787D9</span></span><br><span class="line"></span><br><span class="line">    rootNode.<span class="title function_">getRenderNode</span>()?.<span class="title function_">appendChild</span>(renderNode)</span><br><span class="line">    <span class="keyword">return</span> rootNode</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>参考: <a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-arkui-rendernode">RenderNode</a></p>
+</blockquote>
+<hr>
+<h2 id="七、Canvas-性能优化"><a href="#七、Canvas-性能优化" class="headerlink" title="七、Canvas 性能优化"></a>七、Canvas 性能优化</h2><h3 id="7-1-避免频繁重绘"><a href="#7-1-避免频繁重绘" class="headerlink" title="7.1 避免频繁重绘"></a>7.1 避免频繁重绘</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误：每次状态变化都重绘整个Canvas</span></span><br><span class="line"><span class="meta">@State</span> <span class="attr">counter</span>: <span class="built_in">number</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">counter</span>++</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">renderCanvas</span>() <span class="comment">// 频繁重绘</span></span><br><span class="line">  &#125;, <span class="number">100</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确：只在必要时重绘，使用脏区域</span></span><br><span class="line"><span class="keyword">private</span> <span class="attr">dirtyRect</span>: &#123; <span class="attr">x</span>: <span class="built_in">number</span>, <span class="attr">y</span>: <span class="built_in">number</span>, <span class="attr">w</span>: <span class="built_in">number</span>, <span class="attr">h</span>: <span class="built_in">number</span> &#125; | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="title function_">markDirty</span>(<span class="params"><span class="attr">x</span>: <span class="built_in">number</span>, <span class="attr">y</span>: <span class="built_in">number</span>, <span class="attr">w</span>: <span class="built_in">number</span>, <span class="attr">h</span>: <span class="built_in">number</span></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">dirtyRect</span> = &#123; x, y, w, h &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">renderCanvas</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-使用离屏Canvas"><a href="#7-2-使用离屏Canvas" class="headerlink" title="7.2 使用离屏Canvas"></a>7.2 使用离屏Canvas</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ✅ 静态内容用离屏Canvas预渲染，避免重复计算</span></span><br><span class="line"><span class="keyword">private</span> <span class="attr">staticContent</span>: <span class="title class_">ImageBitmap</span> | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 只渲染一次静态内容</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">staticContent</span> = <span class="variable language_">this</span>.<span class="title function_">renderStaticContent</span>()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 主Canvas只绘制动态内容</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">renderDynamicContent</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-合理使用-save-restore"><a href="#7-3-合理使用-save-restore" class="headerlink" title="7.3 合理使用 save&#x2F;restore"></a>7.3 合理使用 save&#x2F;restore</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ✅ 保存和恢复状态，避免状态污染</span></span><br><span class="line"><span class="title function_">onReady</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">save</span>() <span class="comment">// 保存默认状态</span></span><br><span class="line">  ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#FF0000&#x27;</span></span><br><span class="line">  ctx.<span class="title function_">fillRect</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">100</span>)</span><br><span class="line">  ctx.<span class="title function_">restore</span>() <span class="comment">// 恢复默认状态</span></span><br><span class="line"></span><br><span class="line">  ctx.<span class="title function_">save</span>() <span class="comment">// 再次保存</span></span><br><span class="line">  ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#00FF00&#x27;</span></span><br><span class="line">  ctx.<span class="title function_">fillRect</span>(<span class="number">100</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">100</span>)</span><br><span class="line">  ctx.<span class="title function_">restore</span>() <span class="comment">// 恢复</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-Canvas-面积限制"><a href="#7-4-Canvas-面积限制" class="headerlink" title="7.4 Canvas 面积限制"></a>7.4 Canvas 面积限制</h3><p>Canvas组件最大面积不超过 <strong>10000px × 10000px</strong>，超过则无法正常创建。需要绘制超大内容时，考虑分块绘制或使用多个Canvas。</p>
+<hr>
+<h2 id="八、实战案例：自定义仪表盘"><a href="#八、实战案例：自定义仪表盘" class="headerlink" title="八、实战案例：自定义仪表盘"></a>八、实战案例：自定义仪表盘</h2><h3 id="8-1-效果描述"><a href="#8-1-效果描述" class="headerlink" title="8.1 效果描述"></a>8.1 效果描述</h3><p>绘制一个圆形仪表盘，包含：</p>
+<ul>
+<li>外圈刻度线</li>
+<li>指针</li>
+<li>中心数值显示</li>
+<li>渐变色背景</li>
+</ul>
+<h3 id="8-2-完整代码"><a href="#8-2-完整代码" class="headerlink" title="8.2 完整代码"></a>8.2 完整代码</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">DashboardExample</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">settings</span>: <span class="title class_">RenderingContextSettings</span> = <span class="keyword">new</span> <span class="title class_">RenderingContextSettings</span>(<span class="literal">true</span>)</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">context</span>: <span class="title class_">CanvasRenderingContext2D</span> = <span class="keyword">new</span> <span class="title class_">CanvasRenderingContext2D</span>(<span class="variable language_">this</span>.<span class="property">settings</span>)</span><br><span class="line"></span><br><span class="line">  <span class="meta">@State</span> <span class="attr">currentValue</span>: <span class="built_in">number</span> = <span class="number">75</span></span><br><span class="line">  <span class="meta">@State</span> <span class="attr">maxValue</span>: <span class="built_in">number</span> = <span class="number">100</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Canvas</span>(<span class="variable language_">this</span>.<span class="property">context</span>)</span><br><span class="line">        .<span class="title function_">width</span>(<span class="number">300</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">300</span>)</span><br><span class="line">        .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">drawDashboard</span>()</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">drawDashboard</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> ctx = <span class="variable language_">this</span>.<span class="property">context</span></span><br><span class="line">    <span class="keyword">const</span> centerX = <span class="number">150</span></span><br><span class="line">    <span class="keyword">const</span> centerY = <span class="number">150</span></span><br><span class="line">    <span class="keyword">const</span> radius = <span class="number">120</span></span><br><span class="line"></span><br><span class="line">    ctx.<span class="title function_">clearRect</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">300</span>, <span class="number">300</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制背景圆</span></span><br><span class="line">    ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">    ctx.<span class="title function_">arc</span>(centerX, centerY, radius, <span class="number">0</span>, <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>)</span><br><span class="line">    ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#1A1A2E&#x27;</span></span><br><span class="line">    ctx.<span class="title function_">fill</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制刻度</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">60</span>; i++) &#123;</span><br><span class="line">      <span class="keyword">const</span> angle = (i * <span class="number">6</span> - <span class="number">90</span>) * <span class="title class_">Math</span>.<span class="property">PI</span> / <span class="number">180</span></span><br><span class="line">      <span class="keyword">const</span> isMajor = i % <span class="number">5</span> === <span class="number">0</span></span><br><span class="line">      <span class="keyword">const</span> innerR = isMajor ? radius - <span class="number">20</span> : radius - <span class="number">12</span></span><br><span class="line">      <span class="keyword">const</span> outerR = radius - <span class="number">5</span></span><br><span class="line"></span><br><span class="line">      ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">      ctx.<span class="title function_">moveTo</span>(</span><br><span class="line">        centerX + innerR * <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle),</span><br><span class="line">        centerY + innerR * <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle)</span><br><span class="line">      )</span><br><span class="line">      ctx.<span class="title function_">lineTo</span>(</span><br><span class="line">        centerX + outerR * <span class="title class_">Math</span>.<span class="title function_">cos</span>(angle),</span><br><span class="line">        centerY + outerR * <span class="title class_">Math</span>.<span class="title function_">sin</span>(angle)</span><br><span class="line">      )</span><br><span class="line">      ctx.<span class="property">strokeStyle</span> = isMajor ? <span class="string">&#x27;#FFFFFF&#x27;</span> : <span class="string">&#x27;#666666&#x27;</span></span><br><span class="line">      ctx.<span class="property">lineWidth</span> = isMajor ? <span class="number">2</span> : <span class="number">1</span></span><br><span class="line">      ctx.<span class="title function_">stroke</span>()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制弧形背景</span></span><br><span class="line">    <span class="keyword">const</span> startAngle = -<span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">0.75</span></span><br><span class="line">    <span class="keyword">const</span> endAngle = <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">0.75</span></span><br><span class="line">    ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">    ctx.<span class="title function_">arc</span>(centerX, centerY, radius - <span class="number">30</span>, startAngle, endAngle)</span><br><span class="line">    ctx.<span class="property">strokeStyle</span> = <span class="string">&#x27;#333344&#x27;</span></span><br><span class="line">    ctx.<span class="property">lineWidth</span> = <span class="number">10</span></span><br><span class="line">    ctx.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span></span><br><span class="line">    ctx.<span class="title function_">stroke</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制当前值弧形</span></span><br><span class="line">    <span class="keyword">const</span> valueAngle = startAngle + (endAngle - startAngle) * (<span class="variable language_">this</span>.<span class="property">currentValue</span> / <span class="variable language_">this</span>.<span class="property">maxValue</span>)</span><br><span class="line">    ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">    ctx.<span class="title function_">arc</span>(centerX, centerY, radius - <span class="number">30</span>, startAngle, valueAngle)</span><br><span class="line">    ctx.<span class="property">strokeStyle</span> = <span class="variable language_">this</span>.<span class="property">currentValue</span> &gt; <span class="number">80</span> ? <span class="string">&#x27;#FF4444&#x27;</span> : <span class="string">&#x27;#00CC66&#x27;</span></span><br><span class="line">    ctx.<span class="property">lineWidth</span> = <span class="number">10</span></span><br><span class="line">    ctx.<span class="title function_">stroke</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制指针</span></span><br><span class="line">    <span class="keyword">const</span> needleAngle = startAngle + (endAngle - startAngle) * (<span class="variable language_">this</span>.<span class="property">currentValue</span> / <span class="variable language_">this</span>.<span class="property">maxValue</span>)</span><br><span class="line">    <span class="keyword">const</span> needleLength = radius - <span class="number">40</span></span><br><span class="line">    ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">    ctx.<span class="title function_">moveTo</span>(centerX, centerY)</span><br><span class="line">    ctx.<span class="title function_">lineTo</span>(</span><br><span class="line">      centerX + needleLength * <span class="title class_">Math</span>.<span class="title function_">cos</span>(needleAngle),</span><br><span class="line">      centerY + needleLength * <span class="title class_">Math</span>.<span class="title function_">sin</span>(needleAngle)</span><br><span class="line">    )</span><br><span class="line">    ctx.<span class="property">strokeStyle</span> = <span class="string">&#x27;#FFFFFF&#x27;</span></span><br><span class="line">    ctx.<span class="property">lineWidth</span> = <span class="number">3</span></span><br><span class="line">    ctx.<span class="property">lineCap</span> = <span class="string">&#x27;round&#x27;</span></span><br><span class="line">    ctx.<span class="title function_">stroke</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制中心圆</span></span><br><span class="line">    ctx.<span class="title function_">beginPath</span>()</span><br><span class="line">    ctx.<span class="title function_">arc</span>(centerX, centerY, <span class="number">8</span>, <span class="number">0</span>, <span class="title class_">Math</span>.<span class="property">PI</span> * <span class="number">2</span>)</span><br><span class="line">    ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#FFFFFF&#x27;</span></span><br><span class="line">    ctx.<span class="title function_">fill</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绘制数值</span></span><br><span class="line">    ctx.<span class="property">font</span> = <span class="string">&#x27;bold 36px sans-serif&#x27;</span></span><br><span class="line">    ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#FFFFFF&#x27;</span></span><br><span class="line">    ctx.<span class="property">textAlign</span> = <span class="string">&#x27;center&#x27;</span></span><br><span class="line">    ctx.<span class="property">textBaseline</span> = <span class="string">&#x27;middle&#x27;</span></span><br><span class="line">    ctx.<span class="title function_">fillText</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.currentValue&#125;</span>`</span>, centerX, centerY + <span class="number">40</span>)</span><br><span class="line"></span><br><span class="line">    ctx.<span class="property">font</span> = <span class="string">&#x27;14px sans-serif&#x27;</span></span><br><span class="line">    ctx.<span class="property">fillStyle</span> = <span class="string">&#x27;#AAAAAA&#x27;</span></span><br><span class="line">    ctx.<span class="title function_">fillText</span>(<span class="string">&#x27;/ &#x27;</span> + <span class="variable language_">this</span>.<span class="property">maxValue</span>, centerX, centerY + <span class="number">60</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-添加交互"><a href="#8-3-添加交互" class="headerlink" title="8.3 添加交互"></a>8.3 添加交互</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在DashboardExample中添加</span></span><br><span class="line"><span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="title class_">Column</span>() &#123;</span><br><span class="line">    <span class="title class_">Canvas</span>(<span class="variable language_">this</span>.<span class="property">context</span>)</span><br><span class="line">      .<span class="title function_">width</span>(<span class="number">300</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="number">300</span>)</span><br><span class="line">      .<span class="title function_">onReady</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">drawDashboard</span>()</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;减少&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">currentValue</span> = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, <span class="variable language_">this</span>.<span class="property">currentValue</span> - <span class="number">10</span>)</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">drawDashboard</span>()</span><br><span class="line">        &#125;)</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;增加&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">currentValue</span> = <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="variable language_">this</span>.<span class="property">maxValue</span>, <span class="variable language_">this</span>.<span class="property">currentValue</span> + <span class="number">10</span>)</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">drawDashboard</span>()</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">20</span> &#125;)</span><br><span class="line">    .<span class="title function_">gap</span>(<span class="number">20</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、最佳实践"><a href="#九、最佳实践" class="headerlink" title="九、最佳实践"></a>九、最佳实践</h2><h3 id="9-1-选择合适的绘制方式"><a href="#9-1-选择合适的绘制方式" class="headerlink" title="9.1 选择合适的绘制方式"></a>9.1 选择合适的绘制方式</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方案</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>简单2D图形</td>
+<td>CanvasRenderingContext2D</td>
+<td>API简单，易上手</td>
+</tr>
+<tr>
+<td>高性能绘制</td>
+<td>DrawingCanvas</td>
+<td>GPU加速，性能更好</td>
+</tr>
+<tr>
+<td>动态效果</td>
+<td>DrawModifier</td>
+<td>直接绑定组件，自动响应状态</td>
+</tr>
+<tr>
+<td>底层控制</td>
+<td>RenderNode</td>
+<td>最大灵活性</td>
+</tr>
+<tr>
+<td>复杂静态图形</td>
+<td>OffscreenCanvas</td>
+<td>预渲染避免重复计算</td>
+</tr>
+</tbody></table>
+<h3 id="9-2-性能检查清单"><a href="#9-2-性能检查清单" class="headerlink" title="9.2 性能检查清单"></a>9.2 性能检查清单</h3><ul>
+<li><input disabled="" type="checkbox"> Canvas面积不超过 10000×10000px</li>
+<li><input disabled="" type="checkbox"> 避免在 <code>onReady</code> 之外的生命周期回调中频繁重绘</li>
+<li><input disabled="" type="checkbox"> 使用脏区域标记而非全量重绘</li>
+<li><input disabled="" type="checkbox"> 静态内容使用 OffscreenCanvas 预渲染</li>
+<li><input disabled="" type="checkbox"> DrawModifier 的 <code>invalidate()</code> 合并多次调用</li>
+<li><input disabled="" type="checkbox"> 及时释放不再需要的 PixelMap 资源</li>
+</ul>
+<h3 id="9-3-常见错误"><a href="#9-3-常见错误" class="headerlink" title="9.3 常见错误"></a>9.3 常见错误</h3><table>
+<thead>
+<tr>
+<th>错误</th>
+<th>正确做法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>多个Canvas共用一个CanvasRenderingContext2D</td>
+<td>每个Canvas创建独立的上下文</td>
+</tr>
+<tr>
+<td>在onReady之前执行绘制</td>
+<td>在onReady回调中执行</td>
+</tr>
+<tr>
+<td>setMatrix覆盖变换</td>
+<td>使用concatMatrix累加变换</td>
+</tr>
+<tr>
+<td>DrawModifier实例复用到多个组件</td>
+<td>每个组件使用独立实例</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十、常见问题"><a href="#十、常见问题" class="headerlink" title="十、常见问题"></a>十、常见问题</h2><h3 id="Q1-Canvas-和-DrawModifier-有什么区别？"><a href="#Q1-Canvas-和-DrawModifier-有什么区别？" class="headerlink" title="Q1: Canvas 和 DrawModifier 有什么区别？"></a>Q1: Canvas 和 DrawModifier 有什么区别？</h3><p><strong>Canvas</strong> 是一个独立的画布组件，需要在 <code>onReady</code> 回调中手动执行绘制逻辑。适合需要完全控制绘制流程的场景。</p>
+<p><strong>DrawModifier</strong> 是绑定到现有组件上的绘制修改器，直接在组件的绘制流程中插入自定义逻辑。适合给现有组件添加装饰效果的场景。</p>
+<h3 id="Q2-什么时候用-DrawingCanvas-而不是-CanvasRenderingContext2D？"><a href="#Q2-什么时候用-DrawingCanvas-而不是-CanvasRenderingContext2D？" class="headerlink" title="Q2: 什么时候用 DrawingCanvas 而不是 CanvasRenderingContext2D？"></a>Q2: 什么时候用 DrawingCanvas 而不是 CanvasRenderingContext2D？</h3><p>从性能角度，<code>DrawingCanvas</code>（API 12+）使用GPU加速，在复杂绘制场景下性能更好。从API角度，<code>CanvasRenderingContext2D</code> 的API更接近Web标准，学习成本更低。建议：基础2D图形用 <code>CanvasRenderingContext2D</code>，高性能场景用 <code>DrawingCanvas</code>。</p>
+<h3 id="Q3-DrawModifier-的五个绘制方法执行顺序是什么？"><a href="#Q3-DrawModifier-的五个绘制方法执行顺序是什么？" class="headerlink" title="Q3: DrawModifier 的五个绘制方法执行顺序是什么？"></a>Q3: DrawModifier 的五个绘制方法执行顺序是什么？</h3><p>依次为：<code>drawBehind</code>（内容背景）→ <code>drawContent</code>（内容）→ <code>drawFront</code>（内容前景）→ <code>drawForeground</code>（前景层，API 20+）→ <code>drawOverlay</code>（遮罩层，API 23+）。</p>
+<h3 id="Q4-如何触发-DrawModifier-重绘？"><a href="#Q4-如何触发-DrawModifier-重绘？" class="headerlink" title="Q4: 如何触发 DrawModifier 重绘？"></a>Q4: 如何触发 DrawModifier 重绘？</h3><p>调用 <code>invalidate()</code> 方法。该方法会标记组件状态已变更，触发组件的重新渲染。同步触发多个 <code>invalidate</code> 仅会触发一次重新绘制。</p>
+<h3 id="Q5-OffscreenCanvas-的典型使用场景是什么？"><a href="#Q5-OffscreenCanvas-的典型使用场景是什么？" class="headerlink" title="Q5: OffscreenCanvas 的典型使用场景是什么？"></a>Q5: OffscreenCanvas 的典型使用场景是什么？</h3><p>复杂图形预渲染（先离屏绘制再一次性传输）、多层合成（多个离屏Canvas分别绘制不同层后合并）、性能优化（避免在主Canvas上频繁重绘静态内容）。</p>
+<h3 id="Q6-RenderNode-和-DrawModifier-如何选择？"><a href="#Q6-RenderNode-和-DrawModifier-如何选择？" class="headerlink" title="Q6: RenderNode 和 DrawModifier 如何选择？"></a>Q6: RenderNode 和 DrawModifier 如何选择？</h3><p><code>DrawModifier</code> 适合大多数自定义绘制场景，直接绑定组件使用简单。<code>RenderNode</code> 提供更底层的控制，适合需要精细管理渲染节点树的场景（如配合 <code>NodeController</code> 动态创建节点）。</p>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-canvas">Canvas组件</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-common-property">CanvasRenderingContext2D通用属性</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-canvas-common-method">CanvasRenderingContext2D通用方法</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-drawingrenderingcontext">DrawingRenderingContext</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/arkts-apis-graphics-drawing-canvas">DrawingCanvas</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-user-defined-extension-drawmodifier">DrawModifier</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-universal-attributes-draw-modifier">drawModifier属性</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-components-offscreencanvas">OffscreenCanvas</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-arkui-rendernode">RenderNode</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-drawing-customization-on-canvas">Canvas自定义绘制开发指南</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/arkts-apis-graphics-drawing-path">drawing.Path</a></li>
+</ul>
+<hr>
+<h2 id="📚-系列导航-1"><a href="#📚-系列导航-1" class="headerlink" title="📚 系列导航"></a>📚 系列导航</h2><table>
+<thead>
+<tr>
+<th>篇章</th>
+<th>主题</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一篇</td>
+<td>自定义组件与Builder模式完全解析</td>
+<td>✅ <a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/">已发布</a></td>
+</tr>
+<tr>
+<td><strong>第二篇</strong></td>
+<td><strong>本文：Canvas自定义绘制与DrawModifier</strong></td>
+<td>📝 当前</td>
+</tr>
+<tr>
+<td>第三篇</td>
+<td>FrameNode与NodeController高级操控</td>
+<td>🔜 待写</td>
+</tr>
+<tr>
+<td>第四篇</td>
+<td>动画系统进阶</td>
+<td>🔜 待写</td>
+</tr>
+<tr>
+<td>第五篇</td>
+<td>自定义手势与交互</td>
+<td>🔜 待写</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/">https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ArkTS/">ArkTS</a><a class="post-meta__tags" href="/tags/Canvas/">Canvas</a><a class="post-meta__tags" href="/tags/DrawModifier/">DrawModifier</a><a class="post-meta__tags" href="/tags/%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6/">自定义绘制</a><a class="post-meta__tags" href="/tags/UI/">UI</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-canvas-drawmodifier-cover.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙高阶自定义UI：组件与Builder模式完全解析"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙高阶自定义UI：组件与Builder模式完全解析</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第一篇。上个系列我们完成了性能优化的系统化梳理，这个系列我们深入ArkUI的自定义能力——从组件封装到自定义绘制，从节点操控到动画系统。    📚 系列导航   篇章 主题 状态    第一篇 本文：自定义组件与Builder模式完全解析 📝 当前   第二篇 Canvas自定义绘制与DrawModifier 🔜 待写   第三篇 FrameNode与NodeController高级操控 🔜 待写   第四篇 动画系统进阶 🔜 待写   第五篇 自定义手势与交互 🔜 待写    一、@Component 装饰器深度解析1.1 组件化的核心原理@Component 装饰器是ArkUI组件化体系的基石。它装饰 struct 关键字声明的结构体，使其具备组件化能力。 @Componentstruct HelloComponent &#123;  @State message: string = &#x27;Hello World&#x27;  build() &#123;    Column() &#123;      Text(this...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙高阶自定义UI：组件与Builder模式完全解析"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙高阶自定义UI：组件与Builder模式完全解析</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第一篇。上个系列我们完成了性能优化的系统化梳理，这个系列我们深入ArkUI的自定义能力——从组件封装到自定义绘制，从节点操控到动画系统。    📚 系列导航   篇章 主题 状态    第一篇 本文：自定义组件与Builder模式完全解析 📝 当前   第二篇 Canvas自定义绘制与DrawModifier 🔜 待写   第三篇 FrameNode与NodeController高级操控 🔜 待写   第四篇 动画系统进阶 🔜 待写   第五篇 自定义手势与交互 🔜 待写    一、@Component 装饰器深度解析1.1 组件化的核心原理@Component 装饰器是ArkUI组件化体系的基石。它装饰 struct 关键字声明的结构体，使其具备组件化能力。 @Componentstruct HelloComponent &#123;  @State message: string = &#x27;Hello World&#x27;  build() &#123;    Column() &#123;      Text(this...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/" title="鸿蒙应用性能优化完全指南：从指标到工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-perf-overview-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙应用性能优化完全指南：从指标到工具</div></div><div class="info-2"><div class="info-item-1">前言在开发鸿蒙应用时，功能实现只是第一步，性能优化才是决定用户体验的关键。一个卡顿的列表、一次漫长的启动、一段耗电的后台任务，都可能让用户卸载你的应用。 鸿蒙系统提供了一套完整的性能分析工具链——DevEco Profiler，涵盖启动、帧率、CPU、内存四大维度。但很多开发者并不清楚：  什么指标算”达标”？ 各种 Profiler 分别解决什么问题？ 发现性能瓶颈后如何定位根因？  本篇作为性能优化系列的第一篇，不讲具体优化技巧，而是帮你建立一套完整的性能分析体系——知道用什么工具、看什么指标、怎么发现问题。  📌 系列导航  性能优化完全指南：从指标到工具（本文） 冷启动优化实战：从1200ms到300ms ArkUI渲染性能优化：告别卡顿与丢帧 内存管理与功耗优化：打造轻量级应用 并发编程与网络优化：Worker与TaskPool实战    一、性能优化的核心指标在开始优化之前，我们先明确衡量标准。鸿蒙应用的性能主要关注以下五个维度：    维度 核心指标 达标线 问题表现    启动 冷启动耗时 ≤ 1100ms 白屏时间长   启动 热启动耗时 &lt; 500ms...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/" title="鸿蒙冷启动优化实战：从1200ms到300ms"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-coldstart-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙冷启动优化实战：从1200ms到300ms</div></div><div class="info-2"><div class="info-item-1">前言 本文是「鸿蒙应用性能优化」系列的第2篇。上一篇我们建立了性能指标体系和DevEco Profiler的使用方法，这篇我们聚焦一个最影响用户第一印象的问题——冷启动。  你有没有遇到过这种情况：用户点了你的应用图标，然后盯着空白屏幕等了2秒、3秒甚至更久？每一秒的等待都在消耗用户的耐心。华为官方文档明确指出，冷启动时延大于1100ms时，可以认为是应用启动缓慢。因此，将冷启动控制在1000ms以内是基本目标，800ms以内则是更理想的体验。 这篇文章将带你：  理解冷启动的完整流程——知道每个阶段在做什么，才能找到优化点 掌握Launch Profiler的使用——用数据说话，而不是靠猜 学习6大优化策略——每个策略都有代码示例和效果数据 完成一个实战案例——从1200ms优化到300ms的完整过程     系列导航   序号 文章 核心内容    1 鸿蒙应用性能优化完全指南：从指标到工具 性能指标体系 + DevEco Profiler + ArkUI Inspector + Code Linter   2 本文：鸿蒙冷启动优化实战：从1200ms到300ms 冷启动原理...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%9A-%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="toc-number">1.</span> <span class="toc-text">📚 系列导航</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Canvas-%E7%BB%84%E4%BB%B6%E5%9F%BA%E7%A1%80"><span class="toc-number">2.</span> <span class="toc-text">一、Canvas 组件基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%A4%E7%A7%8D%E5%88%9B%E5%BB%BA%E6%96%B9%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 两种创建方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%88%9D%E5%A7%8B%E5%8C%96%E7%BB%98%E5%88%B6%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 初始化绘制上下文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-onReady-%E5%9B%9E%E8%B0%83"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 onReady 回调</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81CanvasRenderingContext2D-API"><span class="toc-number">3.</span> <span class="toc-text">二、CanvasRenderingContext2D API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E7%A1%80%E5%9B%BE%E5%BD%A2%E7%BB%98%E5%88%B6"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 基础图形绘制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A0%B7%E5%BC%8F%E8%AE%BE%E7%BD%AE"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 样式设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8F%98%E6%8D%A2%E6%93%8D%E4%BD%9C"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 变换操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%96%87%E6%9C%AC%E7%BB%98%E5%88%B6"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 文本绘制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E7%BB%98%E5%88%B6%E5%9B%BE%E7%89%87"><span class="toc-number">3.5.</span> <span class="toc-text">2.5 绘制图片</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81DrawingCanvas-%E9%AB%98%E7%BA%A7%E7%BB%98%E5%88%B6%EF%BC%88API-12-%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">三、DrawingCanvas 高级绘制（API 12+）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%9B%E5%BB%BA-DrawingRenderingContext"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 创建 DrawingRenderingContext</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DrawingCanvas-vs-CanvasRenderingContext2D"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 DrawingCanvas vs CanvasRenderingContext2D</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%9F%A9%E9%98%B5%E5%8F%98%E6%8D%A2"><span class="toc-number">4.3.</span> <span class="toc-text">3.3 矩阵变换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E8%B7%AF%E5%BE%84%E7%BB%98%E5%88%B6"><span class="toc-number">4.4.</span> <span class="toc-text">3.4 路径绘制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81OffscreenCanvas-%E7%A6%BB%E5%B1%8F%E7%BB%98%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">四、OffscreenCanvas 离屏绘制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 基本用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81DrawModifier-%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%BF%AE%E6%94%B9%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">五、DrawModifier 自定义绘制修改器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%BB%98%E5%88%B6%E5%B1%82%E7%BA%A7"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 绘制层级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 使用方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%AE%9E%E6%88%98%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BE%B9%E6%A1%86%E7%BB%98%E5%88%B6"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 实战：自定义边框绘制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%AE%9E%E6%88%98%EF%BC%9A%E6%B0%B4%E6%B3%A2%E7%BA%B9%E6%95%88%E6%9E%9C"><span class="toc-number">6.5.</span> <span class="toc-text">5.5 实战：水波纹效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81RenderNode-%E4%B8%8E-DrawModifier-%E5%8D%8F%E4%BD%9C"><span class="toc-number">7.</span> <span class="toc-text">六、RenderNode 与 DrawModifier 协作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RenderNode-%E5%9F%BA%E7%A1%80"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 RenderNode 基础</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RenderNode-%E5%B1%9E%E6%80%A7"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 RenderNode 属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%9C%A8%E7%BB%84%E4%BB%B6%E4%B8%AD%E4%BD%BF%E7%94%A8"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 在组件中使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81Canvas-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">8.</span> <span class="toc-text">七、Canvas 性能优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E9%81%BF%E5%85%8D%E9%A2%91%E7%B9%81%E9%87%8D%E7%BB%98"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 避免频繁重绘</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%BD%BF%E7%94%A8%E7%A6%BB%E5%B1%8FCanvas"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 使用离屏Canvas</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%90%88%E7%90%86%E4%BD%BF%E7%94%A8-save-restore"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 合理使用 save&#x2F;restore</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-Canvas-%E9%9D%A2%E7%A7%AF%E9%99%90%E5%88%B6"><span class="toc-number">8.4.</span> <span class="toc-text">7.4 Canvas 面积限制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89%E4%BB%AA%E8%A1%A8%E7%9B%98"><span class="toc-number">9.</span> <span class="toc-text">八、实战案例：自定义仪表盘</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%95%88%E6%9E%9C%E6%8F%8F%E8%BF%B0"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 效果描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%B7%BB%E5%8A%A0%E4%BA%A4%E4%BA%92"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 添加交互</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">10.</span> <span class="toc-text">九、最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%BB%98%E5%88%B6%E6%96%B9%E5%BC%8F"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 选择合适的绘制方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%80%A7%E8%83%BD%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 性能检查清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="toc-number">10.3.</span> <span class="toc-text">9.3 常见错误</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">11.</span> <span class="toc-text">十、常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-Canvas-%E5%92%8C-DrawModifier-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">11.1.</span> <span class="toc-text">Q1: Canvas 和 DrawModifier 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8-DrawingCanvas-%E8%80%8C%E4%B8%8D%E6%98%AF-CanvasRenderingContext2D%EF%BC%9F"><span class="toc-number">11.2.</span> <span class="toc-text">Q2: 什么时候用 DrawingCanvas 而不是 CanvasRenderingContext2D？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-DrawModifier-%E7%9A%84%E4%BA%94%E4%B8%AA%E7%BB%98%E5%88%B6%E6%96%B9%E6%B3%95%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">11.3.</span> <span class="toc-text">Q3: DrawModifier 的五个绘制方法执行顺序是什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A6%82%E4%BD%95%E8%A7%A6%E5%8F%91-DrawModifier-%E9%87%8D%E7%BB%98%EF%BC%9F"><span class="toc-number">11.4.</span> <span class="toc-text">Q4: 如何触发 DrawModifier 重绘？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-OffscreenCanvas-%E7%9A%84%E5%85%B8%E5%9E%8B%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">11.5.</span> <span class="toc-text">Q5: OffscreenCanvas 的典型使用场景是什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-RenderNode-%E5%92%8C-DrawModifier-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">11.6.</span> <span class="toc-text">Q6: RenderNode 和 DrawModifier 如何选择？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%9A-%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA-1"><span class="toc-number">13.</span> <span class="toc-text">📚 系列导航</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>

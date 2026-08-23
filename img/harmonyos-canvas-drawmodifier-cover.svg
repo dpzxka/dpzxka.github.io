@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a1a"/>
+      <stop offset="50%" style="stop-color:#1a1a3e"/>
+      <stop offset="100%" style="stop-color:#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="canvasGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#7b2ff7"/>
+    </linearGradient>
+    <linearGradient id="penGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b35"/>
+      <stop offset="100%" style="stop-color:#ff3366"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- 网格线 -->
+  <g opacity="0.08" stroke="#00d4ff" stroke-width="0.5">
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- 画布图标（左侧） -->
+  <g transform="translate(120, 180)">
+    <!-- Canvas矩形 -->
+    <rect x="0" y="0" width="320" height="280" rx="12" fill="none" stroke="url(#canvasGrad)" stroke-width="3" filter="url(#glow)" opacity="0.9"/>
+    <rect x="5" y="5" width="310" height="270" rx="10" fill="#0d1b2a" opacity="0.6"/>
+
+    <!-- 画布内容 - 绘制的图形 -->
+    <!-- 圆形 -->
+    <circle cx="80" cy="80" r="35" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.7"/>
+    <!-- 矩形 -->
+    <rect x="140" y="50" width="70" height="50" fill="#7b2ff7" opacity="0.5" rx="4"/>
+    <!-- 三角形 -->
+    <polygon points="260,50 290,100 230,100" fill="#ff6b35" opacity="0.6"/>
+    <!-- 贝塞尔曲线 -->
+    <path d="M30,150 Q100,120 170,150 T310,150" fill="none" stroke="#ff3366" stroke-width="2.5" opacity="0.8"/>
+    <!-- 直线 -->
+    <line x1="30" y1="200" x2="200" y2="220" stroke="#00ff88" stroke-width="2" opacity="0.6"/>
+    <!-- 填充矩形 -->
+    <rect x="220" y="180" width="60" height="60" fill="#ffd700" opacity="0.4" rx="8"/>
+    <!-- 坐标轴 -->
+    <line x1="30" y1="250" x2="300" y2="250" stroke="#ffffff" stroke-width="1" opacity="0.3"/>
+    <line x1="30" y1="250" x2="30" y2="130" stroke="#ffffff" stroke-width="1" opacity="0.3"/>
+  </g>
+
+  <!-- 画笔图标（右上） -->
+  <g transform="translate(520, 140)">
+    <!-- 画笔笔尖 -->
+    <path d="M0,80 L30,0 L60,80 L30,100 Z" fill="url(#penGrad)" filter="url(#glow)" opacity="0.9"/>
+    <!-- 笔尖高光 -->
+    <path d="M15,80 L30,20 L45,80" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.4"/>
+    <!-- 笔身 -->
+    <rect x="15" y="80" width="30" height="60" fill="#2a2a4a" rx="2"/>
+    <rect x="15" y="80" width="30" height="8" fill="#ff6b35" opacity="0.8"/>
+  </g>
+
+  <!-- DrawModifier层级示意（右侧） -->
+  <g transform="translate(620, 280)">
+    <!-- 五个层级 -->
+    <rect x="0" y="0" width="280" height="40" rx="6" fill="#1a3a5c" stroke="#00d4ff" stroke-width="1" opacity="0.7"/>
+    <text x="140" y="25" font-family="monospace" font-size="12" fill="#00d4ff" text-anchor="middle" opacity="0.9">drawOverlay (遮罩层)</text>
+
+    <rect x="15" y="50" width="250" height="40" rx="6" fill="#2a1a4c" stroke="#7b2ff7" stroke-width="1" opacity="0.7"/>
+    <text x="140" y="75" font-family="monospace" font-size="12" fill="#7b2ff7" text-anchor="middle" opacity="0.9">drawForeground (前景层)</text>
+
+    <rect x="30" y="100" width="220" height="40" rx="6" fill="#4a1a2c" stroke="#ff3366" stroke-width="1" opacity="0.7"/>
+    <text x="140" y="125" font-family="monospace" font-size="12" fill="#ff3366" text-anchor="middle" opacity="0.9">drawFront (内容前景)</text>
+
+    <rect x="45" y="150" width="190" height="40" rx="6" fill="#3a3a1c" stroke="#ffd700" stroke-width="1" opacity="0.9"/>
+    <text x="140" y="175" font-family="monospace" font-size="13" fill="#ffd700" text-anchor="middle" font-weight="bold">drawContent (内容)</text>
+
+    <rect x="60" y="200" width="160" height="40" rx="6" fill="#1a3a2c" stroke="#00ff88" stroke-width="1" opacity="0.7"/>
+    <text x="140" y="225" font-family="monospace" font-size="12" fill="#00ff88" text-anchor="middle" opacity="0.9">drawBehind (背景)</text>
+  </g>
+
+  <!-- 仪表盘示意图（右下） -->
+  <g transform="translate(640, 100)">
+    <circle cx="100" cy="100" r="80" fill="none" stroke="#334455" stroke-width="6" opacity="0.5"/>
+    <!-- 弧形进度 -->
+    <path d="M30,140 A80,80 0 1,1 170,140" fill="none" stroke="url(#canvasGrad)" stroke-width="6" stroke-linecap="round" filter="url(#glow)" opacity="0.8"/>
+    <!-- 指针 -->
+    <line x1="100" y1="100" x2="100" y2="35" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)"/>
+    <circle cx="100" cy="100" r="6" fill="#ffffff"/>
+  </g>
+
+  <!-- 代码装饰 -->
+  <g opacity="0.15" font-family="monospace" font-size="11" fill="#00d4ff">
+    <text x="50" y="560">Canvas(ctx).onReady(() =&gt; {</text>
+    <text x="50" y="575">  ctx.beginPath()</text>
+    <text x="50" y="590">  ctx.arc(x, y, r, 0, PI*2)</text>
+    <text x="50" y="605">  ctx.stroke()</text>
+    <text x="50" y="620">})</text>
+
+    <text x="850" y="560">class MyModifier extends DrawModifier {</text>
+    <text x="850" y="575">  drawBehind(ctx: DrawContext) {</text>
+    <text x="850" y="590">    // 自定义背景绘制</text>
+    <text x="850" y="605">  }</text>
+    <text x="850" y="620">}</text>
+  </g>
+
+  <!-- 标题 -->
+  <text x="600" y="430" font-family="Arial, sans-serif" font-size="42" fill="#ffffff" text-anchor="middle" font-weight="bold" filter="url(#softGlow)">Canvas自定义绘制与DrawModifier</text>
+
+  <!-- 副标题 -->
+  <text x="600" y="475" font-family="Arial, sans-serif" font-size="20" fill="#8899aa" text-anchor="middle">自定义绘制 · 画布API · 绘制修改器 · 性能优化</text>
+
+  <!-- 系列标识 -->
+  <rect x="460" y="500" width="280" height="32" rx="16" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+  <text x="600" y="521" font-family="Arial, sans-serif" font-size="14" fill="#00d4ff" text-anchor="middle" opacity="0.8">鸿蒙高阶自定义UI · 第二篇</text>
+
+  <!-- API版本标记 -->
+  <g transform="translate(1050, 30)">
+    <rect x="0" y="0" width="120" height="28" rx="14" fill="#00d4ff" opacity="0.15"/>
+    <text x="60" y="19" font-family="monospace" font-size="11" fill="#00d4ff" text-anchor="middle">API 8+ / 12+ / 23+</text>
+  </g>
+</svg>
