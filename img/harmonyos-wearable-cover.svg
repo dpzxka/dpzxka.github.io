@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#0d2137"/>
+      <stop offset="100%" style="stop-color:#132d46"/>
+    </linearGradient>
+    <linearGradient id="watchGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a5276"/>
+      <stop offset="100%" style="stop-color:#0d3b5e"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="100%" style="stop-color:#0099ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bgGrad)"/>
+  
+  <!-- Grid pattern -->
+  <g opacity="0.08">
+    <line x1="0" y1="0" x2="0" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="300" y1="0" x2="300" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="500" y1="0" x2="500" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="700" y1="0" x2="700" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="900" y1="0" x2="900" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="1100" y1="0" x2="1100" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="0" x2="1200" y2="0" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="100" x2="1200" y2="100" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="500" x2="1200" y2="500" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="#00d4aa" stroke-width="1"/>
+  </g>
+  
+  <!-- Watch face - left -->
+  <g transform="translate(150, 180)">
+    <!-- Watch band top -->
+    <rect x="55" y="-60" width="90" height="60" rx="8" fill="#2a3a4a"/>
+    <!-- Watch body -->
+    <circle cx="100" cy="140" r="100" fill="url(#watchGrad)" stroke="#1a5276" stroke-width="3"/>
+    <!-- Watch screen -->
+    <circle cx="100" cy="140" r="85" fill="#0d2f4a"/>
+    <!-- Time -->
+    <text x="100" y="125" text-anchor="middle" fill="#ffffff" font-size="32" font-weight="bold" font-family="Arial">10:30</text>
+    <!-- Date -->
+    <text x="100" y="150" text-anchor="middle" fill="#8899aa" font-size="12" font-family="Arial">Monday</text>
+    <!-- Steps -->
+    <text x="100" y="180" text-anchor="middle" fill="#00d4aa" font-size="14" font-family="Arial">8523 steps</text>
+    <!-- Watch band bottom -->
+    <rect x="55" y="240" width="90" height="60" rx="8" fill="#2a3a4a"/>
+    <!-- Crown button -->
+    <rect x="195" y="120" width="12" height="30" rx="4" fill="#3a4a5a" stroke="#4a5a6a" stroke-width="1"/>
+    
+    <text x="100" y="340" text-anchor="middle" fill="#5a9ac5" font-size="14" font-weight="bold">Analog Watch</text>
+  </g>
+  
+  <!-- Watch face - center (larger, feature) -->
+  <g transform="translate(480, 140)">
+    <!-- Watch band top -->
+    <rect x="70" "-70" width="110" height="70" rx="10" fill="#2a3a4a"/>
+    <!-- Watch body -->
+    <circle cx="125" cy="175" r="125" fill="url(#watchGrad)" stroke="#1a5276" stroke-width="4"/>
+    <!-- Watch screen -->
+    <circle cx="125" cy="175" r="110" fill="#0d2f4a"/>
+    
+    <!-- Complications -->
+    <!-- Steps (top) -->
+    <rect x="90" y="55" width="70" height="35" rx="8" fill="#1a3a5c"/>
+    <text x="125" y="77" text-anchor="middle" fill="#00d4aa" font-size="10" font-family="Arial">👟 8523</text>
+    
+    <!-- Heart rate (left) -->
+    <rect x="25" y="130" width="55" height="35" rx="8" fill="#1a3a5c"/>
+    <text x="52" y="152" text-anchor="middle" fill="#ff6b6b" font-size="10" font-family="Arial">❤️ 72</text>
+    
+    <!-- Battery (right) -->
+    <rect x="195" y="130" width="55" height="35" rx="8" fill="#1a3a5c"/>
+    <text x="222" y="152" text-anchor="middle" fill="#ffd93d" font-size="10" font-family="Arial">🔋 85%</text>
+    
+    <!-- Calories (bottom) -->
+    <rect x="90" y="205" width="70" height="35" rx="8" fill="#1a3a5c"/>
+    <text x="125" y="227" text-anchor="middle" fill="#ff9f43" font-size="10" font-family="Arial">🔥 320</text>
+    
+    <!-- Center time -->
+    <text x="125" y="180" text-anchor="middle" fill="#ffffff" font-size="40" font-weight="bold" font-family="Arial">10:30</text>
+    <text x="125" y="200" text-anchor="middle" fill="#8899aa" font-size="12" font-family="Arial">Monday, Aug 23</text>
+    
+    <!-- Watch band bottom -->
+    <rect x="70" y="280" width="110" height="70" rx="10" fill="#2a3a4a"/>
+    <!-- Crown button -->
+    <rect x="245" y="150" width="14" height="35" rx="5" fill="#3a4a5a" stroke="#4a5a6a" stroke-width="1"/>
+    
+    <text x="125" y="390" text-anchor="middle" fill="#5a9ac5" font-size="14" font-weight="bold">Digital Dashboard</text>
+  </g>
+  
+  <!-- Watch face - right -->
+  <g transform="translate(870, 180)">
+    <!-- Watch band top -->
+    <rect x="55" y="-60" width="90" height="60" rx="8" fill="#2a3a4a"/>
+    <!-- Watch body -->
+    <circle cx="100" cy="140" r="100" fill="url(#watchGrad)" stroke="#1a5276" stroke-width="3"/>
+    <!-- Watch screen -->
+    <circle cx="100" cy="140" r="85" fill="#0d2f4a"/>
+    <!-- Sport mode -->
+    <text x="100" y="100" text-anchor="middle" fill="#00d4aa" font-size="10" font-family="Arial">RUNNING</text>
+    <text x="100" y="140" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="bold" font-family="Arial">25:30</text>
+    <text x="100" y="165" text-anchor="middle" fill="#8899aa" font-size="11" font-family="Arial">3.2 km | 5'30"</text>
+    <!-- Watch band bottom -->
+    <rect x="55" y="240" width="90" height="60" rx="8" fill="#2a3a4a"/>
+    <!-- Crown button -->
+    <rect x="195" y="120" width="12" height="30" rx="4" fill="#3a4a5a" stroke="#4a5a6a" stroke-width="1"/>
+    
+    <text x="100" y="340" text-anchor="middle" fill="#5a9ac5" font-size="14" font-weight="bold">Sport Mode</text>
+  </g>
+  
+  <!-- Feature icons row -->
+  <g transform="translate(100, 450)">
+    <rect x="0" y="0" width="140" height="70" rx="8" fill="#0d2f4a" stroke="#00d4aa" stroke-width="1.5"/>
+    <text x="70" y="25" text-anchor="middle" fill="#00d4aa" font-size="20">⚙️</text>
+    <text x="70" y="50" text-anchor="middle" fill="#00d4aa" font-size="11" font-weight="bold">Rotary Crown</text>
+    <text x="70" y="64" text-anchor="middle" fill="#5a9ac5" font-size="9">旋钮交互</text>
+  </g>
+  
+  <g transform="translate(280, 450)">
+    <rect x="0" y="0" width="140" height="70" rx="8" fill="#0d2f4a" stroke="#0099ff" stroke-width="1.5"/>
+    <text x="70" y="25" text-anchor="middle" fill="#0099ff" font-size="20">👆</text>
+    <text x="70" y="50" text-anchor="middle" fill="#0099ff" font-size="11" font-weight="bold">Touch Control</text>
+    <text x="70" y="64" text-anchor="middle" fill="#5a9ac5" font-size="9">触控操作</text>
+  </g>
+  
+  <g transform="translate(460, 450)">
+    <rect x="0" y="0" width="140" height="70" rx="8" fill="#0d2f4a" stroke="#ff6b9d" stroke-width="1.5"/>
+    <text x="70" y="25" text-anchor="middle" fill="#ff6b9d" font-size="20">🎤</text>
+    <text x="70" y="50" text-anchor="middle" fill="#ff6b9d" font-size="11" font-weight="bold">Voice Command</text>
+    <text x="70" y="64" text-anchor="middle" fill="#5a9ac5" font-size="9">语音控制</text>
+  </g>
+  
+  <g transform="translate(640, 450)">
+    <rect x="0" y="0" width="140" height="70" rx="8" fill="#0d2f4a" stroke="#ffd93d" stroke-width="1.5"/>
+    <text x="70" y="25" text-anchor="middle" fill="#ffd93d" font-size="20">🔋</text>
+    <text x="70" y="50" text-anchor="middle" fill="#ffd93d" font-size="11" font-weight="bold">Power Saving</text>
+    <text x="70" y="64" text-anchor="middle" fill="#5a9ac5" font-size="9">功耗优化</text>
+  </g>
+  
+  <g transform="translate(820, 450)">
+    <rect x="0" y="0" width="140" height="70" rx="8" fill="#0d2f4a" stroke="#ff9f43" stroke-width="1.5"/>
+    <text x="70" y="25" text-anchor="middle" fill="#ff9f43" font-size="20">🃏</text>
+    <text x="70" y="50" text-anchor="middle" fill="#ff9f43" font-size="11" font-weight="bold">Card Widgets</text>
+    <text x="70" y="64" text-anchor="middle" fill="#5a9ac5" font-size="9">卡片适配</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="68" text-anchor="middle" fill="#ffffff" font-size="36" font-weight="bold" font-family="Arial, sans-serif">
+    <tspan fill="url(#accentGrad)">Wearable</tspan>
+    <tspan fill="#ffffff"> &amp; Watch</tspan>
+  </text>
+  <text x="600" y="108" text-anchor="middle" fill="#7aafcc" font-size="18" font-family="Arial, sans-serif">
+    Round Screen Layout &amp; Interaction
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="620" text-anchor="middle" fill="#4a8ab5" font-size="14" font-family="Arial, sans-serif">
+    Round Display | Complications | Crown | Voice | Power Optimization
+  </text>
+  
+  <!-- HarmonyOS badge -->
+  <rect x="480" y="630" width="240" height="28" rx="14" fill="#00d4aa" opacity="0.15" stroke="#00d4aa" stroke-width="1"/>
+  <text x="600" y="650" text-anchor="middle" fill="#00d4aa" font-size="12" font-family="Arial, sans-serif" font-weight="bold">
+    HarmonyOS NEXT
+  </text>
+</svg>

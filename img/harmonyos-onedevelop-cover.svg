@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#162a4a"/>
+      <stop offset="100%" style="stop-color:#1a3a5c"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="50%" style="stop-color:#0099ff"/>
+      <stop offset="100%" style="stop-color:#6b5ce7"/>
+    </linearGradient>
+    <linearGradient id="phoneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a5276"/>
+      <stop offset="100%" style="stop-color:#0d3b5e"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bgGrad)"/>
+  
+  <!-- Grid pattern -->
+  <g opacity="0.06">
+    <line x1="0" y1="0" x2="0" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="300" y1="0" x2="300" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="500" y1="0" x2="500" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="700" y1="0" x2="700" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="900" y1="0" x2="900" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="1100" y1="0" x2="1100" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="0" x2="1200" y2="0" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="100" x2="1200" y2="100" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="500" x2="1200" y2="500" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="#00d4aa" stroke-width="1"/>
+  </g>
+  
+  <!-- Device icons - Phone -->
+  <g transform="translate(60, 180)">
+    <rect x="0" y="0" width="80" height="150" rx="12" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <rect x="5" y="10" width="70" height="130" rx="2" fill="#0d2f4a"/>
+    <text x="40" y="60" text-anchor="middle" fill="#00d4aa" font-size="10" font-family="Arial">📱</text>
+    <text x="40" y="80" text-anchor="middle" fill="#ffffff" font-size="8" font-family="Arial">Phone</text>
+    <circle cx="40" cy="145" r="4" fill="#3a4a5a"/>
+  </g>
+  
+  <!-- Device icons - Tablet -->
+  <g transform="translate(180, 160)">
+    <rect x="0" y="0" width="120" height="170" rx="14" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <rect x="5" y="10" width="110" height="150" rx="2" fill="#0d2f4a"/>
+    <text x="60" y="70" text-anchor="middle" fill="#0099ff" font-size="14" font-family="Arial">📱</text>
+    <text x="60" y="90" text-anchor="middle" fill="#ffffff" font-size="10" font-family="Arial">Tablet</text>
+    <circle cx="60" cy="165" r="4" fill="#3a4a5a"/>
+  </g>
+  
+  <!-- Device icons - Foldable -->
+  <g transform="translate(340, 170)">
+    <rect x="0" y="0" width="50" height="160" rx="8" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <rect x="55" y="0" width="50" height="160" rx="8" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <rect x="5" y="10" width="40" height="140" rx="2" fill="#0d2f4a"/>
+    <rect x="60" y="10" width="40" height="140" rx="2" fill="#0d2f4a"/>
+    <text x="52" y="80" text-anchor="middle" fill="#6b5ce7" font-size="12" font-family="Arial">📂</text>
+    <text x="52" y="100" text-anchor="middle" fill="#ffffff" font-size="8" font-family="Arial">Fold</text>
+  </g>
+  
+  <!-- Center - Connection hub -->
+  <g transform="translate(500, 250)">
+    <!-- Central hub -->
+    <circle cx="100" cy="100" r="80" fill="#1a3a5c" stroke="url(#accentGrad)" stroke-width="3"/>
+    <text x="100" y="85" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold" font-family="Arial">ONE</text>
+    <text x="100" y="105" text-anchor="middle" fill="url(#accentGrad)" font-size="14" font-family="Arial">CODE</text>
+    <text x="100" y="125" text-anchor="middle" fill="#8899aa" font-size="10" font-family="Arial">多端部署</text>
+    
+    <!-- Connection lines -->
+    <line x1="-60" y1="40" x2="-200" y2="-20" stroke="#00d4aa" stroke-width="2" opacity="0.6" stroke-dasharray="5,5"/>
+    <line x1="40" y1="40" x2="200" y2="-20" stroke="#0099ff" stroke-width="2" opacity="0.6" stroke-dasharray="5,5"/>
+    <line x1="-60" y1="100" x2="-200" y2="100" stroke="#6b5ce7" stroke-width="2" opacity="0.6" stroke-dasharray="5,5"/>
+    <line x1="40" y1="100" x2="200" y2="100" stroke="#ff6b9d" stroke-width="2" opacity="0.6" stroke-dasharray="5,5"/>
+    <line x1="0" y1="180" x2="0" y2="220" stroke="#ffd93d" stroke-width="2" opacity="0.6" stroke-dasharray="5,5"/>
+  </g>
+  
+  <!-- Device icons - PC -->
+  <g transform="translate(800, 150)">
+    <rect x="0" y="0" width="160" height="100" rx="8" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <rect x="5" y="5" width="150" height="85" rx="2" fill="#0d2f4a"/>
+    <text x="80" y="45" text-anchor="middle" fill="#0099ff" font-size="16" font-family="Arial">💻</text>
+    <text x="80" y="65" text-anchor="middle" fill="#ffffff" font-size="10" font-family="Arial">PC / 2in1</text>
+    <rect x="50" y="105" width="60" height="8" rx="4" fill="#3a4a5a"/>
+    <rect x="30" y="118" width="100" height="5" rx="2" fill="#3a4a5a"/>
+  </g>
+  
+  <!-- Device icons - Car -->
+  <g transform="translate(1020, 160)">
+    <rect x="0" y="0" width="120" height="170" rx="10" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <rect x="5" y="10" width="110" height="130" rx="2" fill="#0d2f4a"/>
+    <text x="60" y="60" text-anchor="middle" fill="#ff9f43" font-size="14" font-family="Arial">🚗</text>
+    <text x="60" y="80" text-anchor="middle" fill="#ffffff" font-size="10" font-family="Arial">Car</text>
+    <rect x="5" y="145" width="50" height="20" rx="4" fill="#1a3a5c"/>
+    <rect x="65" y="145" width="50" height="20" rx="4" fill="#1a3a5c"/>
+  </g>
+  
+  <!-- Device icons - Watch -->
+  <g transform="translate(60, 400)">
+    <rect x="30" y="0" width="60" height="20" rx="4" fill="#2a3a4a"/>
+    <circle cx="60" cy="65" r="45" fill="url(#phoneGrad)" stroke="#1a5276" stroke-width="2"/>
+    <circle cx="60" cy="65" r="38" fill="#0d2f4a"/>
+    <text x="60" y="65" text-anchor="middle" fill="#ff6b9d" font-size="10" font-family="Arial">⌚</text>
+    <text x="60" y="80" text-anchor="middle" fill="#ffffff" font-size="7" font-family="Arial">Watch</text>
+    <rect x="30" y="110" width="60" height="20" rx="4" fill="#2a3a4a"/>
+  </g>
+  
+  <!-- Feature badges -->
+  <g transform="translate(200, 420)">
+    <rect x="0" y="0" width="120" height="45" rx="8" fill="#0d2f4a" stroke="#00d4aa" stroke-width="1.5"/>
+    <text x="60" y="18" text-anchor="middle" fill="#00d4aa" font-size="10" font-weight="bold" font-family="Arial">Responsive</text>
+    <text x="60" y="33" text-anchor="middle" fill="#5a9ac5" font-size="9" font-family="Arial">响应式布局</text>
+  </g>
+  
+  <g transform="translate(360, 420)">
+    <rect x="0" y="0" width="120" height="45" rx="8" fill="#0d2f4a" stroke="#0099ff" stroke-width="1.5"/>
+    <text x="60" y="18" text-anchor="middle" fill="#0099ff" font-size="10" font-weight="bold" font-family="Arial">Grid System</text>
+    <text x="60" y="33" text-anchor="middle" fill="#5a9ac5" font-size="9" font-family="Arial">栅格系统</text>
+  </g>
+  
+  <g transform="translate(520, 420)">
+    <rect x="0" y="0" width="120" height="45" rx="8" fill="#0d2f4a" stroke="#6b5ce7" stroke-width="1.5"/>
+    <text x="60" y="18" text-anchor="middle" fill="#6b5ce7" font-size="10" font-weight="bold" font-family="Arial">MediaQuery</text>
+    <text x="60" y="33" text-anchor="middle" fill="#5a9ac5" font-size="9" font-family="Arial">媒体查询</text>
+  </g>
+  
+  <g transform="translate(680, 420)">
+    <rect x="0" y="0" width="120" height="45" rx="8" fill="#0d2f4a" stroke="#ff6b9d" stroke-width="1.5"/>
+    <text x="60" y="18" text-anchor="middle" fill="#ff6b9d" font-size="10" font-weight="bold" font-family="Arial">Device Info</text>
+    <text x="60" y="33" text-anchor="middle" fill="#5a9ac5" font-size="9" font-family="Arial">设备识别</text>
+  </g>
+  
+  <g transform="translate(840, 420)">
+    <rect x="0" y="0" width="120" height="45" rx="8" fill="#0d2f4a" stroke="#ffd93d" stroke-width="1.5"/>
+    <text x="60" y="18" text-anchor="middle" fill="#ffd93d" font-size="10" font-weight="bold" font-family="Arial">Resources</text>
+    <text x="60" y="33" text-anchor="middle" fill="#5a9ac5" font-size="9" font-family="Arial">资源限定词</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="68" text-anchor="middle" fill="#ffffff" font-size="36" font-weight="bold" font-family="Arial, sans-serif">
+    <tspan fill="url(#accentGrad)">One Code</tspan>
+    <tspan fill="#ffffff">,</tspan>
+    <tspan fill="#8899aa"> All Devices</tspan>
+  </text>
+  <text x="600" y="108" text-anchor="middle" fill="#7aafcc" font-size="18" font-family="Arial, sans-serif">
+    Multi-Device Deployment Strategy
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="520" text-anchor="middle" fill="#4a8ab5" font-size="14" font-family="Arial, sans-serif">
+    Phone | Tablet | Foldable | PC | Car | Watch
+  </text>
+  
+  <!-- HarmonyOS badge -->
+  <rect x="480" y="630" width="240" height="28" rx="14" fill="#00d4aa" opacity="0.15" stroke="#00d4aa" stroke-width="1"/>
+  <text x="600" y="650" text-anchor="middle" fill="#00d4aa" font-size="12" font-family="Arial, sans-serif" font-weight="bold">
+    HarmonyOS NEXT · 系列完结
+  </text>
+</svg>
