@@ -1,0 +1,990 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙多端适配-大屏、车机与PC端适配：窗口模式与多任务实践 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="深入解析鸿蒙大屏、车机和PC端的窗口模式适配策略，涵盖自由窗口(Freeform)、分屏、悬浮窗、沉浸式布局，以及车机导航流转、超级桌面等场景的实战方案。基于官方文档的全面指南。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙多端适配-大屏、车机与PC端适配：窗口模式与多任务实践">
+<meta property="og:url" content="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E5%A4%A7%E5%B1%8F%E8%BD%A6%E6%9C%BA%E9%80%82%E9%85%8D/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="深入解析鸿蒙大屏、车机和PC端的窗口模式适配策略，涵盖自由窗口(Freeform)、分屏、悬浮窗、沉浸式布局，以及车机导航流转、超级桌面等场景的实战方案。基于官方文档的全面指南。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-largescreen-car-cover.svg">
+<meta property="article:published_time" content="2026-08-23T02:40:00.000Z">
+<meta property="article:modified_time" content="2026-08-23T14:47:20.916Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="HarmonyOS">
+<meta property="article:tag" content="多端适配">
+<meta property="article:tag" content="车机">
+<meta property="article:tag" content="大屏">
+<meta property="article:tag" content="PC">
+<meta property="article:tag" content="自由窗口">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-largescreen-car-cover.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙多端适配-大屏、车机与PC端适配：窗口模式与多任务实践",
+  "url": "https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E5%A4%A7%E5%B1%8F%E8%BD%A6%E6%9C%BA%E9%80%82%E9%85%8D/",
+  "image": "https://dpzxka.github.io/img/harmonyos-largescreen-car-cover.svg",
+  "datePublished": "2026-08-23T02:40:00.000Z",
+  "dateModified": "2026-08-23T14:47:20.916Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E5%A4%A7%E5%B1%8F%E8%BD%A6%E6%9C%BA%E9%80%82%E9%85%8D/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙多端适配-大屏、车机与PC端适配：窗口模式与多任务实践',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">50</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">68</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-largescreen-car-cover.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙多端适配-大屏、车机与PC端适配：窗口模式与多任务实践</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙多端适配-大屏、车机与PC端适配：窗口模式与多任务实践</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-23T02:40:00.000Z" title="发表于 2026-08-23 10:40:00">2026-08-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-23T14:47:20.916Z" title="更新于 2026-08-23 22:47:20">2026-08-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%B8%BF%E8%92%99%E5%BC%80%E5%8F%91/">鸿蒙开发</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%B8%BF%E8%92%99%E5%BC%80%E5%8F%91/%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D/">多端适配</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-08-23 22:47:20&quot;}" hidden></div><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前两篇文章中，我们系统掌握了断点体系与栅格布局，以及手机、平板、折叠屏的适配方法。在鸿蒙生态中，除了移动端设备，还有大量大屏设备（平板、PC）和特殊场景设备（车机、智慧屏），它们的交互方式和布局要求与手机有本质区别。</p>
+<p>本文将聚焦<strong>大屏、车机和PC端</strong>的适配策略，核心内容包括：</p>
+<ol>
+<li><strong>窗口模式适配</strong>：全屏、分屏、悬浮窗、自由窗口的配置与响应</li>
+<li><strong>沉浸式布局</strong>：状态栏、导航区域的避让策略</li>
+<li><strong>Navigation适配</strong>：大屏分栏导航的实现</li>
+<li><strong>车机适配</strong>：导航流转、超级桌面、HiCar</li>
+<li><strong>PC端适配</strong>：电脑模式与自由窗口</li>
+</ol>
+<h2 id="一、设备类型与屏幕特征"><a href="#一、设备类型与屏幕特征" class="headerlink" title="一、设备类型与屏幕特征"></a>一、设备类型与屏幕特征</h2><h3 id="1-1-设备类型识别"><a href="#1-1-设备类型识别" class="headerlink" title="1.1 设备类型识别"></a>1.1 设备类型识别</h3><p>鸿蒙通过<code>deviceInfo.deviceType</code>识别设备类型，不同设备有不同的屏幕特征和交互方式：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; deviceInfo &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.BasicServicesKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="attr">deviceType</span>: <span class="built_in">string</span> = deviceInfo.<span class="property">deviceType</span>;</span><br><span class="line"><span class="comment">// 可能的值: &#x27;phone&#x27; | &#x27;tablet&#x27; | &#x27;2in1&#x27; | &#x27;car&#x27; | &#x27;tv&#x27; | &#x27;pc&#x27; | ...</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>各设备类型特征</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>设备类型</th>
+<th>screenDensity</th>
+<th>屏幕方向</th>
+<th>窗口模式</th>
+<th>典型交互</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>phone</td>
+<td>480</td>
+<td>竖屏为主</td>
+<td>全屏&#x2F;分屏&#x2F;悬浮窗</td>
+<td>触控</td>
+</tr>
+<tr>
+<td>tablet</td>
+<td>240~320</td>
+<td>横竖屏</td>
+<td>全屏&#x2F;分屏&#x2F;悬浮窗&#x2F;自由窗口</td>
+<td>触控+键盘</td>
+</tr>
+<tr>
+<td>2in1</td>
+<td>240</td>
+<td>横屏</td>
+<td>自由窗口</td>
+<td>键鼠+触控</td>
+</tr>
+<tr>
+<td>car</td>
+<td>200~320</td>
+<td>横屏</td>
+<td>全屏</td>
+<td>触控+语音</td>
+</tr>
+<tr>
+<td>pc</td>
+<td>240</td>
+<td>横屏</td>
+<td>自由窗口</td>
+<td>键鼠</td>
+</tr>
+</tbody></table>
+<h3 id="1-2-资源限定词"><a href="#1-2-资源限定词" class="headerlink" title="1.2 资源限定词"></a>1.2 资源限定词</h3><p>通过资源目录的限定词实现设备级别适配：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">resources/</span><br><span class="line">  base/          ← 默认资源</span><br><span class="line">  rawfile/       ← 原始资源</span><br><span class="line">  zh_CN/         ← 中文</span><br><span class="line">  en_US/         ← 英文</span><br><span class="line">  dark/          ← 深色模式</span><br><span class="line">  color/         ← 颜色资源</span><br><span class="line">  element/       ← 元素资源</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-Configuration配置"><a href="#1-3-Configuration配置" class="headerlink" title="1.3 Configuration配置"></a>1.3 Configuration配置</h3><p>Configuration配置包含设备能力信息，系统根据配置自动匹配最合适的资源：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ConfigurationConstant</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过Resource Manager获取当前配置</span></span><br><span class="line"><span class="comment">// 配置包含: 语言、区域、横竖屏、设备类型、密度等</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="二、窗口模式适配"><a href="#二、窗口模式适配" class="headerlink" title="二、窗口模式适配"></a>二、窗口模式适配</h2><h3 id="2-1-窗口模式概览"><a href="#2-1-窗口模式概览" class="headerlink" title="2.1 窗口模式概览"></a>2.1 窗口模式概览</h3><p>鸿蒙定义了5种窗口模式（WindowStatusType），不同设备类型支持不同组合：</p>
+<table>
+<thead>
+<tr>
+<th>窗口模式</th>
+<th>phone</th>
+<th>tablet</th>
+<th>2in1&#x2F;pc</th>
+<th>car</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FULL_SCREEN</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>全屏，无系统UI</td>
+</tr>
+<tr>
+<td>MAXIMIZE</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>全屏，保留系统UI</td>
+</tr>
+<tr>
+<td>MINIMIZE</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>最小化到任务栏</td>
+</tr>
+<tr>
+<td>FLOATING</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>悬浮窗&#x2F;自由窗口</td>
+</tr>
+<tr>
+<td>SPLIT_SCREEN</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>分屏</td>
+</tr>
+</tbody></table>
+<p><strong>关键区别</strong>：</p>
+<ul>
+<li>手机&#x2F;折叠屏：悬浮窗 &#x3D; 等比缩放的固定尺寸窗口</li>
+<li>平板：悬浮窗 &#x3D; 支持无级缩放的自由窗口</li>
+<li>PC&#x2F;2in1：悬浮窗 &#x3D; 自由窗口（支持拖拽、缩放）</li>
+</ul>
+<h3 id="2-2-窗口模式配置"><a href="#2-2-窗口模式配置" class="headerlink" title="2.2 窗口模式配置"></a>2.2 窗口模式配置</h3><p>通过module.json5配置文件声明支持的窗口模式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;abilities&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;EntryAbility&quot;,</span><br><span class="line">      &quot;supportWindowMode&quot;: [&quot;fullscreen&quot;, &quot;split&quot;, &quot;floating&quot;]</span><br><span class="line">      // 默认值，三个模式全部支持</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>运行时动态配置</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 动态修改支持的窗口模式（仅自由窗口状态下生效）</span></span><br><span class="line"><span class="keyword">const</span> winStage = <span class="keyword">await</span> <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">getHostContext</span>()</span><br><span class="line">  .<span class="property">windowStage</span>;</span><br><span class="line"><span class="keyword">await</span> winStage.<span class="title function_">setSupportedWindowModes</span>([</span><br><span class="line">  <span class="variable language_">window</span>.<span class="property">SupportWindowMode</span>.<span class="property">FULL_SCREEN</span>,</span><br><span class="line">  <span class="variable language_">window</span>.<span class="property">SupportWindowMode</span>.<span class="property">SPLIT</span>,</span><br><span class="line">  <span class="variable language_">window</span>.<span class="property">SupportWindowMode</span>.<span class="property">FLOATING</span></span><br><span class="line">]);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-监听窗口模式变化"><a href="#2-3-监听窗口模式变化" class="headerlink" title="2.3 监听窗口模式变化"></a>2.3 监听窗口模式变化</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前窗口</span></span><br><span class="line"><span class="keyword">const</span> win = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前窗口状态</span></span><br><span class="line"><span class="keyword">const</span> status = win.<span class="title function_">getWindowStatus</span>();</span><br><span class="line"><span class="comment">// status: WindowStatusType</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听窗口模式变化</span></span><br><span class="line">win.<span class="title function_">on</span>(<span class="string">&#x27;windowStatusChange&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> newStatus = win.<span class="title function_">getWindowStatus</span>();</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`Window mode changed to: <span class="subst">$&#123;newStatus&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听窗口模式变化（Rect更新完成后触发，更精确）</span></span><br><span class="line">win.<span class="title function_">on</span>(<span class="string">&#x27;windowStatusDidChange&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> rect = win.<span class="title function_">getWindowRect</span>();</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`Window rect: <span class="subst">$&#123;rect.width&#125;</span>x<span class="subst">$&#123;rect.height&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、沉浸式布局"><a href="#三、沉浸式布局" class="headerlink" title="三、沉浸式布局"></a>三、沉浸式布局</h2><h3 id="3-1-沉浸式布局原理"><a href="#3-1-沉浸式布局原理" class="headerlink" title="3.1 沉浸式布局原理"></a>3.1 沉浸式布局原理</h3><p>沉浸式布局使应用内容拓展至整个窗口显示区域，包括状态栏和导航区域：</p>
+<table>
+<thead>
+<tr>
+<th>非沉浸式布局</th>
+<th>沉浸式布局</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内容避开状态栏和导航区域</td>
+<td>内容可延伸到状态栏和导航区域</td>
+</tr>
+<tr>
+<td>布局区域 &#x3D; 窗口 - 系统UI</td>
+<td>布局区域 &#x3D; 整个窗口</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-进入沉浸式布局"><a href="#3-2-进入沉浸式布局" class="headerlink" title="3.2 进入沉浸式布局"></a>3.2 进入沉浸式布局</h3><p><strong>非自由窗口状态</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mainWindow = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"><span class="comment">// 设置窗口进入沉浸式布局</span></span><br><span class="line"><span class="keyword">await</span> mainWindow.<span class="title function_">setWindowLayoutFullScreen</span>(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或使用API 12+的简化接口</span></span><br><span class="line"><span class="keyword">await</span> mainWindow.<span class="title function_">setImmersiveModeEnabledState</span>(<span class="literal">true</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>自由窗口状态</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mainWindow = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"><span class="comment">// 隐藏窗口标题栏，进入沉浸式布局</span></span><br><span class="line"><span class="keyword">await</span> mainWindow.<span class="title function_">setWindowDecorVisible</span>(<span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-布局避让"><a href="#3-3-布局避让" class="headerlink" title="3.3 布局避让"></a>3.3 布局避让</h3><p>进入沉浸式布局后，需要通过布局避让避免内容与系统UI重叠：</p>
+<p><strong>方式一：expandSafeArea属性（推荐简单场景）</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;顶部标题&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="string">&#x27;#FFFFFF&#x27;</span>)</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    <span class="comment">// 扩展到状态栏和导航区域</span></span><br><span class="line">    .<span class="title function_">expandSafeArea</span>([<span class="title class_">SafeAreaType</span>.<span class="property">SYSTEM</span>, <span class="title class_">SafeAreaType</span>.<span class="property">CUTOUT</span>])</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式二：getWindowAvoidArea API（精确控制）</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">topAvoidHeight</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">bottomAvoidHeight</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">mainWindow</span>?: <span class="variable language_">window</span>.<span class="property">Window</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> context = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">getHostContext</span>();</span><br><span class="line">    <span class="keyword">const</span> winStage = context.<span class="property">windowStage</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">mainWindow</span> = winStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取初始避让区域</span></span><br><span class="line">    <span class="keyword">const</span> topArea = <span class="variable language_">this</span>.<span class="property">mainWindow</span>.<span class="title function_">getWindowAvoidArea</span>(</span><br><span class="line">      <span class="variable language_">window</span>.<span class="property">AvoidAreaType</span>.<span class="property">TYPE_SYSTEM</span></span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">const</span> bottomArea = <span class="variable language_">this</span>.<span class="property">mainWindow</span>.<span class="title function_">getWindowAvoidArea</span>(</span><br><span class="line">      <span class="variable language_">window</span>.<span class="property">AvoidAreaType</span>.<span class="property">TYPE_NAVIGATION_INDICATOR</span></span><br><span class="line">    );</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">topAvoidHeight</span> = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">px2vp</span>(</span><br><span class="line">      topArea.<span class="property">topRect</span>.<span class="property">height</span></span><br><span class="line">    );</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">bottomAvoidHeight</span> = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">px2vp</span>(</span><br><span class="line">      bottomArea.<span class="property">bottomRect</span>.<span class="property">height</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 监听避让区域变化</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">mainWindow</span>.<span class="title function_">on</span>(<span class="string">&#x27;avoidAreaChange&#x27;</span>, <span class="function">(<span class="params">option</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (option.<span class="property">type</span> === <span class="variable language_">window</span>.<span class="property">AvoidAreaType</span>.<span class="property">TYPE_SYSTEM</span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">topAvoidHeight</span> = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">px2vp</span>(</span><br><span class="line">          option.<span class="property">area</span>.<span class="property">topRect</span>.<span class="property">height</span></span><br><span class="line">        );</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (</span><br><span class="line">        option.<span class="property">type</span> ===</span><br><span class="line">        <span class="variable language_">window</span>.<span class="property">AvoidAreaType</span>.<span class="property">TYPE_NAVIGATION_INDICATOR</span></span><br><span class="line">      ) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">bottomAvoidHeight</span> = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">px2vp</span>(</span><br><span class="line">          option.<span class="property">area</span>.<span class="property">bottomRect</span>.<span class="property">height</span></span><br><span class="line">        );</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 避让顶部状态栏</span></span><br><span class="line">      <span class="title class_">Row</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;页面标题&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">          .<span class="title function_">fontColor</span>(<span class="string">&#x27;#FFFFFF&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">padding</span>(&#123; <span class="attr">top</span>: <span class="variable language_">this</span>.<span class="property">topAvoidHeight</span> + <span class="number">10</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 内容区域</span></span><br><span class="line">      <span class="title class_">Scroll</span>() &#123;</span><br><span class="line">        <span class="title class_">Column</span>() &#123;</span><br><span class="line">          <span class="comment">// ... 内容</span></span><br><span class="line">        &#125;</span><br><span class="line">        .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 避让底部导航区域</span></span><br><span class="line">      <span class="title class_">Row</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;底部操作栏&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">padding</span>(&#123; <span class="attr">bottom</span>: <span class="variable language_">this</span>.<span class="property">bottomAvoidHeight</span> + <span class="number">10</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式三：@Env响应式环境变量（API 17+，最简洁）</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="meta">@Env</span>(<span class="title class_">SystemProperties</span>.<span class="property">WINDOW_AVOID_AREA</span>)</span><br><span class="line">  <span class="attr">avoidAreasVp</span>: <span class="variable language_">window</span>.<span class="property">UIEnvWindowAvoidAreaInfoVP</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Row</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;顶部标题&#x27;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">padding</span>(&#123;</span><br><span class="line">        <span class="attr">top</span>: <span class="variable language_">this</span>.<span class="property">avoidAreasVp</span>.<span class="property">statusBar</span>.<span class="property">topRect</span>.<span class="property">height</span> + <span class="number">10</span>,</span><br><span class="line">        <span class="attr">left</span>: <span class="variable language_">this</span>.<span class="property">avoidAreasVp</span>.<span class="property">cutout</span>.<span class="property">leftRect</span>.<span class="property">width</span>,</span><br><span class="line">        <span class="attr">right</span>: <span class="variable language_">this</span>.<span class="property">avoidAreasVp</span>.<span class="property">cutout</span>.<span class="property">rightRect</span>.<span class="property">width</span></span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 内容...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-自由窗口标题栏与沉浸式"><a href="#3-4-自由窗口标题栏与沉浸式" class="headerlink" title="3.4 自由窗口标题栏与沉浸式"></a>3.4 自由窗口标题栏与沉浸式</h3><p>自由窗口状态下，标题栏包含应用图标、名称和三键控制按钮：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取主窗口</span></span><br><span class="line"><span class="keyword">const</span> mainWindow = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 隐藏标题栏（自由窗口沉浸式）</span></span><br><span class="line"><span class="keyword">await</span> mainWindow.<span class="title function_">setWindowDecorVisible</span>(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 显示标题栏</span></span><br><span class="line"><span class="keyword">await</span> mainWindow.<span class="title function_">setWindowDecorVisible</span>(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断当前是否为沉浸式布局</span></span><br><span class="line"><span class="keyword">const</span> isImmersive = mainWindow.<span class="title function_">isImmersiveLayout</span>();</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、Navigation大屏适配"><a href="#四、Navigation大屏适配" class="headerlink" title="四、Navigation大屏适配"></a>四、Navigation大屏适配</h2><h3 id="4-1-Navigation模式选择"><a href="#4-1-Navigation模式选择" class="headerlink" title="4.1 Navigation模式选择"></a>4.1 Navigation模式选择</h3><p>Navigation组件提供单栏和分栏两种模式：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>适用场景</th>
+<th>宽度要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Stack（单栏）</td>
+<td>手机、小屏</td>
+<td>&lt; 600vp</td>
+</tr>
+<tr>
+<td>Split（分栏）</td>
+<td>平板、PC</td>
+<td>≥ 600vp</td>
+</tr>
+<tr>
+<td>Auto（自动）</td>
+<td>自适应</td>
+<td>系统根据宽度自动切换</td>
+</tr>
+</tbody></table>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">mode</span>: <span class="title class_">NavigationMode</span> = <span class="title class_">NavigationMode</span>.<span class="property">Auto</span>;</span><br><span class="line">  <span class="attr">pathStack</span>: <span class="title class_">NavPathStack</span> = <span class="keyword">new</span> <span class="title class_">NavPathStack</span>();</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>(<span class="variable language_">this</span>.<span class="property">pathStack</span>) &#123;</span><br><span class="line">      <span class="comment">// 侧边栏内容</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;导航菜单&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">18</span>)</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;应用标题&#x27;</span>)</span><br><span class="line">    .<span class="title function_">titleMode</span>(<span class="title class_">NavigationTitleMode</span>.<span class="property">Mini</span>)</span><br><span class="line">    <span class="comment">// Auto模式：宽度≥600vp自动分栏</span></span><br><span class="line">    .<span class="title function_">mode</span>(<span class="variable language_">this</span>.<span class="property">mode</span>)</span><br><span class="line">    .<span class="title function_">navBarWidthRange</span>([<span class="number">200</span>, <span class="number">300</span>]) <span class="comment">// 导航栏宽度可调范围</span></span><br><span class="line">    .<span class="title function_">minContentWidth</span>(<span class="number">300</span>) <span class="comment">// 子页最小宽度</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-悬停态导航（FolderStack）"><a href="#4-2-悬停态导航（FolderStack）" class="headerlink" title="4.2 悬停态导航（FolderStack）"></a>4.2 悬停态导航（FolderStack）</h3><p>在折叠屏和大屏设备上，可以使用FolderStack实现悬停态导航：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">FolderStack</span>() &#123;</span><br><span class="line">      <span class="comment">// 主内容</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;主内容区&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 悬停态显示的辅助内容</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;悬停态内容&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="number">200</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">direction</span>(<span class="title class_">Axis</span>.<span class="property">Vertical</span>) <span class="comment">// 垂直方向悬停</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、车机适配"><a href="#五、车机适配" class="headerlink" title="五、车机适配"></a>五、车机适配</h2><h3 id="5-1-车机屏幕特征"><a href="#5-1-车机屏幕特征" class="headerlink" title="5.1 车机屏幕特征"></a>5.1 车机屏幕特征</h3><p>车机屏幕通常为横屏，屏幕尺寸较大，但交互方式受限：</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>屏幕方向</td>
+<td>固定横屏</td>
+</tr>
+<tr>
+<td>交互方式</td>
+<td>触控 + 语音（驾驶模式下触控受限）</td>
+</tr>
+<tr>
+<td>窗口模式</td>
+<td>仅支持全屏（Fullscreen）</td>
+</tr>
+<tr>
+<td>分辨率</td>
+<td>1920×720、2160×300等宽屏比例</td>
+</tr>
+</tbody></table>
+<h3 id="5-2-Car-Kit导航流转"><a href="#5-2-Car-Kit导航流转" class="headerlink" title="5.2 Car Kit导航流转"></a>5.2 Car Kit导航流转</h3><p>鸿蒙提供Car Kit实现手机与车机之间的导航信息无缝传递：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; smartMobilityCommon &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.CarKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; navigationInfoMgr &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.CarKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; hilog &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.PerformanceAnalysisKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听导航流转事件</span></span><br><span class="line">smartMobilityCommon.<span class="title function_">on</span>(<span class="string">&#x27;smartMobilityEvent&#x27;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (event.<span class="property">type</span> === <span class="title class_">SmartMobilityEvent</span>.<span class="property">NAVI_TRANSFER</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理导航流转事件</span></span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="number">0x0000</span>, <span class="string">&#x27;CarAdapt&#x27;</span>,</span><br><span class="line">      <span class="string">&#x27;Navigation transfer received&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>导航流转场景</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>value值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>碰一碰导航流转</td>
+<td>carHopNavi</td>
+<td>手机碰一碰启动车机导航</td>
+</tr>
+<tr>
+<td>上车自动流转</td>
+<td>getOnCarNavi</td>
+<td>上车后自动切换到车机导航</td>
+</tr>
+<tr>
+<td>车内自动流转</td>
+<td>insideCarNavi</td>
+<td>车内设备间导航同步</td>
+</tr>
+<tr>
+<td>下车步行流转</td>
+<td>getOffCarNavi</td>
+<td>下车后切换到步行导航</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-超级桌面"><a href="#5-3-超级桌面" class="headerlink" title="5.3 超级桌面"></a>5.3 超级桌面</h3><p>超级桌面允许用户在车机上直接使用手机应用：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; smartMobilityCommon &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.CarKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查询超级桌面连接状态</span></span><br><span class="line"><span class="keyword">const</span> info = <span class="keyword">await</span> smartMobilityCommon.<span class="title function_">getSmartMobilityInfo</span>();</span><br><span class="line"><span class="keyword">if</span> (info.<span class="property">type</span> === <span class="title class_">SmartMobilityEvent</span>.<span class="property">SUPER_LAUNCHER</span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Super launcher connected&#x27;</span>);</span><br><span class="line">  <span class="comment">// 获取虚拟屏ID</span></span><br><span class="line">  <span class="keyword">const</span> displayId = info.<span class="property">data</span>.<span class="title function_">get</span>(<span class="string">&#x27;DISPLAY_ID&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-车机应用适配要点"><a href="#5-4-车机应用适配要点" class="headerlink" title="5.4 车机应用适配要点"></a>5.4 车机应用适配要点</h3><p>车机应用适配与手机应用有本质区别：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 车机应用配置（module.json5）</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;abilities&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;name&quot;</span>: <span class="string">&quot;MainAbility&quot;</span>,</span><br><span class="line">      <span class="string">&quot;deviceTypes&quot;</span>: [<span class="string">&quot;car&quot;</span>], <span class="comment">// 仅车机</span></span><br><span class="line">      <span class="string">&quot;supportWindowMode&quot;</span>: [<span class="string">&quot;fullscreen&quot;</span>], <span class="comment">// 仅全屏</span></span><br><span class="line">      <span class="string">&quot;orientation&quot;</span>: <span class="string">&quot;landscape&quot;</span> <span class="comment">// 固定横屏</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>适配检查清单</strong>：</p>
+<ol>
+<li>✅ 固定横屏布局</li>
+<li>✅ 大字体、高对比度（驾驶安全）</li>
+<li>✅ 简化操作流程（语音优先）</li>
+<li>✅ 支持导航流转API</li>
+<li>✅ 配置deviceTypes包含”car”</li>
+</ol>
+<h2 id="六、PC端适配"><a href="#六、PC端适配" class="headerlink" title="六、PC端适配"></a>六、PC端适配</h2><h3 id="6-1-电脑模式"><a href="#6-1-电脑模式" class="headerlink" title="6.1 电脑模式"></a>6.1 电脑模式</h3><p>PC和2in1设备支持电脑模式，应用以自由窗口形式运行：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断是否为自由窗口状态</span></span><br><span class="line"><span class="keyword">const</span> mainWindow = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"><span class="keyword">const</span> isInFreeWindow = mainWindow.<span class="title function_">isInFreeWindowMode</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (isInFreeWindow) &#123;</span><br><span class="line">  <span class="comment">// 自由窗口状态下的布局调整</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Running in free window mode&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-自由窗口适配"><a href="#6-2-自由窗口适配" class="headerlink" title="6.2 自由窗口适配"></a>6.2 自由窗口适配</h3><p>自由窗口状态下的布局特点：</p>
+<table>
+<thead>
+<tr>
+<th>特点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>窗口大小</td>
+<td>用户可自由拖拽调整</td>
+</tr>
+<tr>
+<td>标题栏</td>
+<td>默认显示（含图标+名称+三键）</td>
+</tr>
+<tr>
+<td>沉浸式</td>
+<td>通过setWindowDecorVisible(false)实现</td>
+</tr>
+<tr>
+<td>多窗口</td>
+<td>同一屏幕可显示多个窗口</td>
+</tr>
+</tbody></table>
+<p><strong>自由窗口沉浸式适配</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">setupFreeWindowImmersive</span>(<span class="params"></span></span><br><span class="line"><span class="params">  <span class="attr">windowStage</span>: <span class="variable language_">window</span>.<span class="title class_">WindowStage</span></span></span><br><span class="line"><span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainWindow = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 监听自由窗口模式变化</span></span><br><span class="line">  mainWindow.<span class="title function_">on</span>(<span class="string">&#x27;freeWindowModeChange&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (mainWindow.<span class="title function_">isInFreeWindowMode</span>()) &#123;</span><br><span class="line">      <span class="comment">// 进入自由窗口，隐藏标题栏</span></span><br><span class="line">      mainWindow.<span class="title function_">setWindowDecorVisible</span>(<span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 初始设置</span></span><br><span class="line">  <span class="keyword">if</span> (mainWindow.<span class="title function_">isInFreeWindowMode</span>()) &#123;</span><br><span class="line">    <span class="keyword">await</span> mainWindow.<span class="title function_">setWindowDecorVisible</span>(<span class="literal">false</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="七、多任务适配"><a href="#七、多任务适配" class="headerlink" title="七、多任务适配"></a>七、多任务适配</h2><h3 id="7-1-多窗口并发"><a href="#7-1-多窗口并发" class="headerlink" title="7.1 多窗口并发"></a>7.1 多窗口并发</h3><p>鸿蒙支持多个应用窗口同时运行：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查询当前窗口数量</span></span><br><span class="line"><span class="keyword">const</span> mainWindow = windowStage.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意：单个应用进程窗口最大数量为256</span></span><br><span class="line"><span class="comment">// 实际设备限制可能更小</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-分屏适配"><a href="#7-2-分屏适配" class="headerlink" title="7.2 分屏适配"></a>7.2 分屏适配</h3><p>分屏场景下的布局响应：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">windowWidth</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> win = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">getHostContext</span>()</span><br><span class="line">      .<span class="property">windowStage</span>.<span class="title function_">getMainWindowSync</span>();</span><br><span class="line">    <span class="keyword">const</span> rect = win.<span class="title function_">getWindowRect</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">windowWidth</span> = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">px2vp</span>(rect.<span class="property">width</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">windowWidth</span> &lt; <span class="number">600</span>) &#123;</span><br><span class="line">        <span class="comment">// 窄屏（分屏模式）：单列布局</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title class_">SingleColumnLayout</span>()</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 宽屏：双列布局</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title class_">DoubleColumnLayout</span>()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title class_">SingleColumnLayout</span>() &#123;</span><br><span class="line">    <span class="title class_">Scroll</span>() &#123;</span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="comment">// ... 单列内容</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title class_">DoubleColumnLayout</span>() &#123;</span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="comment">// 左侧列表</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="comment">// ... 列表内容</span></span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="number">280</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Divider</span>()</span><br><span class="line">        .<span class="title function_">vertical</span>(<span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 右侧详情</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="comment">// ... 详情内容</span></span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="八、实战案例"><a href="#八、实战案例" class="headerlink" title="八、实战案例"></a>八、实战案例</h2><h3 id="8-1-多设备自适应导航栏"><a href="#8-1-多设备自适应导航栏" class="headerlink" title="8.1 多设备自适应导航栏"></a>8.1 多设备自适应导航栏</h3><p>实现一个在手机、平板和PC上自适应的导航栏：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">AdaptiveNavigation</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">currentTab</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">isFoldable</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Navigation</span>() &#123;</span><br><span class="line">      <span class="comment">// 侧边栏（平板/PC）</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;应用名称&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">          .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line">          .<span class="title function_">padding</span>(<span class="number">20</span>)</span><br><span class="line"></span><br><span class="line">        <span class="title class_">Divider</span>()</span><br><span class="line"></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title class_">TabItem</span>(<span class="string">&#x27;首页&#x27;</span>, <span class="string">&#x27;home&#x27;</span>, <span class="number">0</span>)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title class_">TabItem</span>(<span class="string">&#x27;消息&#x27;</span>, <span class="string">&#x27;message&#x27;</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title class_">TabItem</span>(<span class="string">&#x27;设置&#x27;</span>, <span class="string">&#x27;settings&#x27;</span>, <span class="number">2</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="number">240</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#F5F5F5&#x27;</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 内容区</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">`当前标签: <span class="subst">$&#123;<span class="variable language_">this</span>.currentTab&#125;</span>`</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line">      .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">      .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">      .<span class="title function_">alignItems</span>(<span class="title class_">HorizontalAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">title</span>(<span class="string">&#x27;多设备导航&#x27;</span>)</span><br><span class="line">    .<span class="title function_">titleMode</span>(<span class="title class_">NavigationTitleMode</span>.<span class="property">Mini</span>)</span><br><span class="line">    .<span class="title function_">mode</span>(<span class="title class_">NavigationMode</span>.<span class="property">Auto</span>)</span><br><span class="line">    .<span class="title function_">navBarWidthRange</span>([<span class="number">200</span>, <span class="number">320</span>])</span><br><span class="line">    .<span class="title function_">minContentWidth</span>(<span class="number">400</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title class_">TabItem</span>(<span class="attr">title</span>: <span class="built_in">string</span>, <span class="attr">icon</span>: <span class="built_in">string</span>, <span class="attr">index</span>: <span class="built_in">number</span>) &#123;</span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(title)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="variable language_">this</span>.<span class="property">currentTab</span> === index ?</span><br><span class="line">          <span class="string">&#x27;#0A7A5A&#x27;</span> : <span class="string">&#x27;#666666&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="number">48</span>)</span><br><span class="line">    .<span class="title function_">padding</span>(&#123; <span class="attr">left</span>: <span class="number">20</span> &#125;)</span><br><span class="line">    .<span class="title function_">backgroundColor</span>(<span class="variable language_">this</span>.<span class="property">currentTab</span> === index ?</span><br><span class="line">      <span class="string">&#x27;#E6F7F0&#x27;</span> : <span class="string">&#x27;transparent&#x27;</span>)</span><br><span class="line">    .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">currentTab</span> = index;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-车机音乐播放器布局"><a href="#8-2-车机音乐播放器布局" class="headerlink" title="8.2 车机音乐播放器布局"></a>8.2 车机音乐播放器布局</h3><p>实现一个适配车机横屏的音乐播放器：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">CarMusicPlayer</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">isPlaying</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">progress</span>: <span class="built_in">number</span> = <span class="number">30</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Row</span>() &#123;</span><br><span class="line">      <span class="comment">// 左侧：专辑封面</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Image</span>($r(<span class="string">&#x27;app.media.album_cover&#x27;</span>))</span><br><span class="line">          .<span class="title function_">width</span>(<span class="number">200</span>)</span><br><span class="line">          .<span class="title function_">height</span>(<span class="number">200</span>)</span><br><span class="line">          .<span class="title function_">borderRadius</span>(<span class="number">12</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="number">260</span>)</span><br><span class="line">      .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 右侧：播放控制</span></span><br><span class="line">      <span class="title class_">Column</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;歌曲名称&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">          .<span class="title function_">fontColor</span>(<span class="string">&#x27;#FFFFFF&#x27;</span>)</span><br><span class="line">          .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">30</span> &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="title class_">Text</span>(<span class="string">&#x27;歌手名称&#x27;</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">          .<span class="title function_">fontColor</span>(<span class="string">&#x27;#AAAAAA&#x27;</span>)</span><br><span class="line">          .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">8</span> &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 进度条</span></span><br><span class="line">        <span class="title class_">Progress</span>(&#123; <span class="attr">value</span>: <span class="variable language_">this</span>.<span class="property">progress</span>, <span class="attr">total</span>: <span class="number">100</span> &#125;)</span><br><span class="line">          .<span class="title function_">width</span>(<span class="string">&#x27;80%&#x27;</span>)</span><br><span class="line">          .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">40</span> &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 控制按钮</span></span><br><span class="line">        <span class="title class_">Row</span>(&#123; <span class="attr">space</span>: <span class="number">40</span> &#125;) &#123;</span><br><span class="line">          <span class="title class_">Button</span>(<span class="string">&#x27;上一曲&#x27;</span>)</span><br><span class="line">            .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">          <span class="title class_">Button</span>(<span class="variable language_">this</span>.<span class="property">isPlaying</span> ? <span class="string">&#x27;暂停&#x27;</span> : <span class="string">&#x27;播放&#x27;</span>)</span><br><span class="line">            .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">            .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">              <span class="variable language_">this</span>.<span class="property">isPlaying</span> = !<span class="variable language_">this</span>.<span class="property">isPlaying</span>;</span><br><span class="line">            &#125;)</span><br><span class="line">          <span class="title class_">Button</span>(<span class="string">&#x27;下一曲&#x27;</span>)</span><br><span class="line">            .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">30</span> &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">layoutWeight</span>(<span class="number">1</span>)</span><br><span class="line">      .<span class="title function_">alignItems</span>(<span class="title class_">HorizontalAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#1A1A1A&#x27;</span>)</span><br><span class="line">    .<span class="title function_">padding</span>(&#123; <span class="attr">left</span>: <span class="number">60</span>, <span class="attr">right</span>: <span class="number">60</span> &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="九、最佳实践"><a href="#九、最佳实践" class="headerlink" title="九、最佳实践"></a>九、最佳实践</h2><h3 id="9-1-适配Checklist"><a href="#9-1-适配Checklist" class="headerlink" title="9.1 适配Checklist"></a>9.1 适配Checklist</h3><ul>
+<li><input disabled="" type="checkbox"> 使用<code>deviceInfo.deviceType</code>判断设备类型</li>
+<li><input disabled="" type="checkbox"> 配置<code>supportWindowMode</code>声明支持的窗口模式</li>
+<li><input disabled="" type="checkbox"> 大屏使用Navigation Auto模式</li>
+<li><input disabled="" type="checkbox"> 监听窗口模式变化并响应式调整布局</li>
+<li><input disabled="" type="checkbox"> 沉浸式布局时使用expandSafeArea或getWindowAvoidArea</li>
+<li><input disabled="" type="checkbox"> 车机固定横屏，配置deviceTypes包含”car”</li>
+<li><input disabled="" type="checkbox"> PC端适配自由窗口，支持setWindowDecorVisible</li>
+<li><input disabled="" type="checkbox"> 分屏场景下监听窗口尺寸变化调整布局</li>
+<li><input disabled="" type="checkbox"> 使用资源限定词为不同设备提供差异化资源</li>
+</ul>
+<h3 id="9-2-常见错误"><a href="#9-2-常见错误" class="headerlink" title="9.2 常见错误"></a>9.2 常见错误</h3><table>
+<thead>
+<tr>
+<th>错误</th>
+<th>正确做法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>假设所有设备都是竖屏</td>
+<td>使用断点和MediaQuery响应屏幕方向</td>
+</tr>
+<tr>
+<td>忽略自由窗口状态</td>
+<td>使用isInFreeWindowMode()判断并适配</td>
+</tr>
+<tr>
+<td>车机应用使用竖屏布局</td>
+<td>车机固定横屏，布局必须适配宽屏</td>
+</tr>
+<tr>
+<td>不配置supportWindowMode</td>
+<td>默认支持三种模式，可按需精简</td>
+</tr>
+<tr>
+<td>沉浸式布局未做避让</td>
+<td>使用expandSafeArea或手动避让</td>
+</tr>
+</tbody></table>
+<h2 id="十、常见问题"><a href="#十、常见问题" class="headerlink" title="十、常见问题"></a>十、常见问题</h2><p><strong>Q1：如何判断当前设备是否支持自由窗口？</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; deviceInfo &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.BasicServicesKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> deviceType = deviceInfo.<span class="property">deviceType</span>;</span><br><span class="line"><span class="keyword">const</span> supportFreeWindow = [<span class="string">&#x27;2in1&#x27;</span>, <span class="string">&#x27;pc&#x27;</span>].<span class="title function_">includes</span>(deviceType);</span><br><span class="line"><span class="comment">// tablet在部分型号上也支持</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Q2：悬浮窗和自由窗口有什么区别？</strong></p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>悬浮窗（手机&#x2F;折叠屏）</th>
+<th>自由窗口（平板&#x2F;PC）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>窗口大小</td>
+<td>等比缩放，不可自由调整</td>
+<td>无级缩放，可自由拖拽</td>
+</tr>
+<tr>
+<td>标题栏</td>
+<td>固定顶部横条</td>
+<td>可隐藏（沉浸式）</td>
+</tr>
+<tr>
+<td>最大化</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>缩放比例</td>
+<td>有限制</td>
+<td>无限制</td>
+</tr>
+</tbody></table>
+<p><strong>Q3：车机应用如何获取导航信息？</strong></p>
+<p>使用Car Kit的smartMobilityCommon模块监听导航流转事件，通过navigationInfoMgr获取导航详情。具体参考Car Kit开发指南。</p>
+<p><strong>Q4：沉浸式布局下如何避免内容与系统UI重叠？</strong></p>
+<p>三种方式：① expandSafeArea属性（简单场景）；② getWindowAvoidArea API（精确控制）；③ @Env响应式环境变量（API 17+最简洁）。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/window-mode-overview">窗口模式简介</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/immersive-window-feature">窗口沉浸式</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/multi-window-intro">智慧多窗简介</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/freeform-window-overview">自由窗口概述</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-components-navigation">Navigation组件</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/car-introduction">Car Kit简介</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-device-info">deviceInfo API参考</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-multi-device-window-mode">多设备窗口模式最佳实践</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-multi-device-window-immersive">多设备窗口沉浸式最佳实践</a></li>
+</ul>
+<hr>
+<p>📚 <strong>鸿蒙多端适配系列导航</strong></p>
+<ol>
+<li><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%96%AD%E7%82%B9%E5%88%B0%E6%A0%85%E6%A0%BC/">多端适配完全指南：从断点到栅格</a></li>
+<li><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E6%89%8B%E6%9C%BA%E5%B9%B3%E6%9D%BF%E6%8A%98%E5%8F%A0%E5%B1%8F%E9%80%82%E9%85%8D/">手机&#x2F;平板&#x2F;折叠屏适配</a></li>
+<li><strong>大屏&#x2F;车机适配</strong>（当前篇）</li>
+<li><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E6%89%8B%E8%A1%A8%E7%A9%BF%E6%88%B4%E8%AE%BE%E5%A4%87%E9%80%82%E9%85%8D/">手表&#x2F;穿戴设备适配</a>（待发布）</li>
+<li><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E4%B8%80%E6%AC%A1%E5%BC%80%E5%8F%91%E5%A4%9A%E7%AB%AF%E9%83%A8%E7%BD%B2%E5%AE%9E%E6%88%98/">一次开发多端部署实战</a>（待发布）</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E5%A4%A7%E5%B1%8F%E8%BD%A6%E6%9C%BA%E9%80%82%E9%85%8D/">https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E5%A4%A7%E5%B1%8F%E8%BD%A6%E6%9C%BA%E9%80%82%E9%85%8D/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/HarmonyOS/">HarmonyOS</a><a class="post-meta__tags" href="/tags/%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D/">多端适配</a><a class="post-meta__tags" href="/tags/%E8%BD%A6%E6%9C%BA/">车机</a><a class="post-meta__tags" href="/tags/%E5%A4%A7%E5%B1%8F/">大屏</a><a class="post-meta__tags" href="/tags/PC/">PC</a><a class="post-meta__tags" href="/tags/%E8%87%AA%E7%94%B1%E7%AA%97%E5%8F%A3/">自由窗口</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-largescreen-car-cover.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙高阶自定义UI：组件与Builder模式完全解析"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙高阶自定义UI：组件与Builder模式完全解析</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第一篇。上个系列我们完成了性能优化的系统化梳理，这个系列我们深入ArkUI的自定义能力——从组件封装到自定义绘制，从节点操控到动画系统。    📚 系列导航   篇章 主题 状态    第一篇 本文：自定义组件与Builder模式完全解析 📝 当前   第二篇 Canvas自定义绘制与DrawModifier ✅ 已发布   第三篇 FrameNode与NodeController高级操控 ✅ 已发布   第四篇 动画系统进阶 ✅ 已发布   第五篇 自定义手势与交互 ✅ 已发布    一、@Component 装饰器深度解析1.1 组件化的核心原理@Component 装饰器是ArkUI组件化体系的基石。它装饰 struct 关键字声明的结构体，使其具备组件化能力。 @Componentstruct HelloComponent &#123;  @State message: string = &#x27;Hello World&#x27;  build() &#123;    Column() &#123;      Text(this...</div></div></div></a><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/" title="鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-canvas-drawmodifier-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第二篇。上一篇我们讲清了组件封装和Builder模式，这一篇进入自定义绘制——Canvas画布和DrawModifier绘制修改器，这两个机制让你能画出任何ArkUI内置组件无法实现的视觉效果。    📚 系列导航   篇章 主题 状态    第一篇 自定义组件与Builder模式完全解析 ✅ 已发布   第二篇 本文：Canvas自定义绘制与DrawModifier 📝 当前   第三篇 FrameNode与NodeController高级操控 ✅ 已发布   第四篇 动画系统进阶 ✅ 已发布   第五篇 自定义手势与交互 ✅ 已发布    一、Canvas 组件基础1.1 两种创建方式Canvas组件从API 8开始支持，提供两种创建方式： // 方式一：使用CanvasRenderingContext2D（API 8+）private settings: RenderingContextSettings = new RenderingContextSettings(true)private context: CanvasRenderi...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%96%AD%E7%82%B9%E5%88%B0%E6%A0%85%E6%A0%BC/" title="鸿蒙多端适配完全指南：从断点到栅格"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-multi-device-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙多端适配完全指南：从断点到栅格</div></div><div class="info-2"><div class="info-item-1"> 鸿蒙的核心理念是「一次开发，多端部署」。一套代码工程要跑在手机、平板、折叠屏、PC、车机、手表上——这要求我们从第一行代码就考虑屏幕差异。本篇是「鸿蒙多端适配」系列的第一篇，从最基础的断点体系出发，逐步覆盖MediaQuery、栅格布局、自适应布局四大核心能力。    📚 系列导航   篇章 主题 状态    第一篇 本文：从断点到栅格 📝 当前   第二篇 手机&#x2F;平板&#x2F;折叠屏适配 🔜 待写   第三篇 大屏&#x2F;车机适配 🔜 待写   第四篇 手表&#x2F;穿戴设备适配 🔜 待写   第五篇 一次开发多端部署实战 🔜 待写    一、多端适配全景1.1 设备类型与屏幕尺寸鸿蒙支持的设备类型及其典型屏幕尺寸范围：    设备类型 典型尺寸 屏幕特点 适配重点    手机 360-412vp宽 竖屏为主，窄屏 单列布局   平板 600-1280vp宽 横竖屏切换 多列布局、分屏   折叠屏 折叠360vp&#x2F;展开700+vp 动态尺寸变化 折叠态切换   PC&#x2F;2in1 1280vp+宽 多窗口、鼠标操作 导航抽屉、宽屏...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/" title="鸿蒙应用性能优化完全指南：从指标到工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-perf-overview-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙应用性能优化完全指南：从指标到工具</div></div><div class="info-2"><div class="info-item-1">前言在开发鸿蒙应用时，功能实现只是第一步，性能优化才是决定用户体验的关键。一个卡顿的列表、一次漫长的启动、一段耗电的后台任务，都可能让用户卸载你的应用。 鸿蒙系统提供了一套完整的性能分析工具链——DevEco Profiler，涵盖启动、帧率、CPU、内存四大维度。但很多开发者并不清楚：  什么指标算”达标”？ 各种 Profiler 分别解决什么问题？ 发现性能瓶颈后如何定位根因？  本篇作为性能优化系列的第一篇，不讲具体优化技巧，而是帮你建立一套完整的性能分析体系——知道用什么工具、看什么指标、怎么发现问题。  📌 系列导航  性能优化完全指南：从指标到工具（本文） 冷启动优化实战：从1200ms到300ms ArkUI渲染性能优化：告别卡顿与丢帧 内存管理与功耗优化：打造轻量级应用 并发编程与网络优化：Worker与TaskPool实战    一、性能优化的核心指标在开始优化之前，我们先明确衡量标准。鸿蒙应用的性能主要关注以下五个维度：    维度 核心指标 达标线 问题表现    启动 冷启动耗时 ≤ 1100ms 白屏时间长   启动 热启动耗时 &lt; 500ms...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B8%8E%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96-Worker%E4%B8%8ETaskPool%E5%AE%9E%E6%88%98/" title="鸿蒙并发编程与网络优化：Worker与TaskPool实战"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-concurrency-network-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙并发编程与网络优化：Worker与TaskPool实战</div></div><div class="info-2"><div class="info-item-1">深入解析鸿蒙TaskPool与Worker并发模型、线程间通信、负载均衡机制，以及HTTP缓存、请求合并等网络优化策略，附带完整代码示例。</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/" title="鸿蒙冷启动优化实战：从1200ms到300ms"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-coldstart-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙冷启动优化实战：从1200ms到300ms</div></div><div class="info-2"><div class="info-item-1">前言 本文是「鸿蒙应用性能优化」系列的第2篇。上一篇我们建立了性能指标体系和DevEco Profiler的使用方法，这篇我们聚焦一个最影响用户第一印象的问题——冷启动。  你有没有遇到过这种情况：用户点了你的应用图标，然后盯着空白屏幕等了2秒、3秒甚至更久？每一秒的等待都在消耗用户的耐心。华为官方文档明确指出，冷启动时延大于1100ms时，可以认为是应用启动缓慢。因此，将冷启动控制在1000ms以内是基本目标，800ms以内则是更理想的体验。 这篇文章将带你：  理解冷启动的完整流程——知道每个阶段在做什么，才能找到优化点 掌握Launch Profiler的使用——用数据说话，而不是靠猜 学习6大优化策略——每个策略都有代码示例和效果数据 完成一个实战案例——从1200ms优化到300ms的完整过程     系列导航   序号 文章 核心内容    1 鸿蒙应用性能优化完全指南：从指标到工具 性能指标体系 + DevEco Profiler + ArkUI Inspector + Code Linter   2 本文：鸿蒙冷启动优化实战：从1200ms到300ms 冷启动原理...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/" title="鸿蒙内存管理与功耗优化：打造轻量级应用"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-memory-power-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙内存管理与功耗优化：打造轻量级应用</div></div><div class="info-2"><div class="info-item-1">深入解析鸿蒙HPP GC机制、内存泄漏检测、GC调优策略、后台任务功耗管理，附带实战代码示例和DevEco Profiler分析流程。</div></div></div></a><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E6%89%8B%E6%9C%BA%E5%B9%B3%E6%9D%BF%E6%8A%98%E5%8F%A0%E5%B1%8F%E9%80%82%E9%85%8D/" title="鸿蒙多端适配：手机&#x2F;平板&#x2F;折叠屏适配实战"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-phone-tablet-foldable-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙多端适配：手机&#x2F;平板&#x2F;折叠屏适配实战</div></div><div class="info-2"><div class="info-item-1"> 同一套代码跑在手机、平板、折叠屏上——听起来简单，但三种设备的屏幕尺寸、交互方式、用户习惯差异巨大。本篇是「鸿蒙多端适配」系列的第二篇，聚焦手机、平板、折叠屏三大核心设备的适配策略与实战代码。    📚 系列导航   篇章 主题 状态    第一篇 从断点到栅格 ✅ 已发布   第二篇 本文：手机&#x2F;平板&#x2F;折叠屏适配 📝 当前   第三篇 大屏&#x2F;车机适配 🔜 待写   第四篇 手表&#x2F;穿戴设备适配 🔜 待写   第五篇 一次开发多端部署实战 🔜 待写    一、三种设备的差异   维度 手机 平板 折叠屏    屏幕宽度 360-412vp 600-1280vp 折叠360vp&#x2F;展开700+vp   交互方式 触摸 触摸+键盘鼠标 触摸+折叠态切换   典型断点 xs&#x2F;sm md&#x2F;lg 折叠xs&#x2F;展开md&#x2F;lg   布局模式 单列 多列&#x2F;分屏 动态切换   导航模式 底部Tab 侧边栏&#x2F;Navigation 折叠Tab&#x2F;展开侧边栏   分屏支持 上下分屏...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%AE%BE%E5%A4%87%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%B1%8F%E5%B9%95%E7%89%B9%E5%BE%81"><span class="toc-number">2.</span> <span class="toc-text">一、设备类型与屏幕特征</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%AE%BE%E5%A4%87%E7%B1%BB%E5%9E%8B%E8%AF%86%E5%88%AB"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 设备类型识别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%B5%84%E6%BA%90%E9%99%90%E5%AE%9A%E8%AF%8D"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 资源限定词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Configuration%E9%85%8D%E7%BD%AE"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 Configuration配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%AA%97%E5%8F%A3%E6%A8%A1%E5%BC%8F%E9%80%82%E9%85%8D"><span class="toc-number">3.</span> <span class="toc-text">二、窗口模式适配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%AA%97%E5%8F%A3%E6%A8%A1%E5%BC%8F%E6%A6%82%E8%A7%88"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 窗口模式概览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AA%97%E5%8F%A3%E6%A8%A1%E5%BC%8F%E9%85%8D%E7%BD%AE"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 窗口模式配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%9B%91%E5%90%AC%E7%AA%97%E5%8F%A3%E6%A8%A1%E5%BC%8F%E5%8F%98%E5%8C%96"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 监听窗口模式变化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B2%89%E6%B5%B8%E5%BC%8F%E5%B8%83%E5%B1%80"><span class="toc-number">4.</span> <span class="toc-text">三、沉浸式布局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%B2%89%E6%B5%B8%E5%BC%8F%E5%B8%83%E5%B1%80%E5%8E%9F%E7%90%86"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 沉浸式布局原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%BF%9B%E5%85%A5%E6%B2%89%E6%B5%B8%E5%BC%8F%E5%B8%83%E5%B1%80"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 进入沉浸式布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%B8%83%E5%B1%80%E9%81%BF%E8%AE%A9"><span class="toc-number">4.3.</span> <span class="toc-text">3.3 布局避让</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E8%87%AA%E7%94%B1%E7%AA%97%E5%8F%A3%E6%A0%87%E9%A2%98%E6%A0%8F%E4%B8%8E%E6%B2%89%E6%B5%B8%E5%BC%8F"><span class="toc-number">4.4.</span> <span class="toc-text">3.4 自由窗口标题栏与沉浸式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Navigation%E5%A4%A7%E5%B1%8F%E9%80%82%E9%85%8D"><span class="toc-number">5.</span> <span class="toc-text">四、Navigation大屏适配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Navigation%E6%A8%A1%E5%BC%8F%E9%80%89%E6%8B%A9"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 Navigation模式选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%82%AC%E5%81%9C%E6%80%81%E5%AF%BC%E8%88%AA%EF%BC%88FolderStack%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 悬停态导航（FolderStack）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BD%A6%E6%9C%BA%E9%80%82%E9%85%8D"><span class="toc-number">6.</span> <span class="toc-text">五、车机适配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%BD%A6%E6%9C%BA%E5%B1%8F%E5%B9%95%E7%89%B9%E5%BE%81"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 车机屏幕特征</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Car-Kit%E5%AF%BC%E8%88%AA%E6%B5%81%E8%BD%AC"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 Car Kit导航流转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%B6%85%E7%BA%A7%E6%A1%8C%E9%9D%A2"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 超级桌面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%BD%A6%E6%9C%BA%E5%BA%94%E7%94%A8%E9%80%82%E9%85%8D%E8%A6%81%E7%82%B9"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 车机应用适配要点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81PC%E7%AB%AF%E9%80%82%E9%85%8D"><span class="toc-number">7.</span> <span class="toc-text">六、PC端适配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E7%94%B5%E8%84%91%E6%A8%A1%E5%BC%8F"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 电脑模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E8%87%AA%E7%94%B1%E7%AA%97%E5%8F%A3%E9%80%82%E9%85%8D"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 自由窗口适配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%A4%9A%E4%BB%BB%E5%8A%A1%E9%80%82%E9%85%8D"><span class="toc-number">8.</span> <span class="toc-text">七、多任务适配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%A4%9A%E7%AA%97%E5%8F%A3%E5%B9%B6%E5%8F%91"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 多窗口并发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%88%86%E5%B1%8F%E9%80%82%E9%85%8D"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 分屏适配</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">八、实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%A4%9A%E8%AE%BE%E5%A4%87%E8%87%AA%E9%80%82%E5%BA%94%E5%AF%BC%E8%88%AA%E6%A0%8F"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 多设备自适应导航栏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%BD%A6%E6%9C%BA%E9%9F%B3%E4%B9%90%E6%92%AD%E6%94%BE%E5%99%A8%E5%B8%83%E5%B1%80"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 车机音乐播放器布局</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">10.</span> <span class="toc-text">九、最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E9%80%82%E9%85%8DChecklist"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 适配Checklist</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 常见错误</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">11.</span> <span class="toc-text">十、常见问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
