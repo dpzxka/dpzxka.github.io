@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a1a;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1a1a3e;stop-opacity:1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.3" stroke-opacity="0.08"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Animation curves visualization -->
+  <!-- Spring curve -->
+  <path d="M 100 400 C 200 100, 350 350, 500 200" fill="none" stroke="#00d2ff" stroke-width="2.5" stroke-opacity="0.7" filter="url(#glow)"/>
+  <circle cx="100" cy="400" r="5" fill="#00d2ff" fill-opacity="0.8"/>
+  <circle cx="500" cy="200" r="5" fill="#00d2ff" fill-opacity="0.8"/>
+
+  <!-- Ease curve -->
+  <path d="M 100 420 Q 300 420, 500 220" fill="none" stroke="#7b2ff7" stroke-width="2" stroke-opacity="0.5"/>
+  
+  <!-- Linear line -->
+  <line x1="100" y1="440" x2="500" y2="240" stroke="#00ff88" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- Transition arrow -->
+  <path d="M 650 300 L 750 300" stroke="#ff6b35" stroke-width="2" stroke-opacity="0.6" marker-end="url(#arrow)"/>
+  <rect x="620" y="260" width="60" height="80" rx="8" fill="#ff6b35" fill-opacity="0.1" stroke="#ff6b35" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="650" y="305" text-anchor="middle" fill="#ff6b35" font-family="monospace" font-size="11" opacity="0.8">A</text>
+  <rect x="770" y="260" width="60" height="80" rx="8" fill="#00d2ff" fill-opacity="0.1" stroke="#00d2ff" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="800" y="305" text-anchor="middle" fill="#00d2ff" font-family="monospace" font-size="11" opacity="0.8">B</text>
+
+  <!-- Animated object -->
+  <rect x="200" y="150" width="80" height="80" rx="12" fill="#00d2ff" fill-opacity="0.15" stroke="#00d2ff" stroke-width="1.5" stroke-opacity="0.5" filter="url(#glow)">
+    <animateTransform attributeName="transform" type="rotate" from="0 240 190" to="360 240 190" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- Orbit dots -->
+  <circle cx="240" cy="120" r="3" fill="#00d2ff" fill-opacity="0.3"/>
+  <circle cx="300" cy="150" r="2" fill="#7b2ff7" fill-opacity="0.2"/>
+  <circle cx="180" cy="170" r="2" fill="#00ff88" fill-opacity="0.2"/>
+
+  <!-- Keyframe points -->
+  <circle cx="700" cy="400" r="6" fill="#ff6b35" fill-opacity="0.6"/>
+  <circle cx="800" cy="350" r="6" fill="#ff6b35" fill-opacity="0.6"/>
+  <circle cx="900" cy="380" r="6" fill="#ff6b35" fill-opacity="0.6"/>
+  <circle cx="1000" cy="320" r="6" fill="#ff6b35" fill-opacity="0.6"/>
+  <line x1="700" y1="400" x2="800" y2="350" stroke="#ff6b35" stroke-width="1" stroke-opacity="0.3"/>
+  <line x1="800" y1="350" x2="900" y2="380" stroke="#ff6b35" stroke-width="1" stroke-opacity="0.3"/>
+  <line x1="900" y1="380" x2="1000" y2="320" stroke="#ff6b35" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="700" y="430" text-anchor="middle" fill="#ff6b35" font-family="monospace" font-size="10" opacity="0.5">0</text>
+  <text x="800" y="430" text-anchor="middle" fill="#ff6b35" font-family="monospace" font-size="10" opacity="0.5">0.3</text>
+  <text x="900" y="430" text-anchor="middle" fill="#ff6b35" font-family="monospace" font-size="10" opacity="0.5">0.6</text>
+  <text x="1000" y="430" text-anchor="middle" fill="#ff6b35" font-family="monospace" font-size="10" opacity="0.5">1.0</text>
+
+  <!-- @AnimatableExtend -->
+  <text x="750" y="180" font-family="monospace" font-size="22" fill="#7b2ff7" fill-opacity="0.12" font-weight="bold">@AnimatableExtend</text>
+
+  <!-- Title -->
+  <text x="80" y="530" fill="#ffffff" font-family="sans-serif" font-size="38" font-weight="700">
+    <tspan fill="#ff6b35">Animation</tspan>
+    <tspan fill="#ffffff" fill-opacity="0.9"> System </tspan>
+    <tspan fill="#7b2ff7">Advanced</tspan>
+  </text>
+  <text x="80" y="570" fill="#ffffff" font-family="sans-serif" font-size="18" fill-opacity="0.5">鸿蒙高阶自定义UI · 第四篇</text>
+
+  <!-- Curves legend -->
+  <line x1="80" y1="100" x2="120" y2="100" stroke="#00d2ff" stroke-width="2"/>
+  <text x="130" y="104" fill="#00d2ff" font-family="monospace" font-size="11" opacity="0.6">springMotion</text>
+  <line x1="80" y1="120" x2="120" y2="120" stroke="#7b2ff7" stroke-width="2"/>
+  <text x="130" y="124" fill="#7b2ff7" font-family="monospace" font-size="11" opacity="0.6">easeInOut</text>
+  <line x1="80" y1="140" x2="120" y2="140" stroke="#00ff88" stroke-width="1.5"/>
+  <text x="130" y="144" fill="#00ff88" font-family="monospace" font-size="11" opacity="0.6">linear</text>
+
+  <!-- API badge -->
+  <rect x="1060" y="540" width="100" height="28" rx="14" fill="none" stroke="#ff6b35" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="1110" y="559" text-anchor="middle" fill="#ff6b35" font-family="monospace" font-size="11" opacity="0.6">API 7+</text>
+</svg>

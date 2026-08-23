@@ -1,0 +1,909 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙高阶自定义UI：自定义手势与交互 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="本文是「鸿蒙高阶自定义UI」系列的第五篇（完结篇）。前四篇我们覆盖了组件&#x2F;Builder模式、Canvas绘制、FrameNode动态操控、动画系统。这一篇深入ArkUI的手势体系——从内置手势到自定义判定，从手势冲突到跟手交互。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙高阶自定义UI：自定义手势与交互">
+<meta property="og:url" content="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%8B%E5%8A%BF%E4%B8%8E%E4%BA%A4%E4%BA%92/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="本文是「鸿蒙高阶自定义UI」系列的第五篇（完结篇）。前四篇我们覆盖了组件&#x2F;Builder模式、Canvas绘制、FrameNode动态操控、动画系统。这一篇深入ArkUI的手势体系——从内置手势到自定义判定，从手势冲突到跟手交互。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-gesture-interaction-cover.svg">
+<meta property="article:published_time" content="2026-08-23T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-23T03:27:48.331Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="ArkTS">
+<meta property="article:tag" content="Gesture">
+<meta property="article:tag" content="Interaction">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-gesture-interaction-cover.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙高阶自定义UI：自定义手势与交互",
+  "url": "https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%8B%E5%8A%BF%E4%B8%8E%E4%BA%A4%E4%BA%92/",
+  "image": "https://dpzxka.github.io/img/harmonyos-gesture-interaction-cover.svg",
+  "datePublished": "2026-08-23T06:00:00.000Z",
+  "dateModified": "2026-08-23T03:27:48.331Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%8B%E5%8A%BF%E4%B8%8E%E4%BA%A4%E4%BA%92/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙高阶自定义UI：自定义手势与交互',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">47</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">59</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-gesture-interaction-cover.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙高阶自定义UI：自定义手势与交互</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙高阶自定义UI：自定义手势与交互</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-23T06:00:00.000Z" title="发表于 2026-08-23 14:00:00">2026-08-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-23T03:27:48.331Z" title="更新于 2026-08-23 11:27:48">2026-08-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HarmonyOS/">HarmonyOS</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HarmonyOS/%E9%B8%BF%E8%92%99%E5%BC%80%E5%8F%91/">鸿蒙开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-08-23 11:27:48&quot;}" hidden></div><blockquote>
+<p>本文是「鸿蒙高阶自定义UI」系列的第五篇（完结篇）。前四篇我们覆盖了组件&#x2F;Builder模式、Canvas绘制、FrameNode动态操控、动画系统。这一篇深入ArkUI的手势体系——从内置手势到自定义判定，从手势冲突到跟手交互。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="📚-系列导航"><a href="#📚-系列导航" class="headerlink" title="📚 系列导航"></a>📚 系列导航</h2><table>
+<thead>
+<tr>
+<th>篇章</th>
+<th>主题</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/">自定义组件与Builder模式完全解析</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td>第二篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/">Canvas自定义绘制与DrawModifier</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td>第三篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-FrameNode%E4%B8%8ENodeController%E9%AB%98%E7%BA%A7%E6%93%8D%E6%8E%A7/">FrameNode与NodeController高级操控</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td>第四篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E8%BF%9B%E9%98%B6/">动画系统进阶</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td><strong>第五篇</strong></td>
+<td><strong>本文：自定义手势与交互</strong></td>
+<td>📝 当前</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="一、手势体系全景"><a href="#一、手势体系全景" class="headerlink" title="一、手势体系全景"></a>一、手势体系全景</h2><p>ArkUI的手势系统分为三个层次：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ArkUI 手势体系</span><br><span class="line">├── 内置手势（Gesture）</span><br><span class="line">│   ├── TapGesture —— 点击</span><br><span class="line">│   ├── PanGesture —— 拖拽</span><br><span class="line">│   ├── PinchGesture —— 双指缩放</span><br><span class="line">│   ├── RotationGesture —— 双指旋转</span><br><span class="line">│   ├── LongPressGesture —— 长按</span><br><span class="line">│   └── SwipeGesture —— 快速滑动</span><br><span class="line">├── 手势组合（GestureGroup）</span><br><span class="line">│   ├── Sequence —— 顺序识别</span><br><span class="line">│   └── Parallel —— 并行识别</span><br><span class="line">└── 自定义手势判定</span><br><span class="line">    ├── onGestureRecognizerJudgeBegin —— 手势即将成功时拦截</span><br><span class="line">    └── GestureJudgeResult —— 判定结果枚举</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、内置手势详解"><a href="#二、内置手势详解" class="headerlink" title="二、内置手势详解"></a>二、内置手势详解</h2><h3 id="2-1-TapGesture-点击手势"><a href="#2-1-TapGesture-点击手势" class="headerlink" title="2.1 TapGesture 点击手势"></a>2.1 TapGesture 点击手势</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">TapDemo</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">tapCount</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`点击次数: <span class="subst">$&#123;<span class="variable language_">this</span>.tapCount&#125;</span>`</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">TapGesture</span>(&#123; <span class="attr">count</span>: <span class="number">2</span> &#125;)  <span class="comment">// 双击识别</span></span><br><span class="line">        .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">tapCount</span>++;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>count</code></td>
+<td>number</td>
+<td>1</td>
+<td>需要连续点击的次数</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-PanGesture-拖拽手势"><a href="#2-2-PanGesture-拖拽手势" class="headerlink" title="2.2 PanGesture 拖拽手势"></a>2.2 PanGesture 拖拽手势</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">PanDemo</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">offsetX</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">offsetY</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">posX</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">posY</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;拖拽我&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">        .<span class="title function_">width</span>(<span class="number">100</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">100</span>)</span><br><span class="line">        .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#317AF7&#x27;</span>)</span><br><span class="line">        .<span class="title function_">borderRadius</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">translate</span>(&#123; <span class="attr">x</span>: <span class="variable language_">this</span>.<span class="property">offsetX</span>, <span class="attr">y</span>: <span class="variable language_">this</span>.<span class="property">offsetY</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">PanGesture</span>()</span><br><span class="line">        .<span class="title function_">onActionStart</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;开始拖拽&#x27;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (event) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">offsetX</span> = <span class="variable language_">this</span>.<span class="property">posX</span> + event.<span class="property">offsetX</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">offsetY</span> = <span class="variable language_">this</span>.<span class="property">posY</span> + event.<span class="property">offsetY</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">        .<span class="title function_">onActionEnd</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">posX</span> = <span class="variable language_">this</span>.<span class="property">offsetX</span>;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">posY</span> = <span class="variable language_">this</span>.<span class="property">offsetY</span>;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;拖拽结束&#x27;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fingers</code></td>
+<td>number</td>
+<td>1</td>
+<td>触发手势的最少手指数</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td>PanDirection</td>
+<td>All</td>
+<td>识别方向（Left&#x2F;Right&#x2F;Up&#x2F;Down&#x2F;Vertical&#x2F;Horizontal&#x2F;All）</td>
+</tr>
+<tr>
+<td><code>distance</code></td>
+<td>number</td>
+<td>5</td>
+<td>最小滑动距离（vp）</td>
+</tr>
+</tbody></table>
+<p><strong>PanDirection 枚举值</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Left</td>
+<td>1</td>
+<td>向左</td>
+</tr>
+<tr>
+<td>Right</td>
+<td>2</td>
+<td>向右</td>
+</tr>
+<tr>
+<td>Horizontal</td>
+<td>3</td>
+<td>水平方向</td>
+</tr>
+<tr>
+<td>Up</td>
+<td>4</td>
+<td>向上</td>
+</tr>
+<tr>
+<td>Vertical</td>
+<td>12</td>
+<td>竖直方向</td>
+</tr>
+<tr>
+<td>All</td>
+<td>15</td>
+<td>所有方向</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-PinchGesture-双指缩放"><a href="#2-3-PinchGesture-双指缩放" class="headerlink" title="2.3 PinchGesture 双指缩放"></a>2.3 PinchGesture 双指缩放</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">PinchDemo</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">scaleValue</span>: <span class="built_in">number</span> = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;缩放我&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">        .<span class="title function_">width</span>(<span class="number">100</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">100</span>)</span><br><span class="line">        .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#D94838&#x27;</span>)</span><br><span class="line">        .<span class="title function_">borderRadius</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">scale</span>(&#123; <span class="attr">x</span>: <span class="variable language_">this</span>.<span class="property">scaleValue</span>, <span class="attr">y</span>: <span class="variable language_">this</span>.<span class="property">scaleValue</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">PinchGesture</span>()</span><br><span class="line">        .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (event) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">scaleValue</span> = event.<span class="property">scale</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-RotationGesture-双指旋转"><a href="#2-4-RotationGesture-双指旋转" class="headerlink" title="2.4 RotationGesture 双指旋转"></a>2.4 RotationGesture 双指旋转</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">RotationDemo</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">rotateAngle</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;旋转我&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">White</span>)</span><br><span class="line">        .<span class="title function_">width</span>(<span class="number">100</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">100</span>)</span><br><span class="line">        .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#00B386&#x27;</span>)</span><br><span class="line">        .<span class="title function_">borderRadius</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">rotate</span>(&#123; <span class="attr">angle</span>: <span class="variable language_">this</span>.<span class="property">rotateAngle</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">RotationGesture</span>()</span><br><span class="line">        .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (event) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">rotateAngle</span> = event.<span class="property">angle</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-LongPressGesture-长按手势"><a href="#2-5-LongPressGesture-长按手势" class="headerlink" title="2.5 LongPressGesture 长按手势"></a>2.5 LongPressGesture 长按手势</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">gesture</span>(</span><br><span class="line">  <span class="title class_">LongPressGesture</span>(&#123; <span class="attr">repeat</span>: <span class="literal">true</span>, <span class="attr">duration</span>: <span class="number">500</span> &#125;)</span><br><span class="line">    .<span class="title function_">onAction</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (event?.<span class="property">repeat</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;重复长按&#x27;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fingers</code></td>
+<td>number</td>
+<td>1</td>
+<td>触发手指数</td>
+</tr>
+<tr>
+<td><code>repeat</code></td>
+<td>boolean</td>
+<td>false</td>
+<td>是否重复触发</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>number</td>
+<td>1500</td>
+<td>长按最短时间（ms）</td>
+</tr>
+</tbody></table>
+<h3 id="2-6-SwipeGesture-快速滑动"><a href="#2-6-SwipeGesture-快速滑动" class="headerlink" title="2.6 SwipeGesture 快速滑动"></a>2.6 SwipeGesture 快速滑动</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">gesture</span>(</span><br><span class="line">  <span class="title class_">SwipeGesture</span>()</span><br><span class="line">    .<span class="title function_">onAction</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (event) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`方向: <span class="subst">$&#123;event.direction&#125;</span>, 速度: <span class="subst">$&#123;event.velocity&#125;</span>`</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、手势组合-GestureGroup"><a href="#三、手势组合-GestureGroup" class="headerlink" title="三、手势组合 GestureGroup"></a>三、手势组合 GestureGroup</h2><p>当一个组件需要同时识别多种手势时，使用 <code>GestureGroup</code>：</p>
+<h3 id="3-1-顺序识别（Sequence）"><a href="#3-1-顺序识别（Sequence）" class="headerlink" title="3.1 顺序识别（Sequence）"></a>3.1 顺序识别（Sequence）</h3><p>手势按顺序识别——前一个手势未触发则后续手势不会触发：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">gesture</span>(</span><br><span class="line">  <span class="title class_">GestureGroup</span>(<span class="title class_">GestureMode</span>.<span class="property">Sequence</span>,</span><br><span class="line">    <span class="title class_">LongPressGesture</span>(&#123; <span class="attr">repeat</span>: <span class="literal">true</span> &#125;)</span><br><span class="line">      .<span class="title function_">onAction</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (event?.<span class="property">repeat</span>) &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">count</span>++;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;),</span><br><span class="line">    <span class="title class_">PanGesture</span>()</span><br><span class="line">      .<span class="title function_">onActionStart</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">this</span>.<span class="property">borderStyle</span> = <span class="title class_">BorderStyle</span>.<span class="property">Dashed</span>; &#125;)</span><br><span class="line">      .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (event) &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">offsetX</span> = <span class="variable language_">this</span>.<span class="property">posX</span> + event.<span class="property">offsetX</span>;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">offsetY</span> = <span class="variable language_">this</span>.<span class="property">posY</span> + event.<span class="property">offsetY</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">      .<span class="title function_">onActionEnd</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">posX</span> = <span class="variable language_">this</span>.<span class="property">offsetX</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">posY</span> = <span class="variable language_">this</span>.<span class="property">offsetY</span>;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">borderStyle</span> = <span class="title class_">BorderStyle</span>.<span class="property">Solid</span>;</span><br><span class="line">      &#125;)</span><br><span class="line">  )</span><br><span class="line">  .<span class="title function_">onCancel</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;顺序手势被取消&#x27;</span>);</span><br><span class="line">  &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>典型场景</strong>：长按后拖拽——先识别长按，成功后才能触发拖拽。</p>
+<h3 id="3-2-并行识别（Parallel）"><a href="#3-2-并行识别（Parallel）" class="headerlink" title="3.2 并行识别（Parallel）"></a>3.2 并行识别（Parallel）</h3><p>多个手势可以同时识别：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">gesture</span>(</span><br><span class="line">  <span class="title class_">GestureGroup</span>(<span class="title class_">GestureMode</span>.<span class="property">Parallel</span>,</span><br><span class="line">    <span class="title class_">PinchGesture</span>()</span><br><span class="line">      .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 缩放</span></span><br><span class="line">      &#125;),</span><br><span class="line">    <span class="title class_">RotationGesture</span>()</span><br><span class="line">      .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 旋转</span></span><br><span class="line">      &#125;)</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>典型场景</strong>：双指缩放+旋转同时进行。</p>
+<hr>
+<h2 id="四、手势绑定方式"><a href="#四、手势绑定方式" class="headerlink" title="四、手势绑定方式"></a>四、手势绑定方式</h2><h3 id="4-1-三种绑定方法"><a href="#4-1-三种绑定方法" class="headerlink" title="4.1 三种绑定方法"></a>4.1 三种绑定方法</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+<th>优先级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.gesture()</code></td>
+<td>默认手势绑定</td>
+<td>低（子组件优先）</td>
+</tr>
+<tr>
+<td><code>.priorityGesture()</code></td>
+<td>优先手势绑定</td>
+<td>高（父组件优先）</td>
+</tr>
+<tr>
+<td><code>.parallelGesture()</code></td>
+<td>并行手势绑定</td>
+<td>与系统手势并行</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-优先级冲突解决"><a href="#4-2-优先级冲突解决" class="headerlink" title="4.2 优先级冲突解决"></a>4.2 优先级冲突解决</h3><p>默认情况下，<strong>子组件优先识别</strong>同类型手势。当父组件使用 <code>priorityGesture</code> 绑定时，<strong>父组件优先识别</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 父组件：优先识别点击</span></span><br><span class="line"><span class="title class_">Column</span>() &#123;</span><br><span class="line">  <span class="title class_">Text</span>(<span class="string">&#x27;子组件&#x27;</span>)</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">TapGesture</span>()</span><br><span class="line">        .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;子组件点击&#x27;</span>); &#125;)</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br><span class="line">.<span class="title function_">priorityGesture</span>(</span><br><span class="line">  <span class="title class_">TapGesture</span>()</span><br><span class="line">    .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;父组件优先点击&#x27;</span>); &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-parallelGesture"><a href="#4-3-parallelGesture" class="headerlink" title="4.3 parallelGesture"></a>4.3 parallelGesture</h3><p>与系统手势并行识别，不会阻断系统手势：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Column</span>() &#123;</span><br><span class="line">  <span class="comment">// 内容</span></span><br><span class="line">&#125;</span><br><span class="line">.<span class="title function_">parallelGesture</span>(</span><br><span class="line">  <span class="title class_">PanGesture</span>()</span><br><span class="line">    .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 自定义手势与系统手势并行</span></span><br><span class="line">    &#125;)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、自定义手势判定"><a href="#五、自定义手势判定" class="headerlink" title="五、自定义手势判定"></a>五、自定义手势判定</h2><h3 id="5-1-onGestureRecognizerJudgeBegin"><a href="#5-1-onGestureRecognizerJudgeBegin" class="headerlink" title="5.1 onGestureRecognizerJudgeBegin"></a>5.1 onGestureRecognizerJudgeBegin</h3><p>当手势即将成功时，触发自定义判定回调，可以拦截或放行：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">GestureJudgeResult</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">GestureJudgeDemo</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;自定义判定&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">gesture</span>(</span><br><span class="line">          <span class="title class_">TapGesture</span>()</span><br><span class="line">            .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123; <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;点击成功&#x27;</span>); &#125;)</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">onGestureRecognizerJudgeBegin</span>(</span><br><span class="line">      <span class="function">(<span class="params"><span class="attr">gestureInfo</span>: <span class="title class_">GestureInfo</span>, <span class="attr">event</span>: <span class="title class_">BaseGestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// gestureInfo: 手势信息</span></span><br><span class="line">        <span class="comment">// event: 基础手势事件</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">`手势类型: <span class="subst">$&#123;gestureInfo.gestureName&#125;</span>`</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 返回判定结果</span></span><br><span class="line">        <span class="keyword">return</span> <span class="title class_">GestureJudgeResult</span>.<span class="property">CONTINUE</span>;</span><br><span class="line">        <span class="comment">// CONTINUE - 放行，手势正常识别</span></span><br><span class="line">        <span class="comment">// REJECT - 拒绝，手势被拦截</span></span><br><span class="line">      &#125;</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-GestureJudgeResult-枚举"><a href="#5-2-GestureJudgeResult-枚举" class="headerlink" title="5.2 GestureJudgeResult 枚举"></a>5.2 GestureJudgeResult 枚举</h3><table>
+<thead>
+<tr>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CONTINUE</code></td>
+<td>放行，手势正常识别</td>
+</tr>
+<tr>
+<td><code>REJECT</code></td>
+<td>拒绝，手势被拦截</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-实战：条件手势判定"><a href="#5-3-实战：条件手势判定" class="headerlink" title="5.3 实战：条件手势判定"></a>5.3 实战：条件手势判定</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">ConditionalGestureDemo</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">isEditing</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">isEditing</span> ? <span class="string">&#x27;编辑模式&#x27;</span> : <span class="string">&#x27;查看模式&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">&#x27;长按切换模式&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="title class_">Color</span>.<span class="property">Gray</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">8</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">LongPressGesture</span>(&#123; <span class="attr">duration</span>: <span class="number">500</span> &#125;)</span><br><span class="line">        .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">isEditing</span> = !<span class="variable language_">this</span>.<span class="property">isEditing</span>;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">TapGesture</span>()</span><br><span class="line">        .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">isEditing</span>) &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;编辑模式下点击&#x27;</span>);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;查看模式下点击&#x27;</span>);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">    .<span class="title function_">onGestureRecognizerJudgeBegin</span>(</span><br><span class="line">      <span class="function">(<span class="params"><span class="attr">gestureInfo</span>: <span class="title class_">GestureInfo</span>, <span class="attr">event</span>: <span class="title class_">BaseGestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 在编辑模式下拦截某些手势</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">isEditing</span> &amp;&amp; gestureInfo.<span class="property">gestureName</span> === <span class="string">&#x27;PanGesture&#x27;</span>) &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">info</span>(<span class="string">&#x27;编辑模式下禁止拖拽&#x27;</span>);</span><br><span class="line">          <span class="keyword">return</span> <span class="title class_">GestureJudgeResult</span>.<span class="property">REJECT</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="title class_">GestureJudgeResult</span>.<span class="property">CONTINUE</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、实战：可缩放旋转的图片查看器"><a href="#六、实战：可缩放旋转的图片查看器" class="headerlink" title="六、实战：可缩放旋转的图片查看器"></a>六、实战：可缩放旋转的图片查看器</h2><p>综合运用手势、动画、状态管理，实现一个支持多指缩放、旋转、拖拽的图片查看器：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; curves &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">ImageViewerDemo</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">offsetX</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">offsetY</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">posX</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">posY</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">scaleValue</span>: <span class="built_in">number</span> = <span class="number">1</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">baseScale</span>: <span class="built_in">number</span> = <span class="number">1</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">rotateAngle</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">baseAngle</span>: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 图片容器</span></span><br><span class="line">      <span class="title class_">Image</span>(<span class="string">&#x27;https://picsum.photos/400/300&#x27;</span>)</span><br><span class="line">        .<span class="title function_">width</span>(<span class="number">300</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">300</span>)</span><br><span class="line">        .<span class="title function_">borderRadius</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">objectFit</span>(<span class="title class_">ImageFit</span>.<span class="property">Cover</span>)</span><br><span class="line">        .<span class="title function_">translate</span>(&#123; <span class="attr">x</span>: <span class="variable language_">this</span>.<span class="property">offsetX</span>, <span class="attr">y</span>: <span class="variable language_">this</span>.<span class="property">offsetY</span> &#125;)</span><br><span class="line">        .<span class="title function_">scale</span>(&#123; <span class="attr">x</span>: <span class="variable language_">this</span>.<span class="property">scaleValue</span>, <span class="attr">y</span>: <span class="variable language_">this</span>.<span class="property">scaleValue</span> &#125;)</span><br><span class="line">        .<span class="title function_">rotate</span>(&#123; <span class="attr">angle</span>: <span class="variable language_">this</span>.<span class="property">rotateAngle</span> &#125;)</span><br><span class="line">        .<span class="title function_">animation</span>(&#123; <span class="attr">curve</span>: curves.<span class="title function_">springMotion</span>() &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">    .<span class="title function_">backgroundColor</span>(<span class="string">&#x27;#1a1a2e&#x27;</span>)</span><br><span class="line">    <span class="comment">// 1. 拖拽手势</span></span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">PanGesture</span>()</span><br><span class="line">        .<span class="title function_">onActionStart</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">posX</span> = <span class="variable language_">this</span>.<span class="property">offsetX</span>;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">posY</span> = <span class="variable language_">this</span>.<span class="property">offsetY</span>;</span><br><span class="line">        &#125;)</span><br><span class="line">        .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (event) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">offsetX</span> = <span class="variable language_">this</span>.<span class="property">posX</span> + event.<span class="property">offsetX</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">offsetY</span> = <span class="variable language_">this</span>.<span class="property">posY</span> + event.<span class="property">offsetY</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">    <span class="comment">// 2. 双指缩放（并行）</span></span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">PinchGesture</span>()</span><br><span class="line">        .<span class="title function_">onActionStart</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">baseScale</span> = <span class="variable language_">this</span>.<span class="property">scaleValue</span>;</span><br><span class="line">        &#125;)</span><br><span class="line">        .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (event) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">scaleValue</span> = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0.5</span>, <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="number">3</span>, <span class="variable language_">this</span>.<span class="property">baseScale</span> * event.<span class="property">scale</span>));</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">    <span class="comment">// 3. 双指旋转（并行）</span></span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">RotationGesture</span>()</span><br><span class="line">        .<span class="title function_">onActionStart</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">baseAngle</span> = <span class="variable language_">this</span>.<span class="property">rotateAngle</span>;</span><br><span class="line">        &#125;)</span><br><span class="line">        .<span class="title function_">onActionUpdate</span>(<span class="function">(<span class="params"><span class="attr">event</span>?: <span class="title class_">GestureEvent</span></span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (event) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">rotateAngle</span> = <span class="variable language_">this</span>.<span class="property">baseAngle</span> + event.<span class="property">angle</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">    <span class="comment">// 4. 双击重置</span></span><br><span class="line">    .<span class="title function_">gesture</span>(</span><br><span class="line">      <span class="title class_">TapGesture</span>(&#123; <span class="attr">count</span>: <span class="number">2</span> &#125;)</span><br><span class="line">        .<span class="title function_">onAction</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>()?.<span class="title function_">animateTo</span>(&#123;</span><br><span class="line">            <span class="attr">curve</span>: curves.<span class="title function_">springMotion</span>()</span><br><span class="line">          &#125;, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">offsetX</span> = <span class="number">0</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">offsetY</span> = <span class="number">0</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">scaleValue</span> = <span class="number">1</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">rotateAngle</span> = <span class="number">0</span>;</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、最佳实践"><a href="#七、最佳实践" class="headerlink" title="七、最佳实践"></a>七、最佳实践</h2><table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>手势绑定位置</td>
+<td>内容组件绑定 <code>.gesture()</code>，容器需要拦截时用 <code>.priorityGesture()</code></td>
+</tr>
+<tr>
+<td>顺序识别</td>
+<td>需要前置条件的手势用 <code>GestureMode.Sequence</code></td>
+</tr>
+<tr>
+<td>并行识别</td>
+<td>独立手势（如缩放+旋转）用 <code>GestureMode.Parallel</code></td>
+</tr>
+<tr>
+<td>弹簧动画跟手</td>
+<td>Pan&#x2F;Pinch&#x2F;Rotation配合 <code>curves.springMotion()</code> 更自然</td>
+</tr>
+<tr>
+<td>自定义判定</td>
+<td>用 <code>onGestureRecognizerJudgeBegin</code> 实现复杂手势逻辑</td>
+</tr>
+<tr>
+<td>最小滑动距离</td>
+<td>PanGesture的 <code>distance</code> 参数避免误触</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、常见问题"><a href="#八、常见问题" class="headerlink" title="八、常见问题"></a>八、常见问题</h2><p><strong>Q1：父子组件都绑定了TapGesture，谁先响应？</strong></p>
+<p>默认子组件优先。如果需要父组件优先，使用 <code>.priorityGesture()</code> 绑定。LongPressGesture有特殊行为：设置的触发最短时间小于其他组件的会优先响应。</p>
+<p><strong>Q2：如何实现长按后拖拽？</strong></p>
+<p>使用 <code>GestureGroup(GestureMode.Sequence, LongPressGesture(), PanGesture())</code>。顺序识别模式下，必须先触发长按，之后的拖拽才能被识别。</p>
+<p><strong>Q3：手势和滚动容器冲突怎么办？</strong></p>
+<p>使用 <code>.parallelGesture()</code> 让手势与系统滚动手势并行识别，或者使用 <code>.onGestureRecognizerJudgeBegin</code> 在特定条件下拦截手势判定。</p>
+<p><strong>Q4：GestureEvent 的 offsetX 和 offsetX有何区别？</strong></p>
+<p><code>offsetX/offsetY</code> 是相对于手势起点的累计偏移量；<code>localX/localY</code> 是相对于组件的坐标。拖拽时一般用 offsetX&#x2F;Y。</p>
+<p><strong>Q5：如何实现双指缩放+旋转同时生效？</strong></p>
+<p>使用 <code>GestureGroup(GestureMode.Parallel, PinchGesture(), RotationGesture())</code>。并行模式下两个手势可以同时识别，各自维护独立的状态变量。</p>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-gestures-tapgesture">TapGesture API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-gestures-pangesture">PanGesture API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-gestures-pinchgesture">PinchGesture API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-gestures-rotationgesture">RotationGesture API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-gestures-longpressgesture">LongPressGesture API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-gestures-swipegesture">SwipeGesture API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-combined-gestures">GestureGroup API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-gesture-events-binding">手势绑定方法</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-gesture-settings">手势设置</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-gesture-customize-judge">自定义手势判定</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-gesture-events-single-gesture">手势事件开发指导</a></li>
+</ul>
+<hr>
+<h2 id="📚-系列导航-1"><a href="#📚-系列导航-1" class="headerlink" title="📚 系列导航"></a>📚 系列导航</h2><table>
+<thead>
+<tr>
+<th>篇章</th>
+<th>主题</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/">自定义组件与Builder模式完全解析</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td>第二篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/">Canvas自定义绘制与DrawModifier</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td>第三篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-FrameNode%E4%B8%8ENodeController%E9%AB%98%E7%BA%A7%E6%93%8D%E6%8E%A7/">FrameNode与NodeController高级操控</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td>第四篇</td>
+<td><a href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E8%BF%9B%E9%98%B6/">动画系统进阶</a></td>
+<td>✅ 已发布</td>
+</tr>
+<tr>
+<td><strong>第五篇</strong></td>
+<td><strong>本文：自定义手势与交互</strong></td>
+<td>📝 当前</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%8B%E5%8A%BF%E4%B8%8E%E4%BA%A4%E4%BA%92/">https://dpzxka.github.io/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%8B%E5%8A%BF%E4%B8%8E%E4%BA%A4%E4%BA%92/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ArkTS/">ArkTS</a><a class="post-meta__tags" href="/tags/Gesture/">Gesture</a><a class="post-meta__tags" href="/tags/Interaction/">Interaction</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-gesture-interaction-cover.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E8%BF%9B%E9%98%B6/" title="鸿蒙高阶自定义UI：动画系统进阶"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-animation-advanced-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙高阶自定义UI：动画系统进阶</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第四篇。前三篇我们覆盖了组件&#x2F;Builder模式、Canvas绘制、FrameNode动态操控。这一篇深入ArkUI的动画体系——从隐式动画到显式动画，从弹簧曲线到关键帧，从属性动画到转场动效。    📚 系列导航   篇章 主题 状态    第一篇 自定义组件与Builder模式完全解析 ✅ 已发布   第二篇 Canvas自定义绘制与DrawModifier ✅ 已发布   第三篇 FrameNode与NodeController高级操控 ✅ 已发布   第四篇 本文：动画系统进阶 📝 当前   第五篇 自定义手势与交互 ✅ 已发布    一、ArkUI 动画体系全景ArkUI的动画分为两大类：    类型 触发方式 适用场景 API版本    隐式动画 属性值变化自动触发 简单属性过渡 API 7+   显式动画 animateTo() 手动触发 复杂协调动画 API 7+   在此基础上，还有：  转场动画：组件插入&#x2F;删除时的过渡效果 关键帧动画：分段动画，指定关键时刻的状态 属性动画：组件属性的链式动画声明 弹...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-Canvas%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%98%E5%88%B6%E4%B8%8EDrawModifier/" title="鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-canvas-drawmodifier-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙高阶自定义UI：Canvas自定义绘制与DrawModifier</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第二篇。上一篇我们讲清了组件封装和Builder模式，这一篇进入自定义绘制——Canvas画布和DrawModifier绘制修改器，这两个机制让你能画出任何ArkUI内置组件无法实现的视觉效果。    📚 系列导航   篇章 主题 状态    第一篇 自定义组件与Builder模式完全解析 ✅ 已发布   第二篇 本文：Canvas自定义绘制与DrawModifier 📝 当前   第三篇 FrameNode与NodeController高级操控 ✅ 已发布   第四篇 动画系统进阶 ✅ 已发布   第五篇 自定义手势与交互 ✅ 已发布    一、Canvas 组件基础1.1 两种创建方式Canvas组件从API 8开始支持，提供两种创建方式： // 方式一：使用CanvasRenderingContext2D（API 8+）private settings: RenderingContextSettings = new RenderingContextSettings(true)private context: CanvasRenderi...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/" title="鸿蒙冷启动优化实战：从1200ms到300ms"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-coldstart-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙冷启动优化实战：从1200ms到300ms</div></div><div class="info-2"><div class="info-item-1">前言 本文是「鸿蒙应用性能优化」系列的第2篇。上一篇我们建立了性能指标体系和DevEco Profiler的使用方法，这篇我们聚焦一个最影响用户第一印象的问题——冷启动。  你有没有遇到过这种情况：用户点了你的应用图标，然后盯着空白屏幕等了2秒、3秒甚至更久？每一秒的等待都在消耗用户的耐心。华为官方文档明确指出，冷启动时延大于1100ms时，可以认为是应用启动缓慢。因此，将冷启动控制在1000ms以内是基本目标，800ms以内则是更理想的体验。 这篇文章将带你：  理解冷启动的完整流程——知道每个阶段在做什么，才能找到优化点 掌握Launch Profiler的使用——用数据说话，而不是靠猜 学习6大优化策略——每个策略都有代码示例和效果数据 完成一个实战案例——从1200ms优化到300ms的完整过程     系列导航   序号 文章 核心内容    1 鸿蒙应用性能优化完全指南：从指标到工具 性能指标体系 + DevEco Profiler + ArkUI Inspector + Code Linter   2 本文：鸿蒙冷启动优化实战：从1200ms到300ms 冷启动原理...</div></div></div></a><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E6%A8%A1%E5%BC%8F%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙高阶自定义UI：组件与Builder模式完全解析"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙高阶自定义UI：组件与Builder模式完全解析</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第一篇。上个系列我们完成了性能优化的系统化梳理，这个系列我们深入ArkUI的自定义能力——从组件封装到自定义绘制，从节点操控到动画系统。    📚 系列导航   篇章 主题 状态    第一篇 本文：自定义组件与Builder模式完全解析 📝 当前   第二篇 Canvas自定义绘制与DrawModifier ✅ 已发布   第三篇 FrameNode与NodeController高级操控 ✅ 已发布   第四篇 动画系统进阶 ✅ 已发布   第五篇 自定义手势与交互 ✅ 已发布    一、@Component 装饰器深度解析1.1 组件化的核心原理@Component 装饰器是ArkUI组件化体系的基石。它装饰 struct 关键字声明的结构体，使其具备组件化能力。 @Componentstruct HelloComponent &#123;  @State message: string = &#x27;Hello World&#x27;  build() &#123;    Column() &#123;      Text(this...</div></div></div></a><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E8%BF%9B%E9%98%B6/" title="鸿蒙高阶自定义UI：动画系统进阶"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-animation-advanced-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙高阶自定义UI：动画系统进阶</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第四篇。前三篇我们覆盖了组件&#x2F;Builder模式、Canvas绘制、FrameNode动态操控。这一篇深入ArkUI的动画体系——从隐式动画到显式动画，从弹簧曲线到关键帧，从属性动画到转场动效。    📚 系列导航   篇章 主题 状态    第一篇 自定义组件与Builder模式完全解析 ✅ 已发布   第二篇 Canvas自定义绘制与DrawModifier ✅ 已发布   第三篇 FrameNode与NodeController高级操控 ✅ 已发布   第四篇 本文：动画系统进阶 📝 当前   第五篇 自定义手势与交互 ✅ 已发布    一、ArkUI 动画体系全景ArkUI的动画分为两大类：    类型 触发方式 适用场景 API版本    隐式动画 属性值变化自动触发 简单属性过渡 API 7+   显式动画 animateTo() 手动触发 复杂协调动画 API 7+   在此基础上，还有：  转场动画：组件插入&#x2F;删除时的过渡效果 关键帧动画：分段动画，指定关键时刻的状态 属性动画：组件属性的链式动画声明 弹...</div></div></div></a><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E9%AB%98%E9%98%B6%E8%87%AA%E5%AE%9A%E4%B9%89UI-FrameNode%E4%B8%8ENodeController%E9%AB%98%E7%BA%A7%E6%93%8D%E6%8E%A7/" title="鸿蒙高阶自定义UI：FrameNode与NodeController高级操控"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-framenode-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙高阶自定义UI：FrameNode与NodeController高级操控</div></div><div class="info-2"><div class="info-item-1"> 本文是「鸿蒙高阶自定义UI」系列的第三篇。前两篇我们分别解析了组件与Builder模式、Canvas绘制与DrawModifier。这一篇我们深入ArkUI的动态节点操控能力——FrameNode、NodeController和BuilderNode。    📚 系列导航   篇章 主题 状态    第一篇 自定义组件与Builder模式完全解析 ✅ 已发布   第二篇 Canvas自定义绘制与DrawModifier ✅ 已发布   第三篇 本文：FrameNode与NodeController高级操控 📝 当前   第四篇 动画系统进阶 ✅ 已发布   第五篇 自定义手势与交互 ✅ 已发布    一、为什么需要 FrameNode声明式UI（@Component + build()）是ArkUI的主流开发方式，但它有一个天然限制：组件树结构一旦声明，只能通过状态驱动整体重渲染，无法局部调整节点关系。 举个例子：你想把一棵子树从父节点A移到父节点B——用声明式写法，你只能通过条件渲染销毁A、重建B，整个子树会丢失状态。而用FrameNode，你可以直接操作节点树，把子节点...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/" title="鸿蒙应用性能优化完全指南：从指标到工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-perf-overview-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙应用性能优化完全指南：从指标到工具</div></div><div class="info-2"><div class="info-item-1">前言在开发鸿蒙应用时，功能实现只是第一步，性能优化才是决定用户体验的关键。一个卡顿的列表、一次漫长的启动、一段耗电的后台任务，都可能让用户卸载你的应用。 鸿蒙系统提供了一套完整的性能分析工具链——DevEco Profiler，涵盖启动、帧率、CPU、内存四大维度。但很多开发者并不清楚：  什么指标算”达标”？ 各种 Profiler 分别解决什么问题？ 发现性能瓶颈后如何定位根因？  本篇作为性能优化系列的第一篇，不讲具体优化技巧，而是帮你建立一套完整的性能分析体系——知道用什么工具、看什么指标、怎么发现问题。  📌 系列导航  性能优化完全指南：从指标到工具（本文） 冷启动优化实战：从1200ms到300ms ArkUI渲染性能优化：告别卡顿与丢帧 内存管理与功耗优化：打造轻量级应用 并发编程与网络优化：Worker与TaskPool实战    一、性能优化的核心指标在开始优化之前，我们先明确衡量标准。鸿蒙应用的性能主要关注以下五个维度：    维度 核心指标 达标线 问题表现    启动 冷启动耗时 ≤ 1100ms 白屏时间长   启动 热启动耗时 &lt; 500ms...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%9A-%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="toc-number">1.</span> <span class="toc-text">📚 系列导航</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%89%8B%E5%8A%BF%E4%BD%93%E7%B3%BB%E5%85%A8%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">一、手势体系全景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%86%85%E7%BD%AE%E6%89%8B%E5%8A%BF%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">二、内置手势详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-TapGesture-%E7%82%B9%E5%87%BB%E6%89%8B%E5%8A%BF"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 TapGesture 点击手势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-PanGesture-%E6%8B%96%E6%8B%BD%E6%89%8B%E5%8A%BF"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 PanGesture 拖拽手势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-PinchGesture-%E5%8F%8C%E6%8C%87%E7%BC%A9%E6%94%BE"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 PinchGesture 双指缩放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-RotationGesture-%E5%8F%8C%E6%8C%87%E6%97%8B%E8%BD%AC"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 RotationGesture 双指旋转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-LongPressGesture-%E9%95%BF%E6%8C%89%E6%89%8B%E5%8A%BF"><span class="toc-number">3.5.</span> <span class="toc-text">2.5 LongPressGesture 长按手势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-SwipeGesture-%E5%BF%AB%E9%80%9F%E6%BB%91%E5%8A%A8"><span class="toc-number">3.6.</span> <span class="toc-text">2.6 SwipeGesture 快速滑动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%89%8B%E5%8A%BF%E7%BB%84%E5%90%88-GestureGroup"><span class="toc-number">4.</span> <span class="toc-text">三、手势组合 GestureGroup</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%A1%BA%E5%BA%8F%E8%AF%86%E5%88%AB%EF%BC%88Sequence%EF%BC%89"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 顺序识别（Sequence）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%B9%B6%E8%A1%8C%E8%AF%86%E5%88%AB%EF%BC%88Parallel%EF%BC%89"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 并行识别（Parallel）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%89%8B%E5%8A%BF%E7%BB%91%E5%AE%9A%E6%96%B9%E5%BC%8F"><span class="toc-number">5.</span> <span class="toc-text">四、手势绑定方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%89%E7%A7%8D%E7%BB%91%E5%AE%9A%E6%96%B9%E6%B3%95"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 三种绑定方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%BC%98%E5%85%88%E7%BA%A7%E5%86%B2%E7%AA%81%E8%A7%A3%E5%86%B3"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 优先级冲突解决</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-parallelGesture"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 parallelGesture</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%8B%E5%8A%BF%E5%88%A4%E5%AE%9A"><span class="toc-number">6.</span> <span class="toc-text">五、自定义手势判定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-onGestureRecognizerJudgeBegin"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 onGestureRecognizerJudgeBegin</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-GestureJudgeResult-%E6%9E%9A%E4%B8%BE"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 GestureJudgeResult 枚举</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%AE%9E%E6%88%98%EF%BC%9A%E6%9D%A1%E4%BB%B6%E6%89%8B%E5%8A%BF%E5%88%A4%E5%AE%9A"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 实战：条件手势判定</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%AE%9E%E6%88%98%EF%BC%9A%E5%8F%AF%E7%BC%A9%E6%94%BE%E6%97%8B%E8%BD%AC%E7%9A%84%E5%9B%BE%E7%89%87%E6%9F%A5%E7%9C%8B%E5%99%A8"><span class="toc-number">7.</span> <span class="toc-text">六、实战：可缩放旋转的图片查看器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">七、最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">9.</span> <span class="toc-text">八、常见问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">10.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%9A-%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA-1"><span class="toc-number">11.</span> <span class="toc-text">📚 系列导航</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
