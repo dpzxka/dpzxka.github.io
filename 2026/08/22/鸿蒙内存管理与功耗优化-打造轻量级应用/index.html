@@ -1,0 +1,1104 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙内存管理与功耗优化：打造轻量级应用 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="深入解析鸿蒙HPP GC机制、内存泄漏检测、GC调优策略、后台任务功耗管理，附带实战代码示例和DevEco Profiler分析流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙内存管理与功耗优化：打造轻量级应用">
+<meta property="og:url" content="https://dpzxka.github.io/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="深入解析鸿蒙HPP GC机制、内存泄漏检测、GC调优策略、后台任务功耗管理，附带实战代码示例和DevEco Profiler分析流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/harmonyos-memory-power-cover.svg">
+<meta property="article:published_time" content="2026-08-22T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-22T23:55:25.930Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="鸿蒙">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="HarmonyOS">
+<meta property="article:tag" content="内存管理">
+<meta property="article:tag" content="功耗优化">
+<meta property="article:tag" content="GC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/harmonyos-memory-power-cover.svg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙内存管理与功耗优化：打造轻量级应用",
+  "url": "https://dpzxka.github.io/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/",
+  "image": "https://dpzxka.github.io/img/harmonyos-memory-power-cover.svg",
+  "datePublished": "2026-08-22T02:00:00.000Z",
+  "dateModified": "2026-08-22T23:55:25.930Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙内存管理与功耗优化：打造轻量级应用',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">41</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">41</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/harmonyos-memory-power-cover.svg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙内存管理与功耗优化：打造轻量级应用</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙内存管理与功耗优化：打造轻量级应用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-22T02:00:00.000Z" title="发表于 2026-08-22 10:00:00">2026-08-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-22T23:55:25.930Z" title="更新于 2026-08-23 07:55:25">2026-08-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%B8%BF%E8%92%99%E5%BC%80%E5%8F%91/">鸿蒙开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>14分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-08-23 07:55:25&quot;}" hidden></div><blockquote>
+<p><strong>系列导航</strong>：本文是「鸿蒙应用性能优化」系列的第四篇。<a href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/">第一篇：从指标到工具</a> · <a href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/">第二篇：冷启动优化</a> · <a href="/2026/08/22/%E9%B8%BF%E8%92%99ArkUI%E6%B8%B2%E6%9F%93%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%91%8A%E5%88%AB%E5%8D%A1%E9%A1%BF%E4%B8%8E%E4%B8%A2%E5%B8%A7/">第三篇：ArkUI渲染性能</a> · <strong>第四篇：内存管理与功耗优化</strong> · 第五篇：并发编程与网络优化</p>
+</blockquote>
+<hr>
+<p>在前面的系列文章中，我们关注了启动速度和渲染帧率这两个直接影响用户感知的指标。但还有一个”隐形杀手”同样值得重视——<strong>内存与功耗</strong>。</p>
+<p>内存占用过高会导致系统频繁触发GC（垃圾回收），造成UI卡顿甚至应用崩溃；功耗过高则直接影响设备续航，严重的还会被系统强制终止进程。本文从鸿蒙的GC机制讲起，覆盖内存泄漏检测、GC调优、后台任务功耗管理，最后给出一套可落地的最佳实践。</p>
+<hr>
+<h2 id="一、鸿蒙内存管理基础"><a href="#一、鸿蒙内存管理基础" class="headerlink" title="一、鸿蒙内存管理基础"></a>一、鸿蒙内存管理基础</h2><h3 id="1-1-内存模型概览"><a href="#1-1-内存模型概览" class="headerlink" title="1.1 内存模型概览"></a>1.1 内存模型概览</h3><p>鸿蒙应用的ArkTS运行时采用<strong>分代垃圾回收模型</strong>，将对象按生命周期分为年轻代和老年代，分配到不同空间进行管理。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/gc-introduction">https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/gc-introduction</a></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│                    ArkTS Runtime                      │</span><br><span class="line">├──────────────┬──────────────────────────────────────┤</span><br><span class="line">│   LocalHeap  │                                      │</span><br><span class="line">│  ┌──────────┐│  ┌──────────┐  ┌──────────────────┐ │</span><br><span class="line">│  │YoungSpace│→ │ OldSpace  │  │ HugeObjectSpace  │ │</span><br><span class="line">│  │(SemiSpace)│ │          │  │  (大对象单独Region)│ │</span><br><span class="line">│  └──────────┘│  └──────────┘  └──────────────────┘ │</span><br><span class="line">│  ┌──────────┐│  ┌──────────┐  ┌──────────────────┐ │</span><br><span class="line">│  │ReadOnly  ││  │NonMovable│  │  SnapshotSpace   │ │</span><br><span class="line">│  │  Space   ││  │  Space   │  │  (堆快照用)      │ │</span><br><span class="line">│  └──────────┘│  └──────────┘  └──────────────────┘ │</span><br><span class="line">├──────────────┴──────────────────────────────────────┤</span><br><span class="line">│                   SharedHeap                         │</span><br><span class="line">│  SharedOldSpace │ SharedHugeObjectSpace │ ...       │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键参数</strong>（手机设备，堆总大小&gt;256MB）：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HeapSize（主线程）</td>
+<td>448MB</td>
+<td>主线程默认堆空间总大小</td>
+</tr>
+<tr>
+<td>HeapSize（Worker）</td>
+<td>768MB</td>
+<td>Worker类型线程堆空间大小</td>
+</tr>
+<tr>
+<td>SemiSpaceSize</td>
+<td>2MB-16MB</td>
+<td>年轻代空间大小，根据堆总大小变化</td>
+</tr>
+<tr>
+<td>OldSpaceSize</td>
+<td>~350MB</td>
+<td>老年代空间上限</td>
+</tr>
+<tr>
+<td>SharedHeapSize</td>
+<td>778MB</td>
+<td>共享堆空间总大小</td>
+</tr>
+<tr>
+<td>gcThreadNum</td>
+<td>7</td>
+<td>GC线程数量</td>
+</tr>
+<tr>
+<td>longPauseTime</td>
+<td>40ms</td>
+<td>超长GC判定界限</td>
+</tr>
+<tr>
+<td>maxStackSize</td>
+<td>128KB</td>
+<td>解释器栈大小</td>
+</tr>
+</tbody></table>
+<h3 id="1-2-HPP-GC：高性能部分垃圾回收"><a href="#1-2-HPP-GC：高性能部分垃圾回收" class="headerlink" title="1.2 HPP GC：高性能部分垃圾回收"></a>1.2 HPP GC：高性能部分垃圾回收</h3><p>鸿蒙采用<strong>HPP GC</strong>（High Performance Partial Garbage Collection），核心思路是：新对象用复制算法快速回收，老对象用整理+清扫混合回收，减少STW（Stop The World）停顿。</p>
+<p><strong>三种GC类型对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>GC类型</th>
+<th>触发条件</th>
+<th>回收范围</th>
+<th>典型耗时</th>
+<th>日志关键词</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Young GC</td>
+<td>年轻代分配达阈值（2-16MB）</td>
+<td>YoungSpace</td>
+<td>&lt;5ms</td>
+<td><code>[HPP YoungGC]</code></td>
+</tr>
+<tr>
+<td>Old GC</td>
+<td>老年代增长达阈值（20-300MB）</td>
+<td>YoungSpace + 部分OldSpace</td>
+<td>5-10ms</td>
+<td><code>[HPP OldGC]</code></td>
+</tr>
+<tr>
+<td>Full GC</td>
+<td>后台切换&#x2F;手动触发</td>
+<td>全量压缩</td>
+<td>50-200ms+</td>
+<td><code>[CompressGC]</code></td>
+</tr>
+</tbody></table>
+<p><strong>分代回收流程</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">新对象 → YoungSpace(From)</span><br><span class="line">         ↓ GC后存活</span><br><span class="line">         → YoungSpace(To)</span><br><span class="line">         ↓ 多次GC后仍存活</span><br><span class="line">         → OldSpace</span><br><span class="line">         ↓ 后台时</span><br><span class="line">         → Full GC全量回收</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-Smart-GC：智能GC抑制"><a href="#1-3-Smart-GC：智能GC抑制" class="headerlink" title="1.3 Smart GC：智能GC抑制"></a>1.3 Smart GC：智能GC抑制</h3><p>Smart GC是一种在<strong>性能敏感场景</strong>临时提高GC触发阈值的机制，避免GC导致UI掉帧。</p>
+<p><strong>支持场景</strong>：</p>
+<ul>
+<li>应用冷启动（默认支持）</li>
+<li>应用滑动</li>
+<li>应用点击页面跳转</li>
+<li>超长帧</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>仅对主线程生效，Worker和TaskPool线程不受影响</li>
+<li>敏感场景持续过久，对象分配仍可能达到提高后的阈值</li>
+<li>由系统侧管控，三方应用无直接接口调用</li>
+</ul>
+<p><strong>日志关键词</strong>：</p>
+<ul>
+<li>敏感场景进入：<code>SmartGC: set high sensitive status</code></li>
+<li>冷启动结束：<code>SmartGC: app cold start just finished</code></li>
+</ul>
+<hr>
+<h2 id="二、内存泄漏检测与修复"><a href="#二、内存泄漏检测与修复" class="headerlink" title="二、内存泄漏检测与修复"></a>二、内存泄漏检测与修复</h2><h3 id="2-1-常见内存泄漏模式"><a href="#2-1-常见内存泄漏模式" class="headerlink" title="2.1 常见内存泄漏模式"></a>2.1 常见内存泄漏模式</h3><p><strong>循环引用</strong>：两个对象互相持有强引用，导致GC无法回收。</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Parent</span> &#123;</span><br><span class="line">  <span class="attr">child</span>: <span class="title class_">Child</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Child</span> &#123;</span><br><span class="line">  <span class="attr">parent</span>: <span class="title class_">Parent</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// parent.child = child; child.parent = parent → 循环引用</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>BuilderNode前后端循环引用</strong>：前端BuilderNode持有后端节点强引用，后端通过事件回调&#x2F;全局缓存反向引用前端，形成循环。</p>
+<p><strong>NAPI引用未释放</strong>：<code>napi_create_reference</code>创建的强引用未调用<code>napi_delete_reference</code>删除，导致ArkTS对象和C++对象双重泄漏。</p>
+<p><strong>全局缓存未清理</strong>：将对象存储在全局Map&#x2F;数组中，使用后未删除。</p>
+<h3 id="2-2-内存分析工具链"><a href="#2-2-内存分析工具链" class="headerlink" title="2.2 内存分析工具链"></a>2.2 内存分析工具链</h3><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>用途</th>
+<th>使用时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DevEco Profiler Memory Profiler</td>
+<td>堆快照分析、引用链追踪</td>
+<td>定位泄漏对象</td>
+</tr>
+<tr>
+<td>AllocationTracker</td>
+<td>检测未释放对象的分配栈</td>
+<td>找到分配源头</td>
+</tr>
+<tr>
+<td>@ohos.hidebug</td>
+<td>查询进程内存信息</td>
+<td>快速查看内存占用</td>
+</tr>
+<tr>
+<td>hilog GC日志</td>
+<td>分析GC频率和耗时</td>
+<td>判断GC压力</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-实战：用Memory-Profiler定位泄漏"><a href="#2-3-实战：用Memory-Profiler定位泄漏" class="headerlink" title="2.3 实战：用Memory Profiler定位泄漏"></a>2.3 实战：用Memory Profiler定位泄漏</h3><p><strong>步骤1：采集堆快照</strong></p>
+<p>在DevEco Profiler中，选择Memory → Heap Snapshot，点击”Take Snapshot”按钮采集当前堆状态。</p>
+<p><strong>步骤2：触发泄漏操作</strong></p>
+<p>执行可能引起泄漏的操作（如反复进入&#x2F;退出页面），再次采集快照。</p>
+<p><strong>步骤3：对比快照</strong></p>
+<p>选择两次快照，在Comparison视图中查看新增对象。重点关注：</p>
+<ul>
+<li><strong>Distance小</strong>（从GC Root路径短）的对象</li>
+<li><strong>Retained Size大</strong>（占用内存多）的对象</li>
+<li>构造函数名称与业务代码相关的对象</li>
+</ul>
+<p><strong>步骤4：追踪引用链</strong></p>
+<p>从可疑对象出发，沿references逐层查找，找到持有引用的业务代码位置。官方建议”优先寻找与触发内存泄漏操作次数强相关、与业务代码强相关的Constructor”。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-arkts-memory-leak-analysis">https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-arkts-memory-leak-analysis</a></p>
+</blockquote>
+<h3 id="2-4-WeakReference：避免泄漏的标准做法"><a href="#2-4-WeakReference：避免泄漏的标准做法" class="headerlink" title="2.4 WeakReference：避免泄漏的标准做法"></a>2.4 WeakReference：避免泄漏的标准做法</h3><p>对于不需要长期持有的对象，使用<code>WeakReference</code>替代强引用：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ImageCache</span> &#123;</span><br><span class="line">  <span class="comment">// 用WeakReference存储图片数据，GC回收时自动释放</span></span><br><span class="line">  <span class="keyword">private</span> <span class="attr">cache</span>: <span class="title class_">Map</span>&lt;<span class="built_in">string</span>, <span class="title class_">WeakReference</span>&lt;<span class="title class_">ImageData</span>&gt;&gt; = <span class="keyword">new</span> <span class="title class_">Map</span>();</span><br><span class="line"></span><br><span class="line">  <span class="title function_">set</span>(<span class="params"><span class="attr">key</span>: <span class="built_in">string</span>, <span class="attr">data</span>: <span class="title class_">ImageData</span></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">cache</span>.<span class="title function_">set</span>(key, <span class="keyword">new</span> <span class="title class_">WeakReference</span>(data));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">get</span>(<span class="attr">key</span>: <span class="built_in">string</span>): <span class="title class_">ImageData</span> | <span class="literal">undefined</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> ref = <span class="variable language_">this</span>.<span class="property">cache</span>.<span class="title function_">get</span>(key);</span><br><span class="line">    <span class="keyword">if</span> (ref) &#123;</span><br><span class="line">      <span class="keyword">const</span> data = ref.<span class="title function_">get</span>();</span><br><span class="line">      <span class="keyword">if</span> (data !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 引用已失效，清理弱引用条目</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">cache</span>.<span class="title function_">delete</span>(key);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">undefined</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、GC调优策略"><a href="#三、GC调优策略" class="headerlink" title="三、GC调优策略"></a>三、GC调优策略</h2><h3 id="3-1-理解GC日志"><a href="#3-1-理解GC日志" class="headerlink" title="3.1 理解GC日志"></a>3.1 理解GC日志</h3><p>开启GC全量日志（默认仅打印&gt;40ms的GC）：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 开启全量GC日志</span></span><br><span class="line">hdc shell param <span class="built_in">set</span> persist.ark.properties 0x905d</span><br><span class="line"><span class="comment"># 重启生效</span></span><br><span class="line">hdc shell reboot</span><br></pre></td></tr></table></figure>
+
+<p>查看GC日志：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 过滤GC日志</span></span><br><span class="line">hdc shell hilog | grep <span class="string">&quot;gc&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>关键日志字段解读</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[HPP YoungGC] 2.5→1.2 MB, 3.5ms, ALLOCATION_LIMIT</span><br><span class="line">  │              │         │        │        └─ GC触发原因</span><br><span class="line">  │              │         │        └─ 总耗时</span><br><span class="line">  │              │         └─ 回收后占用</span><br><span class="line">  │              └─ 回收前占用</span><br><span class="line">  └─ GC类型</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>GCReason</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ALLOCATION_LIMIT</td>
+<td>分配达阈值触发</td>
+</tr>
+<tr>
+<td>SWITCH_BACKGROUND</td>
+<td>切换后台触发</td>
+</tr>
+<tr>
+<td>IDLE</td>
+<td>空闲时触发</td>
+</tr>
+<tr>
+<td>TRIGGER_BY_JS</td>
+<td>ArkTools.hintGC()触发</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-优化GC压力的编码实践"><a href="#3-2-优化GC压力的编码实践" class="headerlink" title="3.2 优化GC压力的编码实践"></a>3.2 优化GC压力的编码实践</h3><p><strong>减少临时对象分配</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 每帧创建新对象</span></span><br><span class="line"><span class="title function_">onFrameUpdate</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> pos = &#123; <span class="attr">x</span>: <span class="variable language_">this</span>.<span class="property">x</span>, <span class="attr">y</span>: <span class="variable language_">this</span>.<span class="property">y</span>, <span class="attr">z</span>: <span class="variable language_">this</span>.<span class="property">z</span> &#125;;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">updatePosition</span>(pos);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 复用已有对象</span></span><br><span class="line"><span class="keyword">private</span> pos = &#123; <span class="attr">x</span>: <span class="number">0</span>, <span class="attr">y</span>: <span class="number">0</span>, <span class="attr">z</span>: <span class="number">0</span> &#125;;</span><br><span class="line"><span class="title function_">onFrameUpdate</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">pos</span>.<span class="property">x</span> = <span class="variable language_">this</span>.<span class="property">x</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">pos</span>.<span class="property">y</span> = <span class="variable language_">this</span>.<span class="property">y</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">pos</span>.<span class="property">z</span> = <span class="variable language_">this</span>.<span class="property">z</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">updatePosition</span>(<span class="variable language_">this</span>.<span class="property">pos</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>控制数组大小</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 频繁创建大数组</span></span><br><span class="line"><span class="title function_">processData</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> buffer = <span class="keyword">new</span> <span class="title class_">Float32Array</span>(<span class="number">1000000</span>); <span class="comment">// 4MB</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 复用或分片处理</span></span><br><span class="line"><span class="keyword">private</span> buffer = <span class="keyword">new</span> <span class="title class_">Float32Array</span>(<span class="number">1000000</span>);</span><br><span class="line"><span class="title function_">processData</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">buffer</span>.<span class="title function_">fill</span>(<span class="number">0</span>); <span class="comment">// 清空复用</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-ArkTools-hintGC-：主动触发GC"><a href="#3-3-ArkTools-hintGC-：主动触发GC" class="headerlink" title="3.3 ArkTools.hintGC()：主动触发GC"></a>3.3 ArkTools.hintGC()：主动触发GC</h3><p>当开发者知道某块内存不再使用时，可以提示系统进行GC：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="keyword">class</span> <span class="title class_">ArkTools</span> &#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="title function_">hintGC</span>(): <span class="built_in">void</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在大量临时对象不再使用后调用</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processLargeData</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="attr">tempData</span>: <span class="built_in">number</span>[] = [];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; i++) &#123;</span><br><span class="line">    tempData.<span class="title function_">push</span>(i);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 处理完毕，提示GC回收</span></span><br><span class="line">  <span class="title class_">ArkTools</span>.<span class="title function_">hintGC</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：hintGC()仅为建议，VM会判断是否适合触发。后台场景且内存预期存活率低于设定值时才会触发；敏感状态（如动画播放中）则不触发。</p>
+<hr>
+<h2 id="四、功耗优化"><a href="#四、功耗优化" class="headerlink" title="四、功耗优化"></a>四、功耗优化</h2><h3 id="4-1-功耗敏感场景"><a href="#4-1-功耗敏感场景" class="headerlink" title="4.1 功耗敏感场景"></a>4.1 功耗敏感场景</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>主要功耗来源</th>
+<th>优化方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前台交互</td>
+<td>CPU + GPU + 显示</td>
+<td>降低渲染复杂度</td>
+</tr>
+<tr>
+<td>后台数据同步</td>
+<td>CPU + 网络</td>
+<td>合并请求、批量处理</td>
+</tr>
+<tr>
+<td>定位服务</td>
+<td>GPS传感器</td>
+<td>降低精度&#x2F;频率</td>
+</tr>
+<tr>
+<td>蓝牙通信</td>
+<td>蓝牙模块</td>
+<td>减少扫描频率</td>
+</tr>
+<tr>
+<td>动画&#x2F;视频</td>
+<td>GPU + 显示</td>
+<td>合理帧率、深色模式</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-后台任务管理"><a href="#4-2-后台任务管理" class="headerlink" title="4.2 后台任务管理"></a>4.2 后台任务管理</h3><p>应用退至后台后，系统会对进程进行管控：<strong>一段时间后挂起，资源不足时终止</strong>。使用规范内的后台任务可以延长后台运行时间。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-backgroundtaskmanager">https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-backgroundtaskmanager</a></p>
+</blockquote>
+<p><strong>四种后台任务类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>适用场景</th>
+<th>数量限制</th>
+<th>超时时间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>短时任务</td>
+<td>状态保存、数据清理</td>
+<td>最多3个</td>
+<td>约3分钟</td>
+</tr>
+<tr>
+<td>长时任务</td>
+<td>后台音乐、导航、蓝牙传输</td>
+<td>按类型配置</td>
+<td>用户删除通知自动停止</td>
+</tr>
+<tr>
+<td>延迟任务</td>
+<td>定期同步邮件、缓存更新</td>
+<td>最多10个</td>
+<td>单次回调2分钟</td>
+</tr>
+<tr>
+<td>代理提醒</td>
+<td>定时提醒、闹钟</td>
+<td>-</td>
+<td>系统代理执行</td>
+</tr>
+</tbody></table>
+<p><strong>长时任务类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>配置项</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DATA_TRANSFER</td>
+<td>dataTransfer</td>
+<td>后台上传&#x2F;下载</td>
+</tr>
+<tr>
+<td>AUDIO_PLAYBACK</td>
+<td>audioPlayback</td>
+<td>音视频后台播放</td>
+</tr>
+<tr>
+<td>AUDIO_RECORDING</td>
+<td>audioRecording</td>
+<td>录音&#x2F;录屏退后台</td>
+</tr>
+<tr>
+<td>LOCATION</td>
+<td>location</td>
+<td>定位&#x2F;导航</td>
+</tr>
+<tr>
+<td>BLUETOOTH_INTERACTION</td>
+<td>bluetoothInteraction</td>
+<td>蓝牙文件传输</td>
+</tr>
+<tr>
+<td>MULTI_DEVICE_CONNECTION</td>
+<td>multiDeviceConnection</td>
+<td>分布式业务连接</td>
+</tr>
+</tbody></table>
+<p><strong>代码示例：申请长时任务</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; backgroundTaskManager &#125; <span class="keyword">from</span> <span class="string">&#x27;@ohos.resourceschedule.backgroundTaskManager&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; wantAgent, <span class="title class_">WantAgent</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ohos.app.ability.wantAgent&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 创建WantAgent</span></span><br><span class="line"><span class="keyword">const</span> <span class="attr">wantAgentInfo</span>: wantAgent.<span class="property">WantAgentInfo</span> = &#123;</span><br><span class="line">  <span class="attr">wants</span>: [&#123; <span class="attr">bundleName</span>: <span class="string">&#x27;com.example.app&#x27;</span>, <span class="attr">abilityName</span>: <span class="string">&#x27;MainAbility&#x27;</span> &#125;],</span><br><span class="line">  <span class="attr">actionType</span>: wantAgent.<span class="property">OperationType</span>.<span class="property">START_ABILITY</span>,</span><br><span class="line">  <span class="attr">requestCode</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">actionFlags</span>: [wantAgent.<span class="property">WantAgentFlags</span>.<span class="property">UPDATE_PRESENT_FLAG</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">wantAgent.<span class="title function_">getWantAgent</span>(wantAgentInfo).<span class="title function_">then</span>(<span class="function">(<span class="params"><span class="attr">agent</span>: <span class="title class_">WantAgent</span></span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 2. 申请后台音频播放长时任务</span></span><br><span class="line">  backgroundTaskManager.<span class="title function_">startBackgroundRunning</span>(</span><br><span class="line">    agent,</span><br><span class="line">    backgroundTaskManager.<span class="property">BackgroundMode</span>.<span class="property">AUDIO_PLAYBACK</span></span><br><span class="line">  ).<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;长时任务申请成功&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-传感器功耗管理"><a href="#4-3-传感器功耗管理" class="headerlink" title="4.3 传感器功耗管理"></a>4.3 传感器功耗管理</h3><p>传感器持续工作会显著增加功耗。优化策略：</p>
+<ul>
+<li><strong>按需注册</strong>：页面不可见时注销传感器监听</li>
+<li><strong>降低采样频率</strong>：非交互场景降低数据更新频率</li>
+<li><strong>批量处理</strong>：传感器数据缓冲后批量计算，减少唤醒次数</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> sensor <span class="keyword">from</span> <span class="string">&#x27;@ohos.sensor&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册传感器</span></span><br><span class="line">sensor.<span class="title function_">on</span>(sensor.<span class="property">SensorId</span>.<span class="property">ACCELEROMETER</span>, <span class="function">(<span class="params"><span class="attr">data</span>: sensor.<span class="title class_">AccelerometerData</span></span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">handleData</span>(data);</span><br><span class="line">&#125;, &#123; <span class="attr">interval</span>: <span class="number">200000000</span> &#125;); <span class="comment">// 200ms采样间隔</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 页面退后台时注销</span></span><br><span class="line"><span class="title function_">onBackground</span>(<span class="params"></span>) &#123;</span><br><span class="line">  sensor.<span class="title function_">off</span>(sensor.<span class="property">SensorId</span>.<span class="property">ACCELEROMETER</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-网络请求功耗优化"><a href="#4-4-网络请求功耗优化" class="headerlink" title="4.4 网络请求功耗优化"></a>4.4 网络请求功耗优化</h3><ul>
+<li><strong>合并请求</strong>：将多个小请求合并为批量请求</li>
+<li><strong>减少轮询</strong>：用推送替代轮询，或降低轮询频率</li>
+<li><strong>Wi-Fi优先</strong>：非紧急任务在Wi-Fi环境下执行</li>
+<li><strong>延迟执行</strong>：非实时任务使用延迟任务调度</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 批量请求示例</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NetworkOptimizer</span> &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="attr">batchQueue</span>: <span class="title class_">Map</span>&lt;<span class="built_in">string</span>, <span class="built_in">object</span>[]&gt; = <span class="keyword">new</span> <span class="title class_">Map</span>();</span><br><span class="line"></span><br><span class="line">  <span class="title function_">addRequest</span>(<span class="params"><span class="attr">endpoint</span>: <span class="built_in">string</span>, <span class="attr">data</span>: <span class="built_in">object</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="variable language_">this</span>.<span class="property">batchQueue</span>.<span class="title function_">has</span>(endpoint)) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">batchQueue</span>.<span class="title function_">set</span>(endpoint, []);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">batchQueue</span>.<span class="title function_">get</span>(endpoint)!.<span class="title function_">push</span>(data);</span><br><span class="line">    <span class="comment">// 100ms内合并请求</span></span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">flush</span>(endpoint), <span class="number">100</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">async</span> <span class="title function_">flush</span>(<span class="params"><span class="attr">endpoint</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> batch = <span class="variable language_">this</span>.<span class="property">batchQueue</span>.<span class="title function_">get</span>(endpoint) || [];</span><br><span class="line">    <span class="keyword">if</span> (batch.<span class="property">length</span> === <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">batchQueue</span>.<span class="title function_">set</span>(endpoint, []);</span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">fetch</span>(endpoint, &#123; <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>, <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(batch) &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、深色模式与省电"><a href="#五、深色模式与省电" class="headerlink" title="五、深色模式与省电"></a>五、深色模式与省电</h2><p>OLED屏幕在深色模式下，像素点不发光或低亮度发光，可<strong>降低显示功耗约40%</strong>。</p>
+<p><strong>实现方式</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在entryability中监听深色模式变化</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ConfigurationConstant</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_">onConfigurationUpdate</span>(<span class="params"><span class="attr">newConfig</span>: <span class="title class_">Configuration</span></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> colorMode = newConfig.<span class="property">colorMode</span>;</span><br><span class="line">  <span class="keyword">if</span> (colorMode === <span class="title class_">ConfigurationConstant</span>.<span class="property">ColorMode</span>.<span class="property">COLOR_MODE_DARK</span>) &#123;</span><br><span class="line">    <span class="comment">// 切换到深色主题</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">applyDarkTheme</span>();</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">applyLightTheme</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>深色模式优化要点</strong>：</p>
+<ul>
+<li>避免纯白背景（#FFFFFF），使用深灰（#1A1A1A）替代</li>
+<li>图片资源准备深色版本</li>
+<li>SVG图标使用currentColor适配主题色</li>
+<li>动画亮度适当降低</li>
+</ul>
+<hr>
+<h2 id="六、实战案例：图片浏览应用优化"><a href="#六、实战案例：图片浏览应用优化" class="headerlink" title="六、实战案例：图片浏览应用优化"></a>六、实战案例：图片浏览应用优化</h2><h3 id="6-1-优化前问题"><a href="#6-1-优化前问题" class="headerlink" title="6.1 优化前问题"></a>6.1 优化前问题</h3><p>某图片浏览应用存在：</p>
+<ul>
+<li>滑动列表时GC频繁触发（每秒3-5次Young GC）</li>
+<li>退出页面后内存未释放（约200MB残留）</li>
+<li>后台持续定位导致功耗过高</li>
+</ul>
+<h3 id="6-2-优化过程"><a href="#6-2-优化过程" class="headerlink" title="6.2 优化过程"></a>6.2 优化过程</h3><p><strong>内存优化</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 优化前：每次滑动创建新图片对象</span></span><br><span class="line"><span class="title function_">buildListItem</span>(<span class="params"><span class="attr">image</span>: <span class="title class_">ImageInfo</span></span>) &#123;</span><br><span class="line">  <span class="title class_">Column</span>() &#123;</span><br><span class="line">    <span class="title class_">Image</span>(image.<span class="property">url</span>) <span class="comment">// 每次build创建新Image组件</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 优化后：使用@Reusable组件复用</span></span><br><span class="line"><span class="meta">@Reusable</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">ImageItem</span> &#123;</span><br><span class="line">  <span class="meta">@Prop</span> <span class="attr">url</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToReuse</span>(<span class="params"><span class="attr">params</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="title class_">Object</span>&gt;</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">url</span> = params.<span class="property">url</span> <span class="keyword">as</span> <span class="built_in">string</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Image</span>(<span class="variable language_">this</span>.<span class="property">url</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>GC压力优化</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 优化前：频繁创建临时数组</span></span><br><span class="line"><span class="title function_">processImages</span>(<span class="params"><span class="attr">images</span>: <span class="title class_">ImageData</span>[]</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> sorted = images.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.<span class="property">size</span> - b.<span class="property">size</span>);</span><br><span class="line">  <span class="keyword">const</span> filtered = sorted.<span class="title function_">filter</span>(<span class="function"><span class="params">img</span> =&gt;</span> img.<span class="property">size</span> &gt; <span class="number">1000</span>);</span><br><span class="line">  <span class="keyword">return</span> filtered;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 优化后：减少中间数组</span></span><br><span class="line"><span class="title function_">processImages</span>(<span class="params"><span class="attr">images</span>: <span class="title class_">ImageData</span>[]</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="attr">result</span>: <span class="title class_">ImageData</span>[] = [];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; images.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (images[i].<span class="property">size</span> &gt; <span class="number">1000</span>) &#123;</span><br><span class="line">      result.<span class="title function_">push</span>(images[i]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  result.<span class="title function_">sort</span>(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.<span class="property">size</span> - b.<span class="property">size</span>);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>功耗优化</strong>：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 优化前：后台持续定位</span></span><br><span class="line"><span class="title function_">onBackground</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 无处理，定位持续运行</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 优化后：后台停止定位</span></span><br><span class="line"><span class="title function_">onBackground</span>(<span class="params"></span>) &#123;</span><br><span class="line">  location.<span class="title function_">off</span>(<span class="string">&#x27;locationChange&#x27;</span>);</span><br><span class="line">  sensor.<span class="title function_">off</span>(sensor.<span class="property">SensorId</span>.<span class="property">ACCELEROMETER</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-优化效果"><a href="#6-3-优化效果" class="headerlink" title="6.3 优化效果"></a>6.3 优化效果</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>优化前</th>
+<th>优化后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Young GC频率</td>
+<td>3-5次&#x2F;秒</td>
+<td>0.5-1次&#x2F;秒</td>
+</tr>
+<tr>
+<td>退出页面内存残留</td>
+<td>~200MB</td>
+<td>~50MB</td>
+</tr>
+<tr>
+<td>后台每小时耗电</td>
+<td>8%</td>
+<td>2%</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="七、最佳实践Checklist"><a href="#七、最佳实践Checklist" class="headerlink" title="七、最佳实践Checklist"></a>七、最佳实践Checklist</h2><h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><ul>
+<li><input disabled="" type="checkbox"> 使用WeakReference存储可选的缓存数据</li>
+<li><input disabled="" type="checkbox"> 避免在循环中创建大量临时对象</li>
+<li><input disabled="" type="checkbox"> 复用数组和对象，减少GC压力</li>
+<li><input disabled="" type="checkbox"> 页面退出时注销所有监听器和回调</li>
+<li><input disabled="" type="checkbox"> 定期用Memory Profiler检查堆增长趋势</li>
+<li><input disabled="" type="checkbox"> 使用AllocationTracker追踪大对象分配栈</li>
+</ul>
+<h3 id="GC调优"><a href="#GC调优" class="headerlink" title="GC调优"></a>GC调优</h3><ul>
+<li><input disabled="" type="checkbox"> 了解Young GC&#x2F;Old GC的触发阈值</li>
+<li><input disabled="" type="checkbox"> 避免在动画帧回调中分配大对象</li>
+<li><input disabled="" type="checkbox"> 必要时调用ArkTools.hintGC()主动回收</li>
+<li><input disabled="" type="checkbox"> 分析GC日志中的GCReason定位问题</li>
+</ul>
+<h3 id="功耗优化"><a href="#功耗优化" class="headerlink" title="功耗优化"></a>功耗优化</h3><ul>
+<li><input disabled="" type="checkbox"> 选择合适的后台任务类型（短时&#x2F;长时&#x2F;延迟）</li>
+<li><input disabled="" type="checkbox"> 后台注销不需要的传感器监听</li>
+<li><input disabled="" type="checkbox"> 合并网络请求，减少唤醒次数</li>
+<li><input disabled="" type="checkbox"> 非紧急任务使用延迟任务调度</li>
+<li><input disabled="" type="checkbox"> OLED设备启用深色模式省电</li>
+</ul>
+<hr>
+<h2 id="八、常见问题"><a href="#八、常见问题" class="headerlink" title="八、常见问题"></a>八、常见问题</h2><h3 id="Q1：应用内存占用多少算正常？"><a href="#Q1：应用内存占用多少算正常？" class="headerlink" title="Q1：应用内存占用多少算正常？"></a>Q1：应用内存占用多少算正常？</h3><p>没有固定标准，取决于业务复杂度。关键看两点：</p>
+<ol>
+<li><strong>GC频率</strong>：Young GC每秒不超过1次为佳</li>
+<li><strong>内存趋势</strong>：长时间运行后内存应趋于稳定，而非持续增长</li>
+</ol>
+<h3 id="Q2：Smart-GC会影响我的应用吗？"><a href="#Q2：Smart-GC会影响我的应用吗？" class="headerlink" title="Q2：Smart GC会影响我的应用吗？"></a>Q2：Smart GC会影响我的应用吗？</h3><p>Smart GC由系统自动管理，对应用透明。它在冷启动、滑动等场景临时提高GC阈值，减少GC触发频率。开发者无需做任何配置，但要注意：如果敏感场景持续过久，GC仍会触发。</p>
+<h3 id="Q3：WeakReference会影响性能吗？"><a href="#Q3：WeakReference会影响性能吗？" class="headerlink" title="Q3：WeakReference会影响性能吗？"></a>Q3：WeakReference会影响性能吗？</h3><p>WeakReference本身开销很小。但频繁调用<code>get()</code>并检查是否为<code>undefined</code>会增加少量开销。建议在高频调用场景中，将WeakReference.get()的结果缓存到局部变量。</p>
+<h3 id="Q4：如何判断是否需要调用hintGC-？"><a href="#Q4：如何判断是否需要调用hintGC-？" class="headerlink" title="Q4：如何判断是否需要调用hintGC()？"></a>Q4：如何判断是否需要调用hintGC()？</h3><p>在以下场景考虑调用：</p>
+<ul>
+<li>大量临时对象使用完毕后（如批量图片处理）</li>
+<li>用户触发了”清除缓存”操作后</li>
+<li>应用从后台恢复时，预期有大量可回收对象</li>
+</ul>
+<p>不要在动画帧回调、滑动过程中调用。</p>
+<h3 id="Q5：后台任务申请了就不会被杀吗？"><a href="#Q5：后台任务申请了就不会被杀吗？" class="headerlink" title="Q5：后台任务申请了就不会被杀吗？"></a>Q5：后台任务申请了就不会被杀吗？</h3><p>不是。后台任务仅<strong>提升进程优先级</strong>，系统资源严重不足时仍可能终止。官方说明：”当系统资源严重不足时，即使应用进程申请了规范内的后台任务，系统仍会终止部分进程，用以保障系统稳定性。”</p>
+<hr>
+<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>核心策略</th>
+<th>关键工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内存模型</td>
+<td>理解HPP GC分代机制</td>
+<td>hilog GC日志</td>
+</tr>
+<tr>
+<td>泄漏检测</td>
+<td>WeakReference + 引用链分析</td>
+<td>Memory Profiler</td>
+</tr>
+<tr>
+<td>GC调优</td>
+<td>减少临时对象 + hintGC</td>
+<td>AllocationTracker</td>
+</tr>
+<tr>
+<td>功耗管理</td>
+<td>合理选择后台任务类型</td>
+<td>BackgroundTaskManager</td>
+</tr>
+<tr>
+<td>省电优化</td>
+<td>深色模式 + 传感器管理</td>
+<td>Power API</td>
+</tr>
+</tbody></table>
+<p>内存和功耗优化是一个持续的过程。建议建立<strong>内存基线</strong>和<strong>功耗基线</strong>，在每次版本迭代中对比，确保不会退化。结合DevEco Profiler定期分析，才能打造真正轻量级的应用。</p>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/gc-introduction">GC垃圾回收机制</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-arkts-memory-leak-analysis">ArkTS内存泄漏分析</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-arkts-js-memory-analysis">内存分析最佳实践</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-backgroundtaskmanager">后台任务管理API</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-common-optimization-for-background-tasks">后台任务低功耗</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-hidebug">HiDebug接口参考</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/resource-leak-guidelines">资源泄漏管控</a></li>
+</ul>
+<hr>
+<p>📚 <strong>鸿蒙应用性能优化系列导航</strong></p>
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>文章</th>
+<th>核心内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><a href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/">从指标到工具</a></td>
+<td>性能指标体系 + DevEco Profiler全家桶</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/">冷启动优化</a></td>
+<td>启动流程 + Launch Profiler + 6大优化策略</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="/2026/08/22/%E9%B8%BF%E8%92%99ArkUI%E6%B8%B2%E6%9F%93%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%91%8A%E5%88%AB%E5%8D%A1%E9%A1%BF%E4%B8%8E%E4%B8%A2%E5%B8%A7/">ArkUI渲染性能</a></td>
+<td>LazyForEach + 组件复用 + Frame Profiler</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td><strong><a href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/">内存管理与功耗优化</a></strong></td>
+<td><strong>HPP GC + 内存泄漏 + 功耗管理</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>并发编程与网络优化（即将推出）</td>
+<td>Worker + TaskPool + 网络优化</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/">https://dpzxka.github.io/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E9%B8%BF%E8%92%99/">鸿蒙</a><a class="post-meta__tags" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">性能优化</a><a class="post-meta__tags" href="/tags/HarmonyOS/">HarmonyOS</a><a class="post-meta__tags" href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">内存管理</a><a class="post-meta__tags" href="/tags/%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96/">功耗优化</a><a class="post-meta__tags" href="/tags/GC/">GC</a></div><div class="post-share"><div class="social-share" data-image="/img/harmonyos-memory-power-cover.svg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/" title="鸿蒙应用性能优化完全指南：从指标到工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-perf-overview-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙应用性能优化完全指南：从指标到工具</div></div><div class="info-2"><div class="info-item-1">前言在开发鸿蒙应用时，功能实现只是第一步，性能优化才是决定用户体验的关键。一个卡顿的列表、一次漫长的启动、一段耗电的后台任务，都可能让用户卸载你的应用。 鸿蒙系统提供了一套完整的性能分析工具链——DevEco Profiler，涵盖启动、帧率、CPU、内存四大维度。但很多开发者并不清楚：  什么指标算”达标”？ 各种 Profiler 分别解决什么问题？ 发现性能瓶颈后如何定位根因？  本篇作为性能优化系列的第一篇，不讲具体优化技巧，而是帮你建立一套完整的性能分析体系——知道用什么工具、看什么指标、怎么发现问题。  📌 系列导航  性能优化完全指南：从指标到工具（本文） 冷启动优化实战：从1200ms到300ms ArkUI渲染性能优化：告别卡顿与丢帧 内存管理与功耗优化：打造轻量级应用 并发编程与网络优化：Worker&#x2F;TaskPool实战    一、性能优化的核心指标在开始优化之前，我们先明确衡量标准。鸿蒙应用的性能主要关注以下五个维度：    维度 核心指标 达标线 问题表现    启动 冷启动耗时 &lt; 1200ms 白屏时间长   启动 热启动耗时 &l...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/" title="鸿蒙冷启动优化实战：从1200ms到300ms"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-coldstart-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">鸿蒙冷启动优化实战：从1200ms到300ms</div></div><div class="info-2"><div class="info-item-1">前言 本文是「鸿蒙应用性能优化」系列的第2篇。上一篇我们建立了性能指标体系和DevEco Profiler的使用方法，这篇我们聚焦一个最影响用户第一印象的问题——冷启动。  你有没有遇到过这种情况：用户点了你的应用图标，然后盯着空白屏幕等了2秒、3秒甚至更久？每一秒的等待都在消耗用户的耐心。华为官方文档明确指出，冷启动时延大于1100ms时，可以认为是应用启动缓慢。因此，将冷启动控制在1000ms以内是基本目标，800ms以内则是更理想的体验。 这篇文章将带你：  理解冷启动的完整流程——知道每个阶段在做什么，才能找到优化点 掌握Launch Profiler的使用——用数据说话，而不是靠猜 学习6大优化策略——每个策略都有代码示例和效果数据 完成一个实战案例——从1200ms优化到300ms的完整过程     系列导航   序号 文章 核心内容    1 鸿蒙应用性能优化完全指南：从指标到工具 性能指标体系 + DevEco Profiler + ArkUI Inspector + Code Linter   2 本文：鸿蒙冷启动优化实战：从1200ms到300ms 冷启动原理...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/" title="鸿蒙冷启动优化实战：从1200ms到300ms"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-coldstart-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙冷启动优化实战：从1200ms到300ms</div></div><div class="info-2"><div class="info-item-1">前言 本文是「鸿蒙应用性能优化」系列的第2篇。上一篇我们建立了性能指标体系和DevEco Profiler的使用方法，这篇我们聚焦一个最影响用户第一印象的问题——冷启动。  你有没有遇到过这种情况：用户点了你的应用图标，然后盯着空白屏幕等了2秒、3秒甚至更久？每一秒的等待都在消耗用户的耐心。华为官方文档明确指出，冷启动时延大于1100ms时，可以认为是应用启动缓慢。因此，将冷启动控制在1000ms以内是基本目标，800ms以内则是更理想的体验。 这篇文章将带你：  理解冷启动的完整流程——知道每个阶段在做什么，才能找到优化点 掌握Launch Profiler的使用——用数据说话，而不是靠猜 学习6大优化策略——每个策略都有代码示例和效果数据 完成一个实战案例——从1200ms优化到300ms的完整过程     系列导航   序号 文章 核心内容    1 鸿蒙应用性能优化完全指南：从指标到工具 性能指标体系 + DevEco Profiler + ArkUI Inspector + Code Linter   2 本文：鸿蒙冷启动优化实战：从1200ms到300ms 冷启动原理...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/" title="鸿蒙应用性能优化完全指南：从指标到工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-perf-overview-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙应用性能优化完全指南：从指标到工具</div></div><div class="info-2"><div class="info-item-1">前言在开发鸿蒙应用时，功能实现只是第一步，性能优化才是决定用户体验的关键。一个卡顿的列表、一次漫长的启动、一段耗电的后台任务，都可能让用户卸载你的应用。 鸿蒙系统提供了一套完整的性能分析工具链——DevEco Profiler，涵盖启动、帧率、CPU、内存四大维度。但很多开发者并不清楚：  什么指标算”达标”？ 各种 Profiler 分别解决什么问题？ 发现性能瓶颈后如何定位根因？  本篇作为性能优化系列的第一篇，不讲具体优化技巧，而是帮你建立一套完整的性能分析体系——知道用什么工具、看什么指标、怎么发现问题。  📌 系列导航  性能优化完全指南：从指标到工具（本文） 冷启动优化实战：从1200ms到300ms ArkUI渲染性能优化：告别卡顿与丢帧 内存管理与功耗优化：打造轻量级应用 并发编程与网络优化：Worker&#x2F;TaskPool实战    一、性能优化的核心指标在开始优化之前，我们先明确衡量标准。鸿蒙应用的性能主要关注以下五个维度：    维度 核心指标 达标线 问题表现    启动 冷启动耗时 &lt; 1200ms 白屏时间长   启动 热启动耗时 &l...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99ArkUI%E6%B8%B2%E6%9F%93%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96-%E5%91%8A%E5%88%AB%E5%8D%A1%E9%A1%BF%E4%B8%8E%E4%B8%A2%E5%B8%A7/" title="鸿蒙ArkUI渲染性能优化：告别卡顿与丢帧"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-arkui-rendering-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙ArkUI渲染性能优化：告别卡顿与丢帧</div></div><div class="info-2"><div class="info-item-1"> 本文是鸿蒙性能优化系列的第三篇。前两篇我们解决了启动慢的问题，本篇聚焦渲染性能——如何让列表滑动丝滑如 butter，如何告别卡顿与丢帧。  前言你是否遇到过这些场景：  列表快速滑动时出现明显卡顿 页面切换时出现白屏或闪烁 复杂布局下帧率骤降  这些问题的根源往往是渲染性能瓶颈。ArkUI 作为鸿蒙的 UI 框架，提供了多种优化手段，但需要开发者正确使用。 本篇将从渲染原理入手，系统讲解 LazyForEach、组件复用、布局优化、Frame Profiler 等核心知识点。 📚 系列导航   篇章 主题 状态    第一篇 鸿蒙应用性能优化完全指南：从指标到工具 ✅ 已发布   第二篇 鸿蒙冷启动优化实战：从1200ms到300ms ✅ 已发布   第三篇 本文：鸿蒙ArkUI渲染性能优化：告别卡顿与丢帧 📝 当前   第四篇 鸿蒙内存管理与功耗优化：打造轻量级应用 🔜 待写   第五篇 鸿蒙并发编程与网络优化：Worker&#x2F;TaskPool实战 🔜 待写    一、ArkUI 渲染机制1.1 渲染流程ArkUI 的渲染流程分为四个阶段：    阶段 说明...</div></div></div></a><a class="pagination-related" href="/2026/05/31/%E9%B8%BF%E8%92%99%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BB%84%E4%BB%B6%E4%B8%8EBuilder%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-custom-component.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-31</div><div class="info-item-2">鸿蒙自定义组件与 @Builder 完全解析：从组件基础到插槽模式</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI V2 的自定义组件体系，完整覆盖 @ComponentV2、@Builder、@BuilderParam、@Track、@Reusable 等核心装饰器，用实战理解组件化设计</div></div></div></a><a class="pagination-related" href="/2026/05/11/%E9%B8%BF%E8%92%99%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/" title="鸿蒙动画系统完全指南：从属性动画到显式动画再到转场动画"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-animation-system.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-11</div><div class="info-item-2">鸿蒙动画系统完全指南：从属性动画到显式动画再到转场动画</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI 动画体系的三大支柱——属性动画、显式动画、转场动画，用完整实战覆盖曲线、弹簧、路径动画</div></div></div></a><a class="pagination-related" href="/2026/05/31/%E9%B8%BF%E8%92%99V2%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E5%AE%8C%E5%85%A8%E8%A7%A3%E6%9E%90/" title="鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider&#x2F;@Consumer 的完整状态体系"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-state-management.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-31</div><div class="info-item-2">鸿蒙 V2 状态管理完全解析：从 @Local 到 @Provider&#x2F;@Consumer 的完整状态体系</div></div><div class="info-2"><div class="info-item-1">深入 ArkUI V2 的五大状态装饰器——@Local、@Param、@Track、@Provider、@Consumer，对比 V1 的 @State/@Prop/@Link/@Provide/@Consume，用源码级理解掌握状态管理</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">一、鸿蒙内存管理基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E6%A6%82%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 内存模型概览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-HPP-GC%EF%BC%9A%E9%AB%98%E6%80%A7%E8%83%BD%E9%83%A8%E5%88%86%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 HPP GC：高性能部分垃圾回收</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Smart-GC%EF%BC%9A%E6%99%BA%E8%83%BDGC%E6%8A%91%E5%88%B6"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 Smart GC：智能GC抑制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%A3%80%E6%B5%8B%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-number">2.</span> <span class="toc-text">二、内存泄漏检测与修复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%B8%B8%E8%A7%81%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 常见内存泄漏模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 内存分析工具链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%AE%9E%E6%88%98%EF%BC%9A%E7%94%A8Memory-Profiler%E5%AE%9A%E4%BD%8D%E6%B3%84%E6%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 实战：用Memory Profiler定位泄漏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-WeakReference%EF%BC%9A%E9%81%BF%E5%85%8D%E6%B3%84%E6%BC%8F%E7%9A%84%E6%A0%87%E5%87%86%E5%81%9A%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 WeakReference：避免泄漏的标准做法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81GC%E8%B0%83%E4%BC%98%E7%AD%96%E7%95%A5"><span class="toc-number">3.</span> <span class="toc-text">三、GC调优策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%90%86%E8%A7%A3GC%E6%97%A5%E5%BF%97"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 理解GC日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BC%98%E5%8C%96GC%E5%8E%8B%E5%8A%9B%E7%9A%84%E7%BC%96%E7%A0%81%E5%AE%9E%E8%B7%B5"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 优化GC压力的编码实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-ArkTools-hintGC-%EF%BC%9A%E4%B8%BB%E5%8A%A8%E8%A7%A6%E5%8F%91GC"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 ArkTools.hintGC()：主动触发GC</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">四、功耗优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8A%9F%E8%80%97%E6%95%8F%E6%84%9F%E5%9C%BA%E6%99%AF"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 功耗敏感场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 后台任务管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%BC%A0%E6%84%9F%E5%99%A8%E5%8A%9F%E8%80%97%E7%AE%A1%E7%90%86"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 传感器功耗管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96"><span class="toc-number">4.4.</span> <span class="toc-text">4.4 网络请求功耗优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%B7%B1%E8%89%B2%E6%A8%A1%E5%BC%8F%E4%B8%8E%E7%9C%81%E7%94%B5"><span class="toc-number">5.</span> <span class="toc-text">五、深色模式与省电</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B%EF%BC%9A%E5%9B%BE%E7%89%87%E6%B5%8F%E8%A7%88%E5%BA%94%E7%94%A8%E4%BC%98%E5%8C%96"><span class="toc-number">6.</span> <span class="toc-text">六、实战案例：图片浏览应用优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BC%98%E5%8C%96%E5%89%8D%E9%97%AE%E9%A2%98"><span class="toc-number">6.1.</span> <span class="toc-text">6.1 优化前问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%BC%98%E5%8C%96%E8%BF%87%E7%A8%8B"><span class="toc-number">6.2.</span> <span class="toc-text">6.2 优化过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%BC%98%E5%8C%96%E6%95%88%E6%9E%9C"><span class="toc-number">6.3.</span> <span class="toc-text">6.3 优化效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5Checklist"><span class="toc-number">7.</span> <span class="toc-text">七、最佳实践Checklist</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">7.1.</span> <span class="toc-text">内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GC%E8%B0%83%E4%BC%98"><span class="toc-number">7.2.</span> <span class="toc-text">GC调优</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96"><span class="toc-number">7.3.</span> <span class="toc-text">功耗优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">8.</span> <span class="toc-text">八、常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9A%E5%BA%94%E7%94%A8%E5%86%85%E5%AD%98%E5%8D%A0%E7%94%A8%E5%A4%9A%E5%B0%91%E7%AE%97%E6%AD%A3%E5%B8%B8%EF%BC%9F"><span class="toc-number">8.1.</span> <span class="toc-text">Q1：应用内存占用多少算正常？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9ASmart-GC%E4%BC%9A%E5%BD%B1%E5%93%8D%E6%88%91%E7%9A%84%E5%BA%94%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-number">8.2.</span> <span class="toc-text">Q2：Smart GC会影响我的应用吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9AWeakReference%E4%BC%9A%E5%BD%B1%E5%93%8D%E6%80%A7%E8%83%BD%E5%90%97%EF%BC%9F"><span class="toc-number">8.3.</span> <span class="toc-text">Q3：WeakReference会影响性能吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E9%9C%80%E8%A6%81%E8%B0%83%E7%94%A8hintGC-%EF%BC%9F"><span class="toc-number">8.4.</span> <span class="toc-text">Q4：如何判断是否需要调用hintGC()？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9A%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%E7%94%B3%E8%AF%B7%E4%BA%86%E5%B0%B1%E4%B8%8D%E4%BC%9A%E8%A2%AB%E6%9D%80%E5%90%97%EF%BC%9F"><span class="toc-number">8.5.</span> <span class="toc-text">Q5：后台任务申请了就不会被杀吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">九、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">10.</span> <span class="toc-text">参考资料</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
