@@ -1,0 +1,190 @@
+<svg width="1200" height="675" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e27"/>
+      <stop offset="50%" style="stop-color:#1a1f3a"/>
+      <stop offset="100%" style="stop-color:#0d1225"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#7b68ee"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00e676"/>
+      <stop offset="100%" style="stop-color:#69f0ae"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bg)"/>
+
+  <!-- Grid -->
+  <g opacity="0.06">
+    <line x1="0" y1="150" x2="1200" y2="150" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="0" y1="450" x2="1200" y2="450" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="200" y1="0" x2="200" y2="675" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="400" y1="0" x2="400" y2="675" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="600" y1="0" x2="600" y2="675" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="800" y1="0" x2="800" y2="675" stroke="#00d4ff" stroke-width="0.5"/>
+    <line x1="1000" y1="0" x2="1000" y2="675" stroke="#00d4ff" stroke-width="0.5"/>
+  </g>
+
+  <!-- Decorative circles -->
+  <circle cx="150" cy="500" r="120" fill="none" stroke="#00d4ff" stroke-width="0.5" opacity="0.12"/>
+  <circle cx="1050" cy="200" r="100" fill="none" stroke="#7b68ee" stroke-width="0.5" opacity="0.12"/>
+
+  <!-- TaskPool icon (left) -->
+  <g transform="translate(100, 200)">
+    <!-- Pool container -->
+    <rect x="0" y="0" width="180" height="200" rx="10" fill="#1a2744" stroke="#00d4ff" stroke-width="1.5" opacity="0.9"/>
+    <text x="90" y="28" text-anchor="middle" fill="#00d4ff" font-family="Arial, sans-serif" font-size="14" font-weight="bold">TaskPool</text>
+    
+    <!-- Task boxes -->
+    <rect x="15" y="45" width="40" height="30" rx="4" fill="#00e676" opacity="0.3" stroke="#00e676" stroke-width="1"/>
+    <text x="35" y="64" text-anchor="middle" fill="#00e676" font-family="Arial, sans-serif" font-size="8">T1</text>
+    
+    <rect x="70" y="45" width="40" height="30" rx="4" fill="#00e676" opacity="0.3" stroke="#00e676" stroke-width="1"/>
+    <text x="90" y="64" text-anchor="middle" fill="#00e676" font-family="Arial, sans-serif" font-size="8">T2</text>
+    
+    <rect x="125" y="45" width="40" height="30" rx="4" fill="#00e676" opacity="0.3" stroke="#00e676" stroke-width="1"/>
+    <text x="145" y="64" text-anchor="middle" fill="#00e676" font-family="Arial, sans-serif" font-size="8">T3</text>
+    
+    <!-- Worker threads -->
+    <rect x="15" y="90" width="150" height="20" rx="3" fill="#7b68ee" opacity="0.3"/>
+    <text x="90" y="104" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">Worker Thread 1</text>
+    
+    <rect x="15" y="115" width="150" height="20" rx="3" fill="#7b68ee" opacity="0.3"/>
+    <text x="90" y="129" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">Worker Thread 2</text>
+    
+    <rect x="15" y="140" width="150" height="20" rx="3" fill="#7b68ee" opacity="0.2"/>
+    <text x="90" y="154" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.5">Worker Thread 3</text>
+    
+    <!-- Auto scaling indicator -->
+    <text x="90" y="185" text-anchor="middle" fill="#00d4ff" font-family="Arial, sans-serif" font-size="9" opacity="0.7">Auto Scale</text>
+  </g>
+
+  <!-- Worker icon (center-left) -->
+  <g transform="translate(330, 200)">
+    <rect x="0" y="0" width="180" height="200" rx="10" fill="#1a2744" stroke="#ff9800" stroke-width="1.5" opacity="0.9"/>
+    <text x="90" y="28" text-anchor="middle" fill="#ff9800" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Worker</text>
+    
+    <!-- Main thread -->
+    <rect x="15" y="45" width="150" height="25" rx="4" fill="#ff9800" opacity="0.3" stroke="#ff9800" stroke-width="1"/>
+    <text x="90" y="62" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="9">Main Thread</text>
+    
+    <!-- Message arrows -->
+    <line x1="90" y1="72" x2="90" y2="95" stroke="#ffffff" stroke-width="1" opacity="0.5" marker-end="url(#arrowhead)"/>
+    <text x="100" y="87" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" opacity="0.5">postMessage</text>
+    
+    <!-- Worker thread -->
+    <rect x="15" y="95" width="150" height="25" rx="4" fill="#ff9800" opacity="0.3" stroke="#ff9800" stroke-width="1"/>
+    <text x="90" y="112" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="9">Worker Thread</text>
+    
+    <!-- Return arrow -->
+    <line x1="90" y1="122" x2="90" y2="145" stroke="#ffffff" stroke-width="1" opacity="0.5" marker-end="url(#arrowhead)"/>
+    <text x="100" y="137" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" opacity="0.5">onmessage</text>
+    
+    <!-- Isolated memory -->
+    <rect x="15" y="150" width="150" height="35" rx="4" fill="#1a1f3a" stroke="#ff9800" stroke-width="1" opacity="0.5"/>
+    <text x="90" y="165" text-anchor="middle" fill="#ff9800" font-family="Arial, sans-serif" font-size="8">独立内存空间</text>
+    <text x="90" y="178" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" opacity="0.5">消息传递 · 无共享</text>
+  </g>
+
+  <!-- Network optimization icon (center-right) -->
+  <g transform="translate(560, 200)">
+    <rect x="0" y="0" width="180" height="200" rx="10" fill="#1a2744" stroke="#00e676" stroke-width="1.5" opacity="0.9"/>
+    <text x="90" y="28" text-anchor="middle" fill="#00e676" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Network</text>
+    
+    <!-- Request/Response cycle -->
+    <rect x="15" y="45" width="60" height="25" rx="4" fill="#00e676" opacity="0.3"/>
+    <text x="45" y="62" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="8">Request</text>
+    
+    <rect x="105" y="45" width="60" height="25" rx="4" fill="#00d4ff" opacity="0.3"/>
+    <text x="135" y="62" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="8">Cache</text>
+    
+    <!-- Cache hit/miss -->
+    <line x1="75" y1="57" x2="105" y2="57" stroke="#00e676" stroke-width="1" opacity="0.6"/>
+    <text x="90" y="52" text-anchor="middle" fill="#00e676" font-family="Arial, sans-serif" font-size="6">HIT</text>
+    
+    <!-- Batch request -->
+    <rect x="15" y="85" width="150" height="35" rx="4" fill="#1a1f3a" stroke="#ffffff" stroke-width="0.5" opacity="0.6"/>
+    <text x="90" y="100" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="8">Batch Requests</text>
+    <text x="90" y="112" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="7" opacity="0.5">合并高频小请求</text>
+    
+    <!-- Timeout control -->
+    <rect x="15" y="130" width="150" height="25" rx="4" fill="#ff5252" opacity="0.2" stroke="#ff5252" stroke-width="1"/>
+    <text x="90" y="147" text-anchor="middle" fill="#ff5252" font-family="Arial, sans-serif" font-size="8">Timeout + Cancel</text>
+    
+    <!-- Pagination -->
+    <rect x="15" y="165" width="150" height="25" rx="4" fill="#7b68ee" opacity="0.2" stroke="#7b68ee" stroke-width="1"/>
+    <text x="90" y="182" text-anchor="middle" fill="#7b68ee" font-family="Arial, sans-serif" font-size="8">分页加载 · 懒加载</text>
+  </g>
+
+  <!-- Comparison panel (right) -->
+  <g transform="translate(790, 200)">
+    <rect x="0" y="0" width="280" height="200" rx="10" fill="#1a2744" stroke="#ffffff" stroke-width="0.5" opacity="0.6"/>
+    <text x="140" y="25" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="13" font-weight="bold">对比分析</text>
+    <line x1="20" y1="35" x2="260" y2="35" stroke="#ffffff" stroke-width="0.3" opacity="0.3"/>
+    
+    <!-- Table header -->
+    <text x="30" y="55" fill="#00d4ff" font-family="Arial, sans-serif" font-size="9" font-weight="bold">维度</text>
+    <text x="110" y="55" fill="#00d4ff" font-family="Arial, sans-serif" font-size="9" font-weight="bold">TaskPool</text>
+    <text x="190" y="55" fill="#ff9800" font-family="Arial, sans-serif" font-size="9" font-weight="bold">Worker</text>
+    
+    <line x1="20" y1="62" x2="260" y2="62" stroke="#ffffff" stroke-width="0.2" opacity="0.2"/>
+    
+    <!-- Rows -->
+    <text x="30" y="80" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">线程管理</text>
+    <text x="110" y="80" fill="#00e676" font-family="Arial, sans-serif" font-size="8">自动</text>
+    <text x="190" y="80" fill="#ff5252" font-family="Arial, sans-serif" font-size="8">手动</text>
+    
+    <text x="30" y="98" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">线程复用</text>
+    <text x="110" y="98" fill="#00e676" font-family="Arial, sans-serif" font-size="8">支持</text>
+    <text x="190" y="98" fill="#ff5252" font-family="Arial, sans-serif" font-size="8">不支持</text>
+    
+    <text x="30" y="116" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">任务依赖</text>
+    <text x="110" y="116" fill="#00e676" font-family="Arial, sans-serif" font-size="8">支持</text>
+    <text x="190" y="116" fill="#ff5252" font-family="Arial, sans-serif" font-size="8">不支持</text>
+    
+    <text x="30" y="134" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">负载均衡</text>
+    <text x="110" y="134" fill="#00e676" font-family="Arial, sans-serif" font-size="8">支持</text>
+    <text x="190" y="134" fill="#ff5252" font-family="Arial, sans-serif" font-size="8">不支持</text>
+    
+    <text x="30" y="152" fill="#ffffff" font-family="Arial, sans-serif" font-size="8" opacity="0.7">适用场景</text>
+    <text x="110" y="152" fill="#ffffff" font-family="Arial, sans-serif" font-size="7">独立计算任务</text>
+    <text x="190" y="152" fill="#ffffff" font-family="Arial, sans-serif" font-size="7">持续后台任务</text>
+    
+    <!-- Recommendation -->
+    <rect x="20" y="168" width="240" height="24" rx="4" fill="#00d4ff" opacity="0.15"/>
+    <text x="140" y="184" text-anchor="middle" fill="#00d4ff" font-family="Arial, sans-serif" font-size="9" font-weight="bold">推荐首选 TaskPool</text>
+  </g>
+
+  <!-- Main title -->
+  <text x="600" y="100" text-anchor="middle" fill="url(#accent)" font-family="Arial, sans-serif" font-size="38" font-weight="bold" filter="url(#glow)">
+    Concurrency &amp; Network
+  </text>
+  <text x="600" y="140" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="18" opacity="0.6">
+    鸿蒙并发编程与网络优化
+  </text>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto">
+      <polygon points="0 0, 6 2, 0 4" fill="#ffffff" opacity="0.5"/>
+    </marker>
+  </defs>
+
+  <!-- Subtle dots -->
+  <circle cx="50" cy="50" r="2" fill="#00d4ff" opacity="0.4"/>
+  <circle cx="1150" cy="100" r="1.5" fill="#7b68ee" opacity="0.3"/>
+  <circle cx="100" cy="600" r="2" fill="#00e676" opacity="0.3"/>
+  <circle cx="1100" cy="550" r="1.5" fill="#ff9800" opacity="0.3"/>
+</svg>
