@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#0d2137"/>
+      <stop offset="100%" style="stop-color:#132d46"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="100%" style="stop-color:#0099ff"/>
+    </linearGradient>
+    <linearGradient id="viewGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4aa"/>
+      <stop offset="100%" style="stop-color:#00b894"/>
+    </linearGradient>
+    <linearGradient id="vmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0099ff"/>
+      <stop offset="100%" style="stop-color:#0077cc"/>
+    </linearGradient>
+    <linearGradient id="modelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b9d"/>
+      <stop offset="100%" style="stop-color:#ff4757"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bgGrad)"/>
+  
+  <!-- Grid pattern -->
+  <g opacity="0.06">
+    <line x1="0" y1="0" x2="0" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="300" y1="0" x2="300" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="500" y1="0" x2="500" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="700" y1="0" x2="700" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="900" y1="0" x2="900" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="1100" y1="0" x2="1100" y2="675" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="0" x2="1200" y2="0" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="100" x2="1200" y2="100" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="300" x2="1200" y2="300" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="500" x2="1200" y2="500" stroke="#00d4aa" stroke-width="1"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="#00d4aa" stroke-width="1"/>
+  </g>
+  
+  <!-- MVVM Architecture Diagram -->
+  <!-- View Layer -->
+  <rect x="120" y="120" width="300" height="100" rx="12" fill="url(#viewGrad)" opacity="0.9"/>
+  <text x="270" y="160" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold" font-family="Arial">VIEW</text>
+  <text x="270" y="185" text-anchor="middle" fill="#ffffff" font-size="11" font-family="Arial">@Entry @Component</text>
+  <text x="270" y="200" text-anchor="middle" fill="#e0f5f0" font-size="10" font-family="Arial">UI渲染 · 用户交互 · 生命周期</text>
+  
+  <!-- Arrow View → ViewModel -->
+  <line x1="270" y1="220" x2="270" y2="280" stroke="#00d4aa" stroke-width="2" stroke-dasharray="5,3"/>
+  <polygon points="270,285 265,275 275,275" fill="#00d4aa"/>
+  
+  <!-- ViewModel Layer -->
+  <rect x="120" y="280" width="300" height="100" rx="12" fill="url(#vmGrad)" opacity="0.9"/>
+  <text x="270" y="320" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold" font-family="Arial">VIEWMODEL</text>
+  <text x="270" y="345" text-anchor="middle" fill="#ffffff" font-size="11" font-family="Arial">@ObservedV2 @Trace</text>
+  <text x="270" y="360" text-anchor="middle" fill="#e0f0ff" font-size="10" font-family="Arial">业务逻辑 · 状态管理 · 数据转换</text>
+  
+  <!-- Arrow ViewModel → Model -->
+  <line x1="270" y1="380" x2="270" y2="440" stroke="#0099ff" stroke-width="2" stroke-dasharray="5,3"/>
+  <polygon points="270,445 265,435 275,435" fill="#0099ff"/>
+  
+  <!-- Model Layer -->
+  <rect x="120" y="440" width="300" height="100" rx="12" fill="url(#modelGrad)" opacity="0.9"/>
+  <text x="270" y="480" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold" font-family="Arial">MODEL</text>
+  <text x="270" y="505" text-anchor="middle" fill="#ffffff" font-size="11" font-family="Arial">Repository · DataSource</text>
+  <text x="270" y="520" text-anchor="middle" fill="#ffe0e6" font-size="10" font-family="Arial">数据获取 · 缓存策略 · 网络请求</text>
+  
+  <!-- Data flow arrow (right side) -->
+  <path d="M 420 490 C 480 490 480 330 420 330" stroke="#ff6b9d" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+  <polygon points="415,335 425,335 420,325" fill="#ff6b9d"/>
+  <text x="465" y="410" text-anchor="middle" fill="#ff6b9d" font-size="9" font-family="Arial" transform="rotate(-90, 465, 410)">返回数据</text>
+  
+  <!-- Right side: Third-party Libraries -->
+  <text x="750" y="140" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="bold" font-family="Arial">Third-party Libraries</text>
+  <text x="750" y="165" text-anchor="middle" fill="#7aafcc" font-size="12" font-family="Arial">ohpm 包管理 · 生态丰富</text>
+  
+  <!-- Library cards -->
+  <rect x="550" y="190" width="160" height="70" rx="8" fill="#0d2f4a" stroke="#00d4aa" stroke-width="1.5"/>
+  <text x="630" y="215" text-anchor="middle" fill="#00d4aa" font-size="11" font-weight="bold" font-family="Arial">Network</text>
+  <text x="630" y="235" text-anchor="middle" fill="#5a9ac5" font-size="10" font-family="Arial">@ohos/axios</text>
+  <text x="630" y="250" text-anchor="middle" fill="#888888" font-size="9" font-family="Arial">拦截器 · Promise</text>
+  
+  <rect x="730" y="190" width="160" height="70" rx="8" fill="#0d2f4a" stroke="#0099ff" stroke-width="1.5"/>
+  <text x="810" y="215" text-anchor="middle" fill="#0099ff" font-size="11" font-weight="bold" font-family="Arial">Image</text>
+  <text x="810" y="235" text-anchor="middle" fill="#5a9ac5" font-size="10" font-family="Arial">@ohos/imageknife</text>
+  <text x="810" y="250" text-anchor="middle" fill="#888888" font-size="9" font-family="Arial">缓存 · 变换 · 并发</text>
+  
+  <rect x="910" y="190" width="160" height="70" rx="8" fill="#0d2f4a" stroke="#ff6b9d" stroke-width="1.5"/>
+  <text x="990" y="215" text-anchor="middle" fill="#ff6b9d" font-size="11" font-weight="bold" font-family="Arial">Dialog</text>
+  <text x="990" y="235" text-anchor="middle" fill="#5a9ac5" font-size="10" font-family="Arial">smart_dialog</text>
+  <text x="990" y="250" text-anchor="middle" fill="#888888" font-size="9" font-family="Arial">零侵入 · 一行弹窗</text>
+  
+  <rect x="550" y="280" width="160" height="70" rx="8" fill="#0d2f4a" stroke="#ffd93d" stroke-width="1.5"/>
+  <text x="630" y="305" text-anchor="middle" fill="#ffd93d" font-size="11" font-weight="bold" font-family="Arial">Logger</text>
+  <text x="630" y="325" text-anchor="middle" fill="#5a9ac5" font-size="10" font-family="Arial">@nzy/logger</text>
+  <text x="630" y="340" text-anchor="middle" fill="#888888" font-size="9" font-family="Arial">轻量 · 点击跳转</text>
+  
+  <rect x="730" y="280" width="160" height="70" rx="8" fill="#0d2f4a" stroke="#ff9f43" stroke-width="1.5"/>
+  <text x="810" y="305" text-anchor="middle" fill="#ff9f43" font-size="11" font-weight="bold" font-family="Arial">Utils</text>
+  <text x="810" y="325" text-anchor="middle" fill="#5a9ac5" font-size="10" font-family="Arial">@yunkss/eftool</text>
+  <text x="810" y="340" text-anchor="middle" fill="#888888" font-size="9" font-family="Arial">字符串 · 集合 · 加密</text>
+  
+  <rect x="910" y="280" width="160" height="70" rx="8" fill="#0d2f4a" stroke="#a29bfe" stroke-width="1.5"/>
+  <text x="990" y="305" text-anchor="middle" fill="#a29bfe" font-size="11" font-weight="bold" font-family="Arial">Refresh</text>
+  <text x="990" y="325" text-anchor="middle" fill="#5a9ac5" font-size="10" font-family="Arial">@ohos/refresh</text>
+  <text x="990" y="340" text-anchor="middle" fill="#888888" font-size="9" font-family="Arial">下拉 · 上拉 · 瀑布流</text>
+  
+  <!-- Project Structure -->
+  <text x="750" y="400" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold" font-family="Arial">Project Structure</text>
+  
+  <rect x="550" y="420" width="520" height="180" rx="8" fill="#0d2f4a" opacity="0.8"/>
+  <text x="570" y="445" fill="#00d4aa" font-size="12" font-weight="bold" font-family="monospace">entry/src/main/ets/</text>
+  <text x="585" y="465" fill="#5a9ac5" font-size="11" font-family="monospace">├── pages/          # 页面</text>
+  <text x="585" y="485" fill="#5a9ac5" font-size="11" font-family="monospace">├── viewmodel/      # 状态管理</text>
+  <text x="585" y="505" fill="#5a9ac5" font-size="11" font-family="monospace">├── repository/     # 数据仓库</text>
+  <text x="585" y="525" fill="#5a9ac5" font-size="11" font-family="monospace">├── service/        # 网络服务</text>
+  <text x="585" y="545" fill="#5a9ac5" font-size="11" font-family="monospace">├── model/          # 数据模型</text>
+  <text x="585" y="565" fill="#5a9ac5" font-size="11" font-family="monospace">├── components/     # 通用组件</text>
+  <text x="585" y="585" fill="#5a9ac5" font-size="11" font-family="monospace">├── utils/          # 工具类</text>
+  <text x="585" y="598" fill="#5a9ac5" font-size="11" font-family="monospace">└── themes/         # 主题管理</text>
+  
+  <!-- Title -->
+  <text x="600" y="58" text-anchor="middle" fill="#ffffff" font-size="36" font-weight="bold" font-family="Arial, sans-serif">
+    <tspan fill="url(#accentGrad)">MVVM</tspan>
+    <tspan fill="#ffffff"> Architecture</tspan>
+  </text>
+  <text x="600" y="95" text-anchor="middle" fill="#7aafcc" font-size="16" font-family="Arial, sans-serif">
+    鸿蒙新项目架构搭建与三方库选型
+  </text>
+  
+  <!-- HarmonyOS badge -->
+  <rect x="480" y="630" width="240" height="28" rx="14" fill="#00d4aa" opacity="0.15" stroke="#00d4aa" stroke-width="1"/>
+  <text x="600" y="650" text-anchor="middle" fill="#00d4aa" font-size="12" font-family="Arial, sans-serif" font-weight="bold">
+    HarmonyOS NEXT · API 12+
+  </text>
+</svg>
