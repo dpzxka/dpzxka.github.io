@@ -1,0 +1,999 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>鸿蒙元服务与万能卡片完全指南 | 小白兔与小猪猪</title><meta name="author" content="XKADPZ"><meta name="copyright" content="XKADPZ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="深入解析鸿蒙元服务与万能卡片开发，从架构原理到实战案例，掌握免安装服务与前置信息展示的核心技术">
+<meta property="og:type" content="article">
+<meta property="og:title" content="鸿蒙元服务与万能卡片完全指南">
+<meta property="og:url" content="https://dpzxka.github.io/2026/08/24/%E9%B8%BF%E8%92%99%E5%85%83%E6%9C%8D%E5%8A%A1%E4%B8%8E%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="小白兔与小猪猪">
+<meta property="og:description" content="深入解析鸿蒙元服务与万能卡片开发，从架构原理到实战案例，掌握免安装服务与前置信息展示的核心技术">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://dpzxka.github.io/img/default_top_img.jpeg">
+<meta property="article:published_time" content="2026-08-24T10:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-30T00:04:00.342Z">
+<meta property="article:author" content="XKADPZ">
+<meta property="article:tag" content="HarmonyOS">
+<meta property="article:tag" content="元服务">
+<meta property="article:tag" content="万能卡片">
+<meta property="article:tag" content="FormKit">
+<meta property="article:tag" content="跨端流转">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dpzxka.github.io/img/default_top_img.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "鸿蒙元服务与万能卡片完全指南",
+  "url": "https://dpzxka.github.io/2026/08/24/%E9%B8%BF%E8%92%99%E5%85%83%E6%9C%8D%E5%8A%A1%E4%B8%8E%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/",
+  "image": "https://dpzxka.github.io/img/default_top_img.jpeg",
+  "datePublished": "2026-08-24T10:00:00.000Z",
+  "dateModified": "2026-08-30T00:04:00.342Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "XKADPZ",
+      "url": "https://dpzxka.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon_new.jpeg"><link rel="canonical" href="https://dpzxka.github.io/2026/08/24/%E9%B8%BF%E8%92%99%E5%85%83%E6%9C%8D%E5%8A%A1%E4%B8%8E%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '鸿蒙元服务与万能卡片完全指南',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#content-inner, #footer, #page-header:not(.full_page), #nav.show, #site-title, #site-subtitle, .recent-post-item, .layout, #post, .aside-content, #rightside, #sidebar-menus { animation: none !important; transition: none !important; } #loading, .loading-bg, #loading-box { display: none !important; }</style><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/avatar.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">54</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">78</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(/img/default_top_img.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小白兔与小猪猪</span></a><a class="nav-page-title" href="/"><span class="site-name">鸿蒙元服务与万能卡片完全指南</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-layer-group"></i><span> 分类目录</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/java/"><i class="fa-fw fa-brands fa-java"></i><span> Java</span></a></li><li><a class="site-page child" href="/android/"><i class="fa-fw fa-brands fa-android"></i><span> Android</span></a></li><li><a class="site-page child" href="/algorithm/"><i class="fa-fw fas fa-code"></i><span> Algorithm</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-film"></i><span> 电影</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 相册</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/carbonEmission/"><i class="fa-fw fas fa-leaf"></i><span> 碳排放</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">鸿蒙元服务与万能卡片完全指南</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-08-24T10:00:00.000Z" title="发表于 2026-08-24 18:00:00">2026-08-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-08-30T00:04:00.342Z" title="更新于 2026-08-30 08:04:00">2026-08-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%B8%BF%E8%92%99%E7%89%B9%E8%89%B2/">鸿蒙特色</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>19分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:180,&quot;messagePrev&quot;:&quot;本文最后更新于&quot;,&quot;messageNext&quot;:&quot;天前，内容可能已过时&quot;,&quot;postUpdate&quot;:&quot;2026-08-30 08:04:00&quot;}" hidden></div><h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>鸿蒙生态的差异化竞争力在于「一切皆服务」的理念。元服务实现<strong>免安装、即开即用</strong>，万能卡片实现<strong>信息前置、减少操作层级</strong>。本文结合官方文档与案例，深入解析这两大核心特性。</p>
+<span id="more"></span>
+
+<hr>
+<h2 id="一、元服务概述"><a href="#一、元服务概述" class="headerlink" title="一、元服务概述"></a>一、元服务概述</h2><h3 id="1-0-核心概念总览"><a href="#1-0-核心概念总览" class="headerlink" title="1.0 核心概念总览"></a>1.0 核心概念总览</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    graph TB
+    subgraph UserLayer[&quot;用户入口层&quot;]
+        Card[&quot;万能卡片&quot;]
+        Scan[&quot;扫码&quot;]
+        Touch[&quot;碰一碰&quot;]
+        Share[&quot;分享&quot;]
+        Search[&quot;搜索直达&quot;]
+    end
+    
+    subgraph ServiceLayer[&quot;元服务框架层&quot;]
+        Install[&quot;免安装调度&quot;]
+        Package[&quot;分包管理&quot;]
+        Preload[&quot;预加载&quot;]
+        Lifecycle[&quot;生命周期管理&quot;]
+    end
+    
+    subgraph BizLayer[&quot;业务层&quot;]
+        Entry[&quot;Entry模块&quot;]
+        Shared[&quot;Shared模块&quot;]
+        Logic[&quot;业务逻辑&quot;]
+    end
+    
+    UserLayer --&gt; ServiceLayer
+    ServiceLayer --&gt; BizLayer
+  </pre></div>
+
+<h3 id="1-1-什么是元服务"><a href="#1-1-什么是元服务" class="headerlink" title="1.1 什么是元服务"></a>1.1 什么是元服务</h3><p>元服务是 HarmonyOS 的轻量化服务形态，核心特性：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>免安装</strong></td>
+<td>无需通过应用市场安装，点击后后台安装即可使用</td>
+</tr>
+<tr>
+<td><strong>轻量化</strong></td>
+<td>单个分包 ≤ 2MB，总包 ≤ 10MB</td>
+</tr>
+<tr>
+<td><strong>即开即用</strong></td>
+<td>用户点击直接使用，无需等待下载安装</td>
+</tr>
+<tr>
+<td><strong>场景化</strong></td>
+<td>在合适的时间、地点、设备上提供服务</td>
+</tr>
+</tbody></table>
+<h3 id="1-2-元服务-vs-应用"><a href="#1-2-元服务-vs-应用" class="headerlink" title="1.2 元服务 vs 应用"></a>1.2 元服务 vs 应用</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>元服务</th>
+<th>应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安装方式</td>
+<td>免安装</td>
+<td>需要安装</td>
+</tr>
+<tr>
+<td>包大小</td>
+<td>分包 ≤ 2MB，总包 ≤ 10MB</td>
+<td>无限制</td>
+</tr>
+<tr>
+<td>预加载</td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td>API集</td>
+<td>元服务API集</td>
+<td>全量API</td>
+</tr>
+<tr>
+<td>入口</td>
+<td>万能卡片、扫码、碰一碰等</td>
+<td>桌面图标</td>
+</tr>
+</tbody></table>
+<h3 id="1-3-元服务-vs-应用对比"><a href="#1-3-元服务-vs-应用对比" class="headerlink" title="1.3 元服务 vs 应用对比"></a>1.3 元服务 vs 应用对比</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    graph LR
+    subgraph AtomicService[&quot;元服务&quot;]
+        AS1[&quot;免安装&quot;]
+        AS2[&quot;轻量化 ≤2MB&#x2F;分包&quot;]
+        AS3[&quot;即开即用&quot;]
+        AS4[&quot;场景化入口&quot;]
+    end
+    
+    subgraph TraditionalApp[&quot;传统应用&quot;]
+        App1[&quot;需要安装&quot;]
+        App2[&quot;包大小无限制&quot;]
+        App3[&quot;桌面图标入口&quot;]
+        App4[&quot;完整API集&quot;]
+    end
+    
+    AtomicService --&gt;|&quot;差异化&quot;| TraditionalApp
+  </pre></div>
+
+<hr>
+<h2 id="二、元服务开发实战"><a href="#二、元服务开发实战" class="headerlink" title="二、元服务开发实战"></a>二、元服务开发实战</h2><h3 id="2-1-开发准备"><a href="#2-1-开发准备" class="headerlink" title="2.1 开发准备"></a>2.1 开发准备</h3><ol>
+<li><strong>注册开发者</strong>：华为开发者联盟完成实名认证</li>
+<li><strong>创建元服务</strong>：在 AGC 平台创建元服务项目</li>
+<li><strong>安装 DevEco Studio</strong>：最新版本</li>
+</ol>
+<h3 id="2-2-创建元服务项目"><a href="#2-2-创建元服务项目" class="headerlink" title="2.2 创建元服务项目"></a>2.2 创建元服务项目</h3><p>在 DevEco Studio 中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">File → New → Create Project → Atomic Service</span><br></pre></td></tr></table></figure>
+
+<p>项目结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">entry/</span><br><span class="line">├── src/main/</span><br><span class="line">│   ├── ets/</span><br><span class="line">│   │   ├── entryability/      # 元服务入口</span><br><span class="line">│   │   └── pages/            # 页面</span><br><span class="line">│   ├── resources/            # 资源文件</span><br><span class="line">│   └── module.json5          # 模块配置</span><br><span class="line">oh-package.json5              # 依赖配置</span><br><span class="line">build-profile.json5           # 构建配置</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-核心配置"><a href="#2-3-核心配置" class="headerlink" title="2.3 核心配置"></a>2.3 核心配置</h3><p><strong>module.json5</strong> 关键配置：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;module&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;entry&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;entry&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$string:module_desc&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;mainElement&quot;</span><span class="punctuation">:</span> <span class="string">&quot;EntryAbility&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;deviceTypes&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;phone&quot;</span><span class="punctuation">,</span> <span class="string">&quot;tablet&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;deliveryWithInstall&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;installationFree&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span>  <span class="comment">// 免安装配置</span></span><br><span class="line">    <span class="attr">&quot;pages&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$profile:main_pages&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-元服务入口"><a href="#2-4-元服务入口" class="headerlink" title="2.4 元服务入口"></a>2.4 元服务入口</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/ets/entryability/EntryAbility.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">AbilityConstant</span>, <span class="title class_">UIAbility</span>, <span class="title class_">Want</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; hilog &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.PerformanceAnalysisKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="variable language_">window</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">TAG</span> = <span class="string">&#x27;EntryAbility&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> <span class="title class_">EntryAbility</span> <span class="keyword">extends</span> <span class="title class_ inherited__">UIAbility</span> &#123;</span><br><span class="line">  <span class="title function_">onCreate</span>(<span class="attr">want</span>: <span class="title class_">Want</span>, <span class="attr">launchParam</span>: <span class="title class_">AbilityConstant</span>.<span class="property">LaunchParam</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="number">0x0000</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;onCreate&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onDestroy</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="number">0x0000</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;onDestroy&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onWindowStageCreate</span>(<span class="attr">windowStage</span>: <span class="variable language_">window</span>.<span class="property">WindowStage</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="number">0x0000</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;onWindowStageCreate&#x27;</span>);</span><br><span class="line">    windowStage.<span class="title function_">loadContent</span>(<span class="string">&#x27;pages/Index&#x27;</span>, <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err.<span class="property">code</span>) &#123;</span><br><span class="line">        hilog.<span class="title function_">error</span>(<span class="number">0x0000</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;Failed to load content. Cause: %&#123;public&#125;s&#x27;</span>, <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(err));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      hilog.<span class="title function_">info</span>(<span class="number">0x0000</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;Succeeded in loading the content.&#x27;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-嵌入式运行元服务"><a href="#2-5-嵌入式运行元服务" class="headerlink" title="2.5 嵌入式运行元服务"></a>2.5 嵌入式运行元服务</h3><p>从 API 18 开始，支持在应用内嵌入式运行元服务：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在应用中嵌入运行元服务</span></span><br><span class="line"><span class="keyword">import</span> &#123; atomicService &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;嵌入运行元服务&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 通过 AtomicServiceEnhancedWeb 嵌入元服务</span></span><br><span class="line">          <span class="comment">// 需要在 oh-package.json5 添加依赖：</span></span><br><span class="line">          <span class="comment">// &quot;@atomicservice/ascfapi&quot;: &quot;^1.0.12&quot;</span></span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-6-元服务分享功能"><a href="#2-6-元服务分享功能" class="headerlink" title="2.6 元服务分享功能"></a>2.6 元服务分享功能</h3><p>从 6.0.0(20) 开始支持元服务分享 Button：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; shareButton &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 元服务分享按钮</span></span><br><span class="line">      <span class="title class_">ShareButton</span>(&#123;</span><br><span class="line">        <span class="attr">shareData</span>: &#123;</span><br><span class="line">          <span class="attr">title</span>: <span class="string">&#x27;分享标题&#x27;</span>,</span><br><span class="line">          <span class="attr">summary</span>: <span class="string">&#x27;分享内容&#x27;</span>,</span><br><span class="line">          <span class="attr">url</span>: <span class="string">&#x27;https://example.com&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、万能卡片开发"><a href="#三、万能卡片开发" class="headerlink" title="三、万能卡片开发"></a>三、万能卡片开发</h2><h3 id="3-1-卡片架构"><a href="#3-1-卡片架构" class="headerlink" title="3.1 卡片架构"></a>3.1 卡片架构</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    graph TB
+    subgraph Host[&quot;卡片使用方 - 桌面&quot;]
+        HostUI[&quot;UI展示&quot;]
+        HostMgr[&quot;位置管理&quot;]
+    end
+    
+    subgraph Framework[&quot;卡片框架&quot;]
+        FMgr[&quot;生命周期管理&quot;]
+        FRefresh[&quot;刷新机制&quot;]
+        FBind[&quot;数据绑定&quot;]
+    end
+    
+    subgraph Provider[&quot;卡片提供方 - 应用&quot;]
+        ProvUI[&quot;卡片页面&quot;]
+        ProvLogic[&quot;交互逻辑&quot;]
+        ProvData[&quot;数据更新&quot;]
+    end
+    
+    Host &lt;--&gt;|&quot;postCardAction&quot;| Framework
+    Framework &lt;--&gt;|&quot;updateForm&quot;| Provider
+  </pre></div>
+
+<h3 id="3-2-卡片生命周期"><a href="#3-2-卡片生命周期" class="headerlink" title="3.2 卡片生命周期"></a>3.2 卡片生命周期</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    sequenceDiagram
+    participant User as 用户
+    participant Home as 桌面
+    participant FW as 卡片框架
+    participant App as 应用
+    
+    User-&gt;&gt;Home: 长按添加卡片
+    Home-&gt;&gt;FW: createForm
+    FW-&gt;&gt;App: onAddForm
+    App--&gt;&gt;FW: 返回FormBindingData
+    FW--&gt;&gt;Home: 卡片渲染完成
+    Home--&gt;&gt;User: 显示卡片
+    
+    Note over User,App: 主动刷新
+    User-&gt;&gt;Home: 点击刷新按钮
+    Home-&gt;&gt;FW: postCardAction
+    FW-&gt;&gt;App: onFormEvent
+    App-&gt;&gt;App: 更新数据
+    App-&gt;&gt;FW: updateForm
+    FW--&gt;&gt;Home: 刷新卡片
+  </pre></div>
+
+<h3 id="3-3-卡片类型对比"><a href="#3-3-卡片类型对比" class="headerlink" title="3.3 卡片类型对比"></a>3.3 卡片类型对比</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>ArkTS卡片</th>
+<th>JS卡片</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发语言</td>
+<td>ArkTS</td>
+<td>JavaScript</td>
+</tr>
+<tr>
+<td>UI能力</td>
+<td>声明式UI + 动效 + 自定义绘制</td>
+<td>基础组件</td>
+</tr>
+<tr>
+<td>事件能力</td>
+<td>全量事件 + postCardAction</td>
+<td>基础事件</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>复杂交互、动效需求</td>
+<td>简单展示</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>更优</td>
+<td>一般</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-创建-ArkTS-卡片"><a href="#3-3-创建-ArkTS-卡片" class="headerlink" title="3.3 创建 ArkTS 卡片"></a>3.3 创建 ArkTS 卡片</h3><p>在 DevEco Studio 中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">File → New → Module → Widget → ArkTS Widget</span><br></pre></td></tr></table></figure>
+
+<p><strong>卡片配置文件 form_config.json</strong>：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;forms&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;widget&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;displayName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$string:widget_display_name&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$string:widget_desc&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;src&quot;</span><span class="punctuation">:</span> <span class="string">&quot;./ets/widget/pages/WidgetCard.ets&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;uiSyntax&quot;</span><span class="punctuation">:</span> <span class="string">&quot;arkts&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;isDynamic&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;isDefault&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;updateEnabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;scheduledUpdateTime&quot;</span><span class="punctuation">:</span> <span class="string">&quot;10:30&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;updateDuration&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;defaultDimension&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2*2&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;supportDimensions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;2*2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;4*2&quot;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-卡片页面开发"><a href="#3-4-卡片页面开发" class="headerlink" title="3.4 卡片页面开发"></a>3.4 卡片页面开发</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/ets/widget/pages/WidgetCard.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; widgetManager &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">WidgetCard</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">title</span>: <span class="built_in">string</span> = <span class="string">&#x27;加载中...&#x27;</span>;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">content</span>: <span class="built_in">string</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 获取卡片数据</span></span><br><span class="line">    <span class="keyword">const</span> formData = widgetManager.<span class="title function_">getWidgetFormData</span>();</span><br><span class="line">    <span class="keyword">if</span> (formData) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">title</span> = formData.<span class="property">title</span> || <span class="string">&#x27;默认标题&#x27;</span>;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">content</span> = formData.<span class="property">content</span> || <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">title</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">20</span>)</span><br><span class="line">        .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line">      </span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">content</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">8</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">padding</span>(<span class="number">16</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-卡片提供方-FormExtensionAbility"><a href="#3-5-卡片提供方-FormExtensionAbility" class="headerlink" title="3.5 卡片提供方 FormExtensionAbility"></a>3.5 卡片提供方 FormExtensionAbility</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/ets/entryformability/EntryFormAbility.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; formBindingData, <span class="title class_">FormExtensionAbility</span>, formInfo, formProvider &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.FormKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Want</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; hilog &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.PerformanceAnalysisKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">TAG</span> = <span class="string">&#x27;EntryFormAbility&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">DOMAIN_NUMBER</span> = <span class="number">0xFF00</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> <span class="title class_">EntryFormAbility</span> <span class="keyword">extends</span> <span class="title class_ inherited__">FormExtensionAbility</span> &#123;</span><br><span class="line">  <span class="comment">// 创建卡片</span></span><br><span class="line">  <span class="title function_">onAddForm</span>(<span class="params"><span class="attr">want</span>: <span class="title class_">Want</span></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> formData = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span> formBindingData.<span class="title function_">createFormBindingData</span>(formData);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 转为常态卡片</span></span><br><span class="line">  <span class="title function_">onCastToNormalForm</span>(<span class="attr">formId</span>: <span class="built_in">string</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;[EntryFormAbility] onCastToNormalForm&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 更新卡片（主动刷新）</span></span><br><span class="line">  <span class="title function_">onUpdateForm</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">FormDataClass</span> &#123;</span><br><span class="line">      <span class="attr">title</span>: <span class="built_in">string</span> = <span class="string">&#x27;Title: &#x27;</span> + <span class="title class_">Math</span>.<span class="title function_">random</span>();</span><br><span class="line">      <span class="attr">detail</span>: <span class="built_in">string</span> = <span class="string">&#x27;Description: &#x27;</span> + <span class="title class_">Math</span>.<span class="title function_">random</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">let</span> formData = <span class="keyword">new</span> <span class="title class_">FormDataClass</span>();</span><br><span class="line">    <span class="keyword">let</span> <span class="attr">formInfo</span>: formBindingData.<span class="property">FormBindingData</span> = </span><br><span class="line">      formBindingData.<span class="title function_">createFormBindingData</span>(formData);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 更新卡片数据</span></span><br><span class="line">    formProvider.<span class="title function_">updateForm</span>(formId, formInfo).<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;FormAbility updateForm success.&#x27;</span>);</span><br><span class="line">    &#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params"><span class="attr">error</span>: <span class="title class_">BusinessError</span></span>) =&gt;</span> &#123;</span><br><span class="line">      hilog.<span class="title function_">error</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, </span><br><span class="line">        <span class="string">`Operation updateForm failed. code: <span class="subst">$&#123;error.code&#125;</span>, message: <span class="subst">$&#123;error.message&#125;</span>`</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 处理卡片事件</span></span><br><span class="line">  <span class="title function_">onFormEvent</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span>, <span class="attr">message</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;[EntryFormAbility] onFormEvent&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 删除卡片</span></span><br><span class="line">  <span class="title function_">onRemoveForm</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;[EntryFormAbility] onRemoveForm&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 查询卡片状态</span></span><br><span class="line">  <span class="title function_">onAcquireFormState</span>(<span class="params"><span class="attr">want</span>: <span class="title class_">Want</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;[EntryFormAbility] onAcquireFormState&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> formInfo.<span class="property">FormState</span>.<span class="property">READY</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、卡片数据更新与交互"><a href="#四、卡片数据更新与交互" class="headerlink" title="四、卡片数据更新与交互"></a>四、卡片数据更新与交互</h2><h3 id="4-0-数据更新机制"><a href="#4-0-数据更新机制" class="headerlink" title="4.0 数据更新机制"></a>4.0 数据更新机制</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    graph TB
+    subgraph Trigger[&quot;触发方式&quot;]
+        Active[&quot;主动刷新 - 用户点击&quot;]
+        Passive[&quot;被动刷新 - 定时更新&quot;]
+        Push[&quot;推送更新 - 服务端触发&quot;]
+    end
+    
+    subgraph Handler[&quot;处理流程&quot;]
+        Event[&quot;onFormEvent&quot;]
+        Update[&quot;updateForm&quot;]
+        Render[&quot;重新渲染&quot;]
+    end
+    
+    Trigger --&gt; Handler
+    Event --&gt; Update
+    Update --&gt; Render
+  </pre></div>
+
+<h3 id="4-1-主动刷新"><a href="#4-1-主动刷新" class="headerlink" title="4.1 主动刷新"></a>4.1 主动刷新</h3><p>卡片使用方通过 <code>postCardAction</code> 触发刷新：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 卡片页面中</span></span><br><span class="line"><span class="keyword">import</span> &#123; postCardAction &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">WidgetCard</span> &#123;</span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;刷新&#x27;</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="title function_">postCardAction</span>(<span class="variable language_">this</span>, &#123;</span><br><span class="line">            <span class="attr">action</span>: <span class="string">&#x27;message&#x27;</span>,</span><br><span class="line">            <span class="attr">message</span>: <span class="string">&#x27;refresh&#x27;</span></span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>提供方处理刷新：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// EntryFormAbility.ets</span></span><br><span class="line"><span class="title function_">onFormEvent</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span>, <span class="attr">message</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (message === <span class="string">&#x27;refresh&#x27;</span>) &#123;</span><br><span class="line">    <span class="comment">// 更新卡片数据</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">onUpdateForm</span>(formId);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-被动刷新（定时更新）"><a href="#4-2-被动刷新（定时更新）" class="headerlink" title="4.2 被动刷新（定时更新）"></a>4.2 被动刷新（定时更新）</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// EntryFormAbility.ets</span></span><br><span class="line"><span class="title function_">onFormEvent</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span>, <span class="attr">message</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">  <span class="comment">// 设置5分钟后更新卡片</span></span><br><span class="line">  <span class="keyword">const</span> <span class="variable constant_">FIVE_MINUTE</span> = <span class="number">5</span>;</span><br><span class="line">  </span><br><span class="line">  formProvider.<span class="title function_">setFormNextRefreshTime</span>(formId, <span class="variable constant_">FIVE_MINUTE</span>, <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (err) &#123;</span><br><span class="line">      hilog.<span class="title function_">error</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, </span><br><span class="line">        <span class="string">`Failed to setFormNextRefreshTime. Code: <span class="subst">$&#123;err.code&#125;</span>, message: <span class="subst">$&#123;err.message&#125;</span>`</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN_NUMBER</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;Succeeded in setFormNextRefreshTiming.&#x27;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-卡片编辑功能"><a href="#4-3-卡片编辑功能" class="headerlink" title="4.3 卡片编辑功能"></a>4.3 卡片编辑功能</h3><p>从 API 18 开始支持半模态卡片编辑：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// form_config.json 中配置</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;forms&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;name&quot;</span>: <span class="string">&quot;widget&quot;</span>,</span><br><span class="line">      <span class="string">&quot;formConfigAbility&quot;</span>: <span class="string">&quot;pages/EditPage&quot;</span>,  <span class="comment">// 编辑页面</span></span><br><span class="line">      <span class="string">&quot;supportDimensions&quot;</span>: [<span class="string">&quot;2*2&quot;</span>, <span class="string">&quot;4*2&quot;</span>]</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-内容卡片组件"><a href="#4-4-内容卡片组件" class="headerlink" title="4.4 内容卡片组件"></a>4.4 内容卡片组件</h3><p>使用 <code>ContentFormCard</code> 快速创建内容卡片：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">ContentFormCard</span>, <span class="title class_">FormType</span>, uniformDataStruct &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkData&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">contentForm</span>: uniformDataStruct.<span class="property">ContentForm</span> = &#123;</span><br><span class="line">    <span class="attr">uniformDataType</span>: <span class="string">&#x27;general.content-form&#x27;</span>,</span><br><span class="line">    <span class="attr">title</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">startToShow</span>: <span class="built_in">boolean</span> = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">initData</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">initData</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> context = <span class="variable language_">this</span>.<span class="title function_">getUIContext</span>().<span class="title function_">getHostContext</span>();</span><br><span class="line">    <span class="keyword">if</span> (!context) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">let</span> appIcon = <span class="keyword">await</span> context.<span class="property">resourceManager</span>.<span class="title function_">getMediaContent</span>($r(<span class="string">&#x27;app.media.startIcon&#x27;</span>).<span class="property">id</span>);</span><br><span class="line">      <span class="keyword">let</span> thumbImage = <span class="keyword">await</span> context.<span class="property">resourceManager</span>.<span class="title function_">getMediaContent</span>($r(<span class="string">&#x27;app.media.foreground&#x27;</span>).<span class="property">id</span>);</span><br><span class="line">      </span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">contentForm</span> = &#123;</span><br><span class="line">        <span class="attr">uniformDataType</span>: <span class="string">&#x27;general.content-form&#x27;</span>,</span><br><span class="line">        <span class="attr">title</span>: <span class="string">&#x27;内容卡片标题&#x27;</span>,</span><br><span class="line">        <span class="attr">thumbData</span>: thumbImage,</span><br><span class="line">        <span class="attr">description</span>: <span class="string">&#x27;内容卡片描述&#x27;</span>,</span><br><span class="line">        <span class="attr">appIcon</span>: appIcon,</span><br><span class="line">        <span class="attr">appName</span>: <span class="string">&#x27;com.test.demo&#x27;</span></span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      hilog.<span class="title function_">error</span>(<span class="number">0xFF00</span>, <span class="string">&#x27;[Sample_Udmf]&#x27;</span>, <span class="string">&#x27;Init data error&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;显示卡片&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">30</span>)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">startToShow</span> = <span class="literal">true</span>;</span><br><span class="line">        &#125;)</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">startToShow</span>) &#123;</span><br><span class="line">        <span class="title class_">ContentFormCard</span>(&#123;</span><br><span class="line">          <span class="attr">contentFormData</span>: <span class="variable language_">this</span>.<span class="property">contentForm</span>,</span><br><span class="line">          <span class="attr">formType</span>: <span class="title class_">FormType</span>.<span class="property">TYPE_SMALL</span>,</span><br><span class="line">          <span class="attr">formWidth</span>: <span class="number">220</span>,</span><br><span class="line">          <span class="attr">formHeight</span>: <span class="number">100</span>,</span><br><span class="line">          <span class="attr">handleOnClick</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">            hilog.<span class="title function_">info</span>(<span class="number">0xFF00</span>, <span class="string">&#x27;[Sample_Udmf]&#x27;</span>, <span class="string">&#x27;Clicked card&#x27;</span>);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、跨端流转基础"><a href="#五、跨端流转基础" class="headerlink" title="五、跨端流转基础"></a>五、跨端流转基础</h2><h3 id="5-0-跨端流转架构"><a href="#5-0-跨端流转架构" class="headerlink" title="5.0 跨端流转架构"></a>5.0 跨端流转架构</h3><div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    sequenceDiagram
+    participant Phone as 手机
+    participant Cloud as 云端
+    participant Pad as 平板
+    
+    Phone-&gt;&gt;Cloud: 上传应用状态
+    Note over Phone,Cloud: 续接点数据
+    Cloud-&gt;&gt;Pad: 同步状态数据
+    Note over Phone,Pad: 设备发现与连接
+    Pad-&gt;&gt;Pad: 恢复应用状态
+    Pad--&gt;&gt;Phone: 无缝切换完成
+  </pre></div>
+
+<h3 id="5-1-什么是跨端流转"><a href="#5-1-什么是跨端流转" class="headerlink" title="5.1 什么是跨端流转"></a>5.1 什么是跨端流转</h3><p>跨端流转指应用&#x2F;元服务在不同设备间无缝迁移的能力：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>应用接续</strong></td>
+<td>在A设备上的应用状态迁移到B设备继续使用</td>
+</tr>
+<tr>
+<td><strong>跨设备迁移</strong></td>
+<td>应用在设备间无缝切换</td>
+</tr>
+<tr>
+<td><strong>分布式数据</strong></td>
+<td>数据在多设备间同步</td>
+</tr>
+</tbody></table>
+<h3 id="5-2-分布式数据对象"><a href="#5-2-分布式数据对象" class="headerlink" title="5.2 分布式数据对象"></a>5.2 分布式数据对象</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; distributedObject &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.DistributedDataKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建分布式对象</span></span><br><span class="line"><span class="keyword">let</span> obj = distributedObject.<span class="title function_">create</span>(&#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span>,</span><br><span class="line">  <span class="attr">age</span>: <span class="number">25</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 同步到其他设备</span></span><br><span class="line">obj.<span class="title function_">set</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;李四&#x27;</span> &#125;).<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;同步成功&#x27;</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-应用接续"><a href="#5-3-应用接续" class="headerlink" title="5.3 应用接续"></a>5.3 应用接续</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; continuationRegistry &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册接续能力</span></span><br><span class="line">continuationRegistry.<span class="title function_">register</span>(&#123;</span><br><span class="line">  <span class="comment">// 设备发现回调</span></span><br><span class="line">  <span class="title function_">onDeviceFound</span>(<span class="params">devices</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;发现设备:&#x27;</span>, devices);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// 数据迁移回调</span></span><br><span class="line">  <span class="title function_">onContinue</span>(<span class="params">wantParams</span>) &#123;</span><br><span class="line">    <span class="comment">// 返回需要迁移的数据</span></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="string">&#x27;currentPage&#x27;</span>: <span class="string">&#x27;Detail&#x27;</span>,</span><br><span class="line">      <span class="string">&#x27;dataId&#x27;</span>: <span class="string">&#x27;12345&#x27;</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、完整实战案例：天气卡片"><a href="#六、完整实战案例：天气卡片" class="headerlink" title="六、完整实战案例：天气卡片"></a>六、完整实战案例：天气卡片</h2><h3 id="6-1-项目结构"><a href="#6-1-项目结构" class="headerlink" title="6.1 项目结构"></a>6.1 项目结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">entry/</span><br><span class="line">├── src/main/</span><br><span class="line">│   ├── ets/</span><br><span class="line">│   │   ├── entryability/</span><br><span class="line">│   │   │   └── EntryAbility.ets        # 应用入口</span><br><span class="line">│   │   ├── entryformability/</span><br><span class="line">│   │   │   └── EntryFormAbility.ets    # 卡片提供方</span><br><span class="line">│   │   ├── pages/</span><br><span class="line">│   │   │   └── Index.ets              # 主页面</span><br><span class="line">│   │   └── widget/</span><br><span class="line">│   │       └── pages/</span><br><span class="line">│   │           └── WeatherCard.ets    # 卡片页面</span><br><span class="line">│   ├── resources/</span><br><span class="line">│   │   └── base/</span><br><span class="line">│   │       └── profile/</span><br><span class="line">│   │           └── form_config.json   # 卡片配置</span><br><span class="line">│   └── module.json5</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-卡片配置"><a href="#6-2-卡片配置" class="headerlink" title="6.2 卡片配置"></a>6.2 卡片配置</h3><figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/resources/base/profile/form_config.json</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;forms&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;weather&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;displayName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;天气卡片&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;显示当前天气信息&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;src&quot;</span><span class="punctuation">:</span> <span class="string">&quot;./ets/widget/pages/WeatherCard.ets&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;uiSyntax&quot;</span><span class="punctuation">:</span> <span class="string">&quot;arkts&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;isDynamic&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;isDefault&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;updateEnabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;scheduledUpdateTime&quot;</span><span class="punctuation">:</span> <span class="string">&quot;08:00&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;updateDuration&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;defaultDimension&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2*2&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;supportDimensions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;2*2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;4*2&quot;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-卡片页面实现"><a href="#6-3-卡片页面实现" class="headerlink" title="6.3 卡片页面实现"></a>6.3 卡片页面实现</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/ets/widget/pages/WeatherCard.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; postCardAction &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">WeatherData</span> &#123;</span><br><span class="line">  <span class="attr">city</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="attr">temperature</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">condition</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="attr">humidity</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">icon</span>: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">WeatherCard</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">weatherData</span>: <span class="title class_">WeatherData</span> = &#123;</span><br><span class="line">    <span class="attr">city</span>: <span class="string">&#x27;加载中...&#x27;</span>,</span><br><span class="line">    <span class="attr">temperature</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">condition</span>: <span class="string">&#x27;--&#x27;</span>,</span><br><span class="line">    <span class="attr">humidity</span>: <span class="number">0</span>,</span><br><span class="line">    <span class="attr">icon</span>: <span class="string">&#x27;☀️&#x27;</span></span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">aboutToAppear</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadWeatherData</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">loadWeatherData</span>(): <span class="built_in">void</span> &#123;</span><br><span class="line">    <span class="comment">// 模拟天气数据（实际项目中从服务端获取）</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">weatherData</span> = &#123;</span><br><span class="line">      <span class="attr">city</span>: <span class="string">&#x27;北京&#x27;</span>,</span><br><span class="line">      <span class="attr">temperature</span>: <span class="number">26</span>,</span><br><span class="line">      <span class="attr">condition</span>: <span class="string">&#x27;晴&#x27;</span>,</span><br><span class="line">      <span class="attr">humidity</span>: <span class="number">45</span>,</span><br><span class="line">      <span class="attr">icon</span>: <span class="string">&#x27;☀️&#x27;</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Builder</span></span><br><span class="line">  <span class="title function_">weatherInfo</span>(<span class="params"><span class="attr">title</span>: <span class="built_in">string</span>, <span class="attr">value</span>: <span class="built_in">string</span> | <span class="built_in">number</span></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(title)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">12</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="string">&#x27;#999999&#x27;</span>)</span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`<span class="subst">$&#123;value&#125;</span>`</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">16</span>)</span><br><span class="line">        .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Medium</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">4</span> &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="comment">// 城市和图标</span></span><br><span class="line">      <span class="title class_">Row</span>() &#123;</span><br><span class="line">        <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">weatherData</span>.<span class="property">icon</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">28</span>)</span><br><span class="line">        <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">weatherData</span>.<span class="property">city</span>)</span><br><span class="line">          .<span class="title function_">fontSize</span>(<span class="number">18</span>)</span><br><span class="line">          .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line">          .<span class="title function_">margin</span>(&#123; <span class="attr">left</span>: <span class="number">8</span> &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">      .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 温度</span></span><br><span class="line">      <span class="title class_">Text</span>(<span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.weatherData.temperature&#125;</span>°C`</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">36</span>)</span><br><span class="line">        .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">12</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 天气状况</span></span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">weatherData</span>.<span class="property">condition</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">14</span>)</span><br><span class="line">        .<span class="title function_">fontColor</span>(<span class="string">&#x27;#666666&#x27;</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">4</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 湿度信息</span></span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">weatherInfo</span>(<span class="string">&#x27;湿度&#x27;</span>, <span class="string">`<span class="subst">$&#123;<span class="variable language_">this</span>.weatherData.humidity&#125;</span>%`</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">12</span> &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 刷新按钮</span></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;刷新&#x27;</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">12</span>)</span><br><span class="line">        .<span class="title function_">height</span>(<span class="number">28</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">12</span> &#125;)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="title function_">postCardAction</span>(<span class="variable language_">this</span>, &#123;</span><br><span class="line">            <span class="attr">action</span>: <span class="string">&#x27;message&#x27;</span>,</span><br><span class="line">            <span class="attr">message</span>: <span class="string">&#x27;refresh_weather&#x27;</span></span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">padding</span>(<span class="number">16</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">SpaceBetween</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-卡片提供方"><a href="#6-4-卡片提供方" class="headerlink" title="6.4 卡片提供方"></a>6.4 卡片提供方</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/ets/entryformability/EntryFormAbility.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; formBindingData, <span class="title class_">FormExtensionAbility</span>, formInfo, formProvider &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.FormKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Want</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.AbilityKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; hilog &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.PerformanceAnalysisKit&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">BusinessError</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.BasicServicesKit&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">TAG</span> = <span class="string">&#x27;EntryFormAbility&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">DOMAIN</span> = <span class="number">0xFF00</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">WeatherFormData</span> &#123;</span><br><span class="line">  <span class="attr">city</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="attr">temperature</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">condition</span>: <span class="built_in">string</span>;</span><br><span class="line">  <span class="attr">humidity</span>: <span class="built_in">number</span>;</span><br><span class="line">  <span class="attr">updateTime</span>: <span class="built_in">string</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> <span class="title class_">EntryFormAbility</span> <span class="keyword">extends</span> <span class="title class_ inherited__">FormExtensionAbility</span> &#123;</span><br><span class="line">  <span class="title function_">onAddForm</span>(<span class="params"><span class="attr">want</span>: <span class="title class_">Want</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;onAddForm&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> formData = <span class="variable language_">this</span>.<span class="title function_">getWeatherData</span>();</span><br><span class="line">    <span class="keyword">return</span> formBindingData.<span class="title function_">createFormBindingData</span>(formData);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onCastToNormalForm</span>(<span class="attr">formId</span>: <span class="built_in">string</span>): <span class="built_in">void</span> &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">`onCastToNormalForm: <span class="subst">$&#123;formId&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onUpdateForm</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">`onUpdateForm: <span class="subst">$&#123;formId&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">const</span> formData = <span class="variable language_">this</span>.<span class="title function_">getWeatherData</span>();</span><br><span class="line">    <span class="keyword">const</span> formBinding = formBindingData.<span class="title function_">createFormBindingData</span>(formData);</span><br><span class="line">    </span><br><span class="line">    formProvider.<span class="title function_">updateForm</span>(formId, formBinding).<span class="title function_">then</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">&#x27;updateForm success&#x27;</span>);</span><br><span class="line">    &#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params"><span class="attr">err</span>: <span class="title class_">BusinessError</span></span>) =&gt;</span> &#123;</span><br><span class="line">      hilog.<span class="title function_">error</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">`updateForm failed: <span class="subst">$&#123;err.code&#125;</span> <span class="subst">$&#123;err.message&#125;</span>`</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onFormEvent</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span>, <span class="attr">message</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">`onFormEvent: <span class="subst">$&#123;formId&#125;</span>, message: <span class="subst">$&#123;message&#125;</span>`</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (message === <span class="string">&#x27;refresh_weather&#x27;</span>) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="title function_">onUpdateForm</span>(formId);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onRemoveForm</span>(<span class="params"><span class="attr">formId</span>: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    hilog.<span class="title function_">info</span>(<span class="variable constant_">DOMAIN</span>, <span class="variable constant_">TAG</span>, <span class="string">`onRemoveForm: <span class="subst">$&#123;formId&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onAcquireFormState</span>(<span class="attr">want</span>: <span class="title class_">Want</span>): formInfo.<span class="property">FormState</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> formInfo.<span class="property">FormState</span>.<span class="property">READY</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">getWeatherData</span>(): <span class="title class_">WeatherFormData</span> &#123;</span><br><span class="line">    <span class="comment">// 实际项目中从天气API获取</span></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">city</span>: <span class="string">&#x27;北京&#x27;</span>,</span><br><span class="line">      <span class="attr">temperature</span>: <span class="number">26</span>,</span><br><span class="line">      <span class="attr">condition</span>: <span class="string">&#x27;晴&#x27;</span>,</span><br><span class="line">      <span class="attr">humidity</span>: <span class="number">45</span>,</span><br><span class="line">      <span class="attr">updateTime</span>: <span class="keyword">new</span> <span class="title class_">Date</span>().<span class="title function_">toLocaleTimeString</span>()</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-5-主应用页面"><a href="#6-5-主应用页面" class="headerlink" title="6.5 主应用页面"></a>6.5 主应用页面</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// entry/src/main/ets/pages/Index.ets</span></span><br><span class="line"><span class="keyword">import</span> &#123; cardFormManager &#125; <span class="keyword">from</span> <span class="string">&#x27;@kit.ArkUI&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Entry</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line">struct <span class="title class_">Index</span> &#123;</span><br><span class="line">  <span class="meta">@State</span> <span class="attr">message</span>: <span class="built_in">string</span> = <span class="string">&#x27;天气卡片示例&#x27;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">build</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title class_">Column</span>() &#123;</span><br><span class="line">      <span class="title class_">Text</span>(<span class="variable language_">this</span>.<span class="property">message</span>)</span><br><span class="line">        .<span class="title function_">fontSize</span>(<span class="number">24</span>)</span><br><span class="line">        .<span class="title function_">fontWeight</span>(<span class="title class_">FontWeight</span>.<span class="property">Bold</span>)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;添加天气卡片到桌面&#x27;</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">20</span> &#125;)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 调用卡片管理器添加卡片</span></span><br><span class="line">          cardFormManager.<span class="title function_">requestAddForm</span>(&#123;</span><br><span class="line">            <span class="attr">formName</span>: <span class="string">&#x27;weather&#x27;</span>,</span><br><span class="line">            <span class="attr">dimension</span>: <span class="number">2</span>,</span><br><span class="line">            <span class="attr">formConfig</span>: &#123;</span><br><span class="line">              <span class="attr">isModal</span>: <span class="literal">true</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="title class_">Button</span>(<span class="string">&#x27;刷新所有卡片&#x27;</span>)</span><br><span class="line">        .<span class="title function_">margin</span>(&#123; <span class="attr">top</span>: <span class="number">10</span> &#125;)</span><br><span class="line">        .<span class="title function_">onClick</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          cardFormManager.<span class="title function_">requestRefreshAllForms</span>();</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    .<span class="title function_">width</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">height</span>(<span class="string">&#x27;100%&#x27;</span>)</span><br><span class="line">    .<span class="title function_">justifyContent</span>(<span class="title class_">FlexAlign</span>.<span class="property">Center</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、最佳实践"><a href="#七、最佳实践" class="headerlink" title="七、最佳实践"></a>七、最佳实践</h2><h3 id="7-1-元服务设计原则"><a href="#7-1-元服务设计原则" class="headerlink" title="7.1 元服务设计原则"></a>7.1 元服务设计原则</h3><table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>轻量化</strong></td>
+<td>控制包大小，优先使用分包</td>
+</tr>
+<tr>
+<td><strong>场景化</strong></td>
+<td>在合适场景提供服务</td>
+</tr>
+<tr>
+<td><strong>免配置</strong></td>
+<td>减少用户配置步骤</td>
+</tr>
+<tr>
+<td><strong>即开即用</strong></td>
+<td>快速响应用户需求</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-卡片设计原则"><a href="#7-2-卡片设计原则" class="headerlink" title="7.2 卡片设计原则"></a>7.2 卡片设计原则</h3><table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>信息前置</strong></td>
+<td>展示关键信息，减少操作层级</td>
+</tr>
+<tr>
+<td><strong>实时更新</strong></td>
+<td>保持数据新鲜度</td>
+</tr>
+<tr>
+<td><strong>交互简洁</strong></td>
+<td>核心操作一键直达</td>
+</tr>
+<tr>
+<td><strong>适配尺寸</strong></td>
+<td>支持多种卡片尺寸</td>
+</tr>
+</tbody></table>
+<h3 id="7-3-性能优化"><a href="#7-3-性能优化" class="headerlink" title="7.3 性能优化"></a>7.3 性能优化</h3><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 卡片数据缓存</span></span><br><span class="line"><span class="meta">@State</span> <span class="attr">cachedData</span>: <span class="title class_">FormData</span> | <span class="literal">null</span> = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_">aboutToAppear</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 优先使用缓存</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">cachedData</span> = widgetManager.<span class="title function_">getWidgetFormData</span>();</span><br><span class="line">  <span class="keyword">if</span> (!<span class="variable language_">this</span>.<span class="property">cachedData</span>) &#123;</span><br><span class="line">    <span class="comment">// 异步加载</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">loadDataAsync</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 避免频繁刷新</span></span><br><span class="line"><span class="keyword">let</span> lastRefreshTime = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">REFRESH_INTERVAL</span> = <span class="number">60000</span>; <span class="comment">// 1分钟</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">shouldRefresh</span>(<span class="params"></span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> now = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">  <span class="keyword">if</span> (now - lastRefreshTime &lt; <span class="variable constant_">REFRESH_INTERVAL</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  lastRefreshTime = now;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、常见问题"><a href="#八、常见问题" class="headerlink" title="八、常见问题"></a>八、常见问题</h2><h3 id="Q1-元服务包大小限制如何突破？"><a href="#Q1-元服务包大小限制如何突破？" class="headerlink" title="Q1: 元服务包大小限制如何突破？"></a>Q1: 元服务包大小限制如何突破？</h3><p><strong>A</strong>: 通过分包机制，单个分包 ≤ 2MB，总包可通过增加包个数突破 10MB 限制。</p>
+<h3 id="Q2-卡片如何实现实时更新？"><a href="#Q2-卡片如何实现实时更新？" class="headerlink" title="Q2: 卡片如何实现实时更新？"></a>Q2: 卡片如何实现实时更新？</h3><p><strong>A</strong>: </p>
+<ul>
+<li>主动刷新：<code>postCardAction</code> + <code>onFormEvent</code></li>
+<li>被动刷新：<code>setFormNextRefreshTime</code> 定时更新</li>
+<li>推送更新：服务端推送触发</li>
+</ul>
+<h3 id="Q3-元服务如何实现免安装？"><a href="#Q3-元服务如何实现免安装？" class="headerlink" title="Q3: 元服务如何实现免安装？"></a>Q3: 元服务如何实现免安装？</h3><p><strong>A</strong>: 在 <code>module.json5</code> 中配置 <code>&quot;installationFree&quot;: true</code>，系统会在用户点击时后台安装。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>元服务与万能卡片是鸿蒙生态的核心差异化能力：</p>
+<div class="mermaid-wrap"><pre class="mermaid-src" data-config="{}" hidden>
+    graph LR
+    subgraph Feature[&quot;核心特性&quot;]
+        AS[&quot;元服务&quot;]
+        Card[&quot;万能卡片&quot;]
+        Transfer[&quot;跨端流转&quot;]
+    end
+    
+    subgraph Value[&quot;用户价值&quot;]
+        V1[&quot;免安装&quot;]
+        V2[&quot;即开即用&quot;]
+        V3[&quot;信息前置&quot;]
+        V4[&quot;无缝切换&quot;]
+    end
+    
+    AS --&gt; V1
+    AS --&gt; V2
+    Card --&gt; V3
+    Transfer --&gt; V4
+  </pre></div>
+
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>价值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>元服务</strong></td>
+<td>免安装、即开即用，降低用户使用门槛</td>
+</tr>
+<tr>
+<td><strong>万能卡片</strong></td>
+<td>信息前置、减少操作层级，提升用户体验</td>
+</tr>
+<tr>
+<td><strong>跨端流转</strong></td>
+<td>设备间无缝迁移，实现连续体验</td>
+</tr>
+</tbody></table>
+<p>掌握这些技术，能让你的鸿蒙应用在生态中脱颖而出。</p>
+<hr>
+<p><strong>参考资料</strong>：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/atomic-service-development">元服务开发指南</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-form-overview">Form Kit 开发指南</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/distributed-data">分布式数据管理</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io">XKADPZ</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://dpzxka.github.io/2026/08/24/%E9%B8%BF%E8%92%99%E5%85%83%E6%9C%8D%E5%8A%A1%E4%B8%8E%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/">https://dpzxka.github.io/2026/08/24/%E9%B8%BF%E8%92%99%E5%85%83%E6%9C%8D%E5%8A%A1%E4%B8%8E%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://dpzxka.github.io" target="_blank">小白兔与小猪猪</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/HarmonyOS/">HarmonyOS</a><a class="post-meta__tags" href="/tags/%E5%85%83%E6%9C%8D%E5%8A%A1/">元服务</a><a class="post-meta__tags" href="/tags/%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87/">万能卡片</a><a class="post-meta__tags" href="/tags/FormKit/">FormKit</a><a class="post-meta__tags" href="/tags/%E8%B7%A8%E7%AB%AF%E6%B5%81%E8%BD%AC/">跨端流转</a></div><div class="post-share"><div class="social-share" data-image="/img/default_top_img.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/08/24/%E9%B8%BF%E8%92%99%E6%96%B0%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E6%90%AD%E5%BB%BA-MVVM%E4%B8%8E%E4%B8%89%E6%96%B9%E5%BA%93%E9%80%89%E5%9E%8B%E5%AE%9E%E6%88%98/" title="鸿蒙新项目架构搭建-MVVM与三方库选型实战"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-project-architecture-cover.svg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">鸿蒙新项目架构搭建-MVVM与三方库选型实战</div></div><div class="info-2"><div class="info-item-1">从零搭建鸿蒙新项目的完整架构方案，涵盖MVVM分层设计、目录结构规划、三方库选型（路由/网络/序列化/日志/图片加载/弹窗），以及可直接落地的企业级最佳实践。基于HarmonyOS NEXT API 12+。</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97-%E4%BB%8E%E6%8C%87%E6%A0%87%E5%88%B0%E5%B7%A5%E5%85%B7/" title="鸿蒙应用性能优化完全指南：从指标到工具"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-perf-overview-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙应用性能优化完全指南：从指标到工具</div></div><div class="info-2"><div class="info-item-1">前言在开发鸿蒙应用时，功能实现只是第一步，性能优化才是决定用户体验的关键。一个卡顿的列表、一次漫长的启动、一段耗电的后台任务，都可能让用户卸载你的应用。 鸿蒙系统提供了一套完整的性能分析工具链——DevEco Profiler，涵盖启动、帧率、CPU、内存四大维度。但很多开发者并不清楚：  什么指标算”达标”？ 各种 Profiler 分别解决什么问题？ 发现性能瓶颈后如何定位根因？  本篇作为性能优化系列的第一篇，不讲具体优化技巧，而是帮你建立一套完整的性能分析体系——知道用什么工具、看什么指标、怎么发现问题。  📌 系列导航  性能优化完全指南：从指标到工具（本文） 冷启动优化实战：从1200ms到300ms ArkUI渲染性能优化：告别卡顿与丢帧 内存管理与功耗优化：打造轻量级应用 并发编程与网络优化：Worker与TaskPool实战    一、性能优化的核心指标在开始优化之前，我们先明确衡量标准。鸿蒙应用的性能主要关注以下五个维度：    维度 核心指标 达标线 问题表现    启动 冷启动耗时 ≤ 1100ms 白屏时间长   启动 热启动耗时 &lt; 500ms...</div></div></div></a><a class="pagination-related" href="/2026/08/23/%E9%B8%BF%E8%92%99%E5%A4%9A%E7%AB%AF%E9%80%82%E9%85%8D-%E4%B8%80%E6%AC%A1%E5%BC%80%E5%8F%91%E5%A4%9A%E7%AB%AF%E9%83%A8%E7%BD%B2%E5%AE%9E%E6%88%98/" title="鸿蒙多端适配-一次开发多端部署实战：从理论到落地"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-onedevelop-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-23</div><div class="info-item-2">鸿蒙多端适配-一次开发多端部署实战：从理论到落地</div></div><div class="info-2"><div class="info-item-1">鸿蒙多端适配系列完结篇，通过完整的实战案例演示如何实现一次开发、多端部署。涵盖响应式布局、条件渲染、设备适配策略，以及从手机到平板到PC到手表的完整适配流程。基于官方文档的全面指南。</div></div></div></a><a class="pagination-related" href="/2026/08/24/%E9%B8%BF%E8%92%99%E6%96%B0%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E6%90%AD%E5%BB%BA-MVVM%E4%B8%8E%E4%B8%89%E6%96%B9%E5%BA%93%E9%80%89%E5%9E%8B%E5%AE%9E%E6%88%98/" title="鸿蒙新项目架构搭建-MVVM与三方库选型实战"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-project-architecture-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-24</div><div class="info-item-2">鸿蒙新项目架构搭建-MVVM与三方库选型实战</div></div><div class="info-2"><div class="info-item-1">从零搭建鸿蒙新项目的完整架构方案，涵盖MVVM分层设计、目录结构规划、三方库选型（路由/网络/序列化/日志/图片加载/弹窗），以及可直接落地的企业级最佳实践。基于HarmonyOS NEXT API 12+。</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B8%8E%E7%BD%91%E7%BB%9C%E4%BC%98%E5%8C%96-Worker%E4%B8%8ETaskPool%E5%AE%9E%E6%88%98/" title="鸿蒙并发编程与网络优化：Worker与TaskPool实战"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-concurrency-network-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙并发编程与网络优化：Worker与TaskPool实战</div></div><div class="info-2"><div class="info-item-1">深入解析鸿蒙TaskPool与Worker并发模型、线程间通信、负载均衡机制，以及HTTP缓存、请求合并等网络优化策略，附带完整代码示例。</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%B7%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98-%E4%BB%8E1200ms%E5%88%B0300ms/" title="鸿蒙冷启动优化实战：从1200ms到300ms"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-coldstart-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙冷启动优化实战：从1200ms到300ms</div></div><div class="info-2"><div class="info-item-1">前言 本文是「鸿蒙应用性能优化」系列的第2篇。上一篇我们建立了性能指标体系和DevEco Profiler的使用方法，这篇我们聚焦一个最影响用户第一印象的问题——冷启动。  你有没有遇到过这种情况：用户点了你的应用图标，然后盯着空白屏幕等了2秒、3秒甚至更久？每一秒的等待都在消耗用户的耐心。华为官方文档明确指出，冷启动时延大于1100ms时，可以认为是应用启动缓慢。因此，将冷启动控制在1000ms以内是基本目标，800ms以内则是更理想的体验。 这篇文章将带你：  理解冷启动的完整流程——知道每个阶段在做什么，才能找到优化点 掌握Launch Profiler的使用——用数据说话，而不是靠猜 学习6大优化策略——每个策略都有代码示例和效果数据 完成一个实战案例——从1200ms优化到300ms的完整过程     系列导航   序号 文章 核心内容    1 鸿蒙应用性能优化完全指南：从指标到工具 性能指标体系 + DevEco Profiler + ArkUI Inspector + Code Linter   2 本文：鸿蒙冷启动优化实战：从1200ms到300ms 冷启动原理...</div></div></div></a><a class="pagination-related" href="/2026/08/22/%E9%B8%BF%E8%92%99%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%8A%9F%E8%80%97%E4%BC%98%E5%8C%96-%E6%89%93%E9%80%A0%E8%BD%BB%E9%87%8F%E7%BA%A7%E5%BA%94%E7%94%A8/" title="鸿蒙内存管理与功耗优化：打造轻量级应用"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/img/harmonyos-memory-power-cover.svg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-22</div><div class="info-item-2">鸿蒙内存管理与功耗优化：打造轻量级应用</div></div><div class="info-2"><div class="info-item-1">深入解析鸿蒙HPP GC机制、内存泄漏检测、GC调优策略、后台任务功耗管理，附带实战代码示例和DevEco Profiler分析流程。</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%83%E6%9C%8D%E5%8A%A1%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">一、元服务概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-0-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E6%80%BB%E8%A7%88"><span class="toc-number">2.1.</span> <span class="toc-text">1.0 核心概念总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%85%83%E6%9C%8D%E5%8A%A1"><span class="toc-number">2.2.</span> <span class="toc-text">1.1 什么是元服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%85%83%E6%9C%8D%E5%8A%A1-vs-%E5%BA%94%E7%94%A8"><span class="toc-number">2.3.</span> <span class="toc-text">1.2 元服务 vs 应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%85%83%E6%9C%8D%E5%8A%A1-vs-%E5%BA%94%E7%94%A8%E5%AF%B9%E6%AF%94"><span class="toc-number">2.4.</span> <span class="toc-text">1.3 元服务 vs 应用对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%83%E6%9C%8D%E5%8A%A1%E5%BC%80%E5%8F%91%E5%AE%9E%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">二、元服务开发实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BC%80%E5%8F%91%E5%87%86%E5%A4%87"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 开发准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BA%E5%85%83%E6%9C%8D%E5%8A%A1%E9%A1%B9%E7%9B%AE"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 创建元服务项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A0%B8%E5%BF%83%E9%85%8D%E7%BD%AE"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 核心配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%85%83%E6%9C%8D%E5%8A%A1%E5%85%A5%E5%8F%A3"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 元服务入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%B5%8C%E5%85%A5%E5%BC%8F%E8%BF%90%E8%A1%8C%E5%85%83%E6%9C%8D%E5%8A%A1"><span class="toc-number">3.5.</span> <span class="toc-text">2.5 嵌入式运行元服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%85%83%E6%9C%8D%E5%8A%A1%E5%88%86%E4%BA%AB%E5%8A%9F%E8%83%BD"><span class="toc-number">3.6.</span> <span class="toc-text">2.6 元服务分享功能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%87%E8%83%BD%E5%8D%A1%E7%89%87%E5%BC%80%E5%8F%91"><span class="toc-number">4.</span> <span class="toc-text">三、万能卡片开发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8D%A1%E7%89%87%E6%9E%B6%E6%9E%84"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 卡片架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8D%A1%E7%89%87%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 卡片生命周期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%8D%A1%E7%89%87%E7%B1%BB%E5%9E%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">4.3.</span> <span class="toc-text">3.3 卡片类型对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%88%9B%E5%BB%BA-ArkTS-%E5%8D%A1%E7%89%87"><span class="toc-number">4.4.</span> <span class="toc-text">3.3 创建 ArkTS 卡片</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%8D%A1%E7%89%87%E9%A1%B5%E9%9D%A2%E5%BC%80%E5%8F%91"><span class="toc-number">4.5.</span> <span class="toc-text">3.4 卡片页面开发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%8D%A1%E7%89%87%E6%8F%90%E4%BE%9B%E6%96%B9-FormExtensionAbility"><span class="toc-number">4.6.</span> <span class="toc-text">3.5 卡片提供方 FormExtensionAbility</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8D%A1%E7%89%87%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E4%B8%8E%E4%BA%A4%E4%BA%92"><span class="toc-number">5.</span> <span class="toc-text">四、卡片数据更新与交互</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-0-%E6%95%B0%E6%8D%AE%E6%9B%B4%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">5.1.</span> <span class="toc-text">4.0 数据更新机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%BB%E5%8A%A8%E5%88%B7%E6%96%B0"><span class="toc-number">5.2.</span> <span class="toc-text">4.1 主动刷新</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%A2%AB%E5%8A%A8%E5%88%B7%E6%96%B0%EF%BC%88%E5%AE%9A%E6%97%B6%E6%9B%B4%E6%96%B0%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">4.2 被动刷新（定时更新）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%8D%A1%E7%89%87%E7%BC%96%E8%BE%91%E5%8A%9F%E8%83%BD"><span class="toc-number">5.4.</span> <span class="toc-text">4.3 卡片编辑功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%86%85%E5%AE%B9%E5%8D%A1%E7%89%87%E7%BB%84%E4%BB%B6"><span class="toc-number">5.5.</span> <span class="toc-text">4.4 内容卡片组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%B7%A8%E7%AB%AF%E6%B5%81%E8%BD%AC%E5%9F%BA%E7%A1%80"><span class="toc-number">6.</span> <span class="toc-text">五、跨端流转基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-0-%E8%B7%A8%E7%AB%AF%E6%B5%81%E8%BD%AC%E6%9E%B6%E6%9E%84"><span class="toc-number">6.1.</span> <span class="toc-text">5.0 跨端流转架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%B7%A8%E7%AB%AF%E6%B5%81%E8%BD%AC"><span class="toc-number">6.2.</span> <span class="toc-text">5.1 什么是跨端流转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%AF%B9%E8%B1%A1"><span class="toc-number">6.3.</span> <span class="toc-text">5.2 分布式数据对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%BA%94%E7%94%A8%E6%8E%A5%E7%BB%AD"><span class="toc-number">6.4.</span> <span class="toc-text">5.3 应用接续</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%AE%8C%E6%95%B4%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B%EF%BC%9A%E5%A4%A9%E6%B0%94%E5%8D%A1%E7%89%87"><span class="toc-number">7.</span> <span class="toc-text">六、完整实战案例：天气卡片</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 项目结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%8D%A1%E7%89%87%E9%85%8D%E7%BD%AE"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 卡片配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%8D%A1%E7%89%87%E9%A1%B5%E9%9D%A2%E5%AE%9E%E7%8E%B0"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 卡片页面实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%8D%A1%E7%89%87%E6%8F%90%E4%BE%9B%E6%96%B9"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 卡片提供方</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E4%B8%BB%E5%BA%94%E7%94%A8%E9%A1%B5%E9%9D%A2"><span class="toc-number">7.5.</span> <span class="toc-text">6.5 主应用页面</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">七、最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%85%83%E6%9C%8D%E5%8A%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 元服务设计原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%8D%A1%E7%89%87%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 卡片设计原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 性能优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">9.</span> <span class="toc-text">八、常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E5%85%83%E6%9C%8D%E5%8A%A1%E5%8C%85%E5%A4%A7%E5%B0%8F%E9%99%90%E5%88%B6%E5%A6%82%E4%BD%95%E7%AA%81%E7%A0%B4%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: 元服务包大小限制如何突破？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-%E5%8D%A1%E7%89%87%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%AE%9E%E6%97%B6%E6%9B%B4%E6%96%B0%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: 卡片如何实现实时更新？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%85%83%E6%9C%8D%E5%8A%A1%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%85%8D%E5%AE%89%E8%A3%85%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: 元服务如何实现免安装？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2020 - 2026 By XKADPZ</span></div><div class="footer_custom_text">xkadpz的欢乐乐园</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@19.1.3/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"mapping":"pathname","strict":0,"reactions_enabled":1,"emit_metadata":0,"input_position":"bottom","lang":"zh-CN"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'dpzxka/dpzxka.github.io',
+      'data-repo-id': 'R_kgDOG1bV9w',
+      'data-category-id': 'DIC_kwDOG1bV984C8ryi',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="/js/busuanzi.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.4"></script></div></div></body></html>
